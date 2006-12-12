@@ -11,7 +11,7 @@
 // default PIN code
 @0005 = 0031 0032 0033 0034
 // security
-@0006 = 0000 0001 0001
+@0006 = 0000 0000 0000
 // baud rate, stop bits, parity
 @0007 = 0027 0000 0000
 // analog input corrector
