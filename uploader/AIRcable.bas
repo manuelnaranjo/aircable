@@ -48,7 +48,7 @@
 0 REM variable E and F used in FOR loop
 
 @INIT 47
-47 Z = 1
+47 Z = 0
 48 A = baud 1152
 49 IF $2[0] = 122 THEN 510
 0 REM GREEN LED output and on
@@ -137,16 +137,15 @@
 147 PRINTU" config.txt
 
 148 PRINTU"\n\rUPDATING: 
-149 PRINTU$(20 +D-1) 
-150 C = 1
+149 $0 = $(20 + D - 1)
+150 PRINTU$0
 152 GOTO 200
 
 170 PRINTU"\n\rUPLOADING new
 171 PRINTU" AIRcable.bas
 172 PRINTU"\n\rUPDATING: 
-173 PRINTU$(20 +D-1)
+173 PRINTU$(20+D-1)
 174 D = D - 1;
-175 C = 2
 177 GOTO 210
 
 180 C = 0
@@ -162,21 +161,19 @@
 
 200 A = open "newconf.txt"
 201 IF A = 0 THEN 204
-202 $0 = $(20+D-1)
-203 B = ftp "config.txt"
-204 GOSUB 420
-205 A = close
-206 ALARM 2
-207 RETURN
+201 B = ftp "config.txt"
+202 GOSUB 420
+203 A = close
+204 ALARM 5
+205 RETURN
 
 210 A = open "newbasic.txt"
-211 IF A = 0 THEN 214
-212 $0 = $(20+D-1)
-213 B = ftp "AIRcable.bas"
-214 GOSUB 420
-215 A = close
-216 ALARM 2
-217 RETURN
+211 IF A = 0 THEN 215
+212 B = ftp "AIRcable.bas"
+213 GOSUB 420
+214 A = close
+215 ALARM 2
+216 RETURN
 
 @IDLE 301
 0 REM 300 A = slave -5
@@ -196,14 +193,14 @@
 426 GOTO 420
 427 A = pioclr($8[0]-48)
 428 E = success
-429 IF E = 1 THEN 435
-430 IF E = 0 THEN 433
-431 PRINTU "\n\rFTP/OPP error"
-432 RETURN
-433 PRINTU "\n\rno connection"
-434 RETURN
-435 PRINTU"\n\rDone
-436 C = C + 1
+429 C = C + 1
+430 IF E = 1 THEN 436
+431 IF E = 0 THEN 434
+432 PRINTU "\n\rFTP/OPP error"
+433 RETURN
+434 PRINTU "\n\rno connection"
+435 RETURN
+436 PRINTU"\n\rDone
 437 RETURN
 
 
