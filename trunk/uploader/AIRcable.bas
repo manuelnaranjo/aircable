@@ -11,7 +11,7 @@
 0 REM $2[4] RS232 POWER ON
 0 REM $2[5] DTR
 0 REM $2[6] DSR
-2 3450000
+2 z
 
 0 REM AIRcable.bas file
 3 newbasic.txt
@@ -21,6 +21,21 @@
 
 0 REM pin code
 5 1234
+
+
+0 REM DEFAULT pio settings IN ORDER
+0 REM BLUE LED
+0 REM GREEN LED
+0 REM BUTTON
+0 REM RS232 POWER OFF
+0 REM RS232 POWER ON
+0 REM DTR
+0 REM DSR
+
+0 REM for OEM
+7 3450000
+0 REM for SMD
+0 REM 7 K000000
 
 0 REM temp addresses in $10-16, max 6
 0 REM variable D index of these BTaddr 
@@ -32,14 +47,15 @@
 0 REM S = 66 device found
 0 REM variable E and F used in FOR loop
 
-@INIT 48
-48 Z = 0
-49 A = baud 1152
+@INIT 47
+47 Z = 1
+48 A = baud 1152
+49 IF $2[0] = 122 THEN 510
 0 REM GREEN LED output and on
-50 A=piout($2[1]-48)
+50 A=pioout($2[1]-48)
 51 A=pioset($2[1]-48)
 0 REM Blue LED output and off
-52 A=piout($2[0]-48)
+52 A=pioout($2[0]-48)
 53 A=pioclr($2[0]-48)
 54 D = 0
 55 $10[0] = 0
@@ -104,8 +120,9 @@
 121 IF D <> 0 THEN 138
 122 I = 10;
 123 A = inquiry 10;
-124 ALARM 2
-125 RETURN
+124 PRINTU "\n\rINQUIRY
+125 ALARM 2
+126 RETURN
 
 0 REM print how many devices we are going to handle
 138 A = cancel
@@ -149,7 +166,7 @@
 203 B = ftp "config.txt"
 204 GOSUB 420
 205 A = close
-206 ALARM 3
+206 ALARM 2
 207 RETURN
 
 210 A = open "newbasic.txt"
@@ -158,9 +175,8 @@
 213 B = ftp "AIRcable.bas"
 214 GOSUB 420
 215 A = close
-216 ALARM 3
+216 ALARM 2
 217 RETURN
-
 
 @IDLE 301
 0 REM 300 A = slave -5
@@ -173,13 +189,39 @@
 313 RETURN
 
 420 E = status
-421 IF E < 1000 THEN 424
-422 WAIT 5
-423 GOTO 420
-424 E = success
-425 IF E = 1 THEN 429
-426 PRINTU "\n\rFTP/OPP error"
-427 IF E = -1 THEN 429
-428 PRINTU "\n\rno connection"
-429 RETURN
+421 A = pioset ($8[0]-48)
+422 IF E < 1000 THEN 427
+423 WAIT 5
+424 PRINTU".
+426 GOTO 420
+427 A = pioclr($8[0]-48)
+428 E = success
+429 IF E = 1 THEN 435
+430 IF E = 0 THEN 433
+431 PRINTU "\n\rFTP/OPP error"
+432 RETURN
+433 PRINTU "\n\rno connection"
+434 RETURN
+435 PRINTU"\n\rDone
+436 C = C + 1
+437 RETURN
 
+
+0 REM THIS TURNS A CHAR AT $0[E] into
+0 REM and integer in F
+500 IF $0[E] > 57 THEN 503
+501 F = $0[E] - 48;
+502 RETURN
+0 REM WE NEED TO ADD 10 BECAUSE "A" IS NOT 0
+0 REM IS 10
+503 F = $0[E] - 55;
+504 RETURN
+
+510 $0[0] = 0
+511 PRINTV $7
+512 FOR E = 0 TO 6
+513 GOSUB 500
+514 $2[E] = F + 48
+515 NEXT E
+517 $2[8] = 0
+518 GOTO 50
