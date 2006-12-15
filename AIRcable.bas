@@ -217,14 +217,16 @@
 90 J = 0
 
 91 $3[3] = 48;
-
+92 GOTO 96;
 0 REM should go to mode dump
 96 IF $9[2] = 48 THEN 98
 97 GOSUB 700
 
 0 REM let's start up, green LED on
 98 A = pioset ($8[1]-48)
+
 0 REM stop FTP and OBEX if not on debug
+0 REM this code is also called from the command line on exit
 99 IF $9[3] = 49 THEN 103
 100 IF $9[4] = 49 THEN 106
 101 A = disable 3
@@ -327,7 +329,7 @@
 
 0 REM we were slave, now lets go to master.
 163 ALARM 0
-164 IF $9[3] = 48 THEN 166;
+164 IF $9[2] = 48 THEN 166;
 165 PRINTU "-> pair as master";
 166 $3[0] = 51;
 167 W = 0;
@@ -337,7 +339,7 @@
 
 0 REM switch to pair as slave
 171 ALARM 0
-172 IF $9[3] = 48 THEN 174 
+172 IF $9[2] = 48 THEN 174 
 173 PRINTU "-> pair as slave\n"
 174 $3[0] = 49
 175 W = 0
@@ -525,7 +527,7 @@
 
 0 REM disconnects, disconnect restarts @IDLE
 300 ALARM 0
-301 IF $9[3] = 48 THEN 303
+301 IF $9[2] = 48 THEN 303
 302 PRINTU "-> Discconnect\n\r"
 0 REM if we were paired, then we must unpair.
 303 IF $3[0] = 50 THEN 306
@@ -764,6 +766,7 @@
 
 520 $3[3] = 49
 521 ALARM 1
+522 A = enable 3
 523 RETURN
 
 
@@ -859,13 +862,12 @@
 0 REM that @SLAVE starts all again, and that
 0 REM we start unvisible
 600 PRINTU "Bye!!\n\r
-601 IF $9[1] <> 48 THEN 603
-602 A = disable 3
+601 GOSUB 99;
 603 $3[3] = 48;
 604 A = slave-1;
 605 A = uartint
 606 A = zerocnt
-607 RETURN
+608 RETURN
 
 0 REM info code
 610 PRINTU"Command Line v
