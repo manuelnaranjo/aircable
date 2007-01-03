@@ -1,0 +1,29 @@
+#############################################################################
+#	Config file for AIRcable Mini											#
+#																			#
+#	This is an example config file for AIRcable Mini						#
+#	The format for the file is:												#
+#		# is a comment the AIRcable Mini Tester will not send anything to 	#
+#			the device, it has to be the first char of each line			#
+#		+ means one letter command, must be the first char of the line		#
+#		* means multiple letter command (commands that need the \n at the 	#
+#			end), must be the first char of the line						#
+#																			#
+#																			#
+#	Lines must not be more than 80 chars long, empty lines not matching		#
+#	format are ignored, please don't add the EXIT command at the end it is	#
+#	automatically sended by the app											#
+#																			#
+#############################################################################
+
+# Set Name to AIRcable
++n
+*AIRcable
+
+# Set Mode to Cable Slave
++a
++3
+
+# Set PIN to 1234
++p
+*1234
