@@ -3,18 +3,20 @@ LANGUAGE	= C++
 
 CONFIG	+= qt warn_on debug
 
-LIBS	+= -lbluetooth -lkdeui -lserial -lusb -lusbpp -L/opt/kde/lib
+LIBS	+= -lbluetooth -lkdeui -lserial -L/opt/kde/lib
 
 INCLUDEPATH	+= /opt/kde/include
 
 HEADERS	+= aircableOS.h \
 	rfcomm.h \
-	aircableUSB.h
+	aircableUSB.h \
+	aircableSerial.h
 
 SOURCES	+= main.cpp \
 	aircableOS.cpp \
 	rfcomm.cpp \
-	aircableUSB.cpp
+	aircableUSB.cpp \
+	aircableSerial.cpp
 
 FORMS	= qtaircablemainform.ui \
 	qtabout.ui

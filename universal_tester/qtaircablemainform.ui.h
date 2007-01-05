@@ -26,6 +26,7 @@
 
 #include "aircableOS.h"
 #include "aircableUSB.h"
+#include "aircableSerial.h"
 #include "rfcomm.h"
 #include "qtabout.h"
 
@@ -33,6 +34,7 @@
 QTimer* 	timer;
 AIRcableOS*	aircableOS;
 AIRcableUSB*	aircableUSB;
+AIRcableSerial* aircableSerial;
 RfComm*		rfcomm;
 QFile*		file;
 QString		scriptOS, scriptUSB, scriptSerial;
@@ -63,6 +65,9 @@ enum STATE {
 
 	SERIAL_DETECTING,
 	SERIAL_FOUND,
+	SERIAL_TESTING,
+	SERIAL_TESTING_DONE,
+	SERIAL_TESTING_FAILURE,
 	SERIAL_SCRIPT_RUN,
 	SERIAL_SCRIPT_DONE,
 	SERIAL_SCRIPT_FAILURE,
@@ -247,6 +252,9 @@ void qtAIRcableMainForm::TimerEvent()
 			}
 			else if (k==2){
 				state = SERIAL_DETECTING;
+				aircableSerial = new AIRcableSerial("/dev/ttyS0");
+				aircableSerial->Open();
+				AddProgress("Detecting AIRcable Serial device...");
 			}
 
 			Start->setDisabled(true);
@@ -498,21 +506,148 @@ void qtAIRcableMainForm::TimerEvent()
 		}
 
 		case SERIAL_DETECTING:{
+			if (aircableSerial->checkConnected()){
+				AddProgress("Found an AIRcable Serial");
+				AddProgress("Starting test");
+				state = SERIAL_FOUND;
+			}			
+			break;
 		}
 
 		case SERIAL_FOUND:{
+			setWorking();
+			state = SERIAL_TESTING;
+			AddProgress("Sending testing settings");
+			state_usb = 0;
+			break;
+		}
+
+		case SERIAL_TESTING:{
+			switch (state_usb){
+				case 0: {
+					AddProgress("Send: ^A A0");	
+					aircableSerial->sendCommand("A0");
+					new_time = 4000;
+					state_usb=1;
+					break;
+				}
+
+				case 1: {
+					AddProgress("Send: ^A P1234");
+					aircableSerial->sendCommand("P1234");
+					new_time=500;
+					state_usb=2;
+					break;
+				}
+
+				case 2:{
+					AddProgress("Send: ^A B");
+					aircableSerial->sendCommand("B");
+					new_time=500;
+					state_usb=3;
+					break;
+				}
+
+				case 3: {
+					AddProgress("Opening SPP");
+					QString tmp;
+					tmp = aircableSerial->getBTAddress(aircableSerial->readBuffer());
+					rfcomm = new RfComm();
+					rfcomm->setAddress(tmp);
+					aircableSerial->sendCommand("S11");
+					new_time = 1000;
+					state_usb = 4;
+					break;
+				}
+				
+				case 4: {
+					AddProgress("Connecting");
+					rfcomm->Open();
+					new_time=1000;
+					state_usb = 5;
+					break;
+				}
+
+				case 5: {
+					int8_t irssi = 0;
+					int resp = rfcomm->getRSSI(&irssi);
+					if (resp >=0) {
+						QString rssi;
+						rssi = rssi.setNum(irssi);
+						AddProgress("RSSI: " + rssi);
+						AddProgress("Testing OK");
+						setWorking();
+						setDone();
+						clrFailure();
+						state = SERIAL_TESTING_DONE;
+					}
+					else{
+						clrWorking();
+						clrDone();
+						setFailure();
+						AddProgress("Couldn't Measure RSSI");
+						AddProgress("Testing Failed");
+						state = SERIAL_TESTING_FAILURE;
+					}
+					rfcomm->Close();
+					sleep(1);
+					aircableSerial->sendCommand("Y");
+					sleep(1);
+					delete(rfcomm);
+				}
+			}
+			
+			break;
+		}
+
+		case SERIAL_TESTING_DONE:{
+			file->reset();
+			state = SERIAL_SCRIPT_RUN;
+			break;
 		}
 
 		case SERIAL_SCRIPT_RUN:{
-		}
-
-		case SERIAL_SCRIPT_DONE:{
-		}
-
-		case SERIAL_SCRIPT_FAILURE: {
-			AddProgress("Timer");
+			aircableSerial->readBuffer();
+			if (!file->atEnd()){
+				QString line;
+				if ( file->readLine(line,80) > 0){
+					aircableSerial->readBuffer();
+					if (line.length()>0){
+						line = line.remove('\n');
+						line = line.remove('\r');
+						if (!line.startsWith("#")){
+							AddProgress("Sending: " + line);
+							aircableSerial->sendCommand(line);
+							new_time=400;
+						} else 
+							break;
+					}
+				}
+			} else {
+				state = SERIAL_SCRIPT_DONE;
+				setDone();
+				clrWorking();
+				clrFailure();
+				AddProgress("Test Ended. Results were OK");
+				AddProgress("Please Disconnect the device");
+				AddProgress("So I can test another one");
+			}
 			break;
 		}
+
+		case SERIAL_TESTING_FAILURE:
+		case SERIAL_SCRIPT_FAILURE:
+		case SERIAL_SCRIPT_DONE:{
+			if (!aircableSerial->checkConnected()){
+				clrWorking();
+				clrDone();
+				clrFailure();
+				state = SERIAL_DETECTING;
+				AddProgress("Waiting for an AIRcable Serial");
+			}
+			break;
+		}
+
 
 		case    STOP:{
 			if (aircableOS != NULL){
@@ -525,6 +660,12 @@ void qtAIRcableMainForm::TimerEvent()
 				if (aircableUSB->IsOpen())
 					aircableUSB->Close();
 				delete(aircableUSB);
+			}
+			
+			if (aircableSerial != NULL){
+				if (aircableSerial->IsOpen())
+					aircableSerial->Close();
+				delete(aircableSerial);
 			}
 			
 			delete(timer);
