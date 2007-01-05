@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>598</width>
-            <height>423</height>
+            <height>543</height>
         </rect>
     </property>
     <property name="caption">
@@ -40,10 +40,10 @@
         </property>
         <property name="geometry">
             <rect>
-                <x>80</x>
+                <x>40</x>
                 <y>150</y>
-                <width>440</width>
-                <height>254</height>
+                <width>529</width>
+                <height>356</height>
             </rect>
         </property>
         <property name="text">

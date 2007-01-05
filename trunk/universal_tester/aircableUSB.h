@@ -33,6 +33,7 @@ using namespace USB;
 
 #define DEBUG				1
 
+
 extern "C++" {
 	class AIRcableUSB : public SerialStream{
 		protected:
