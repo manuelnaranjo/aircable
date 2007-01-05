@@ -1,0 +1,431 @@
+<!DOCTYPE UI><UI version="3.3" stdsetdef="1">
+<class>qtAIRcableMainForm</class>
+<author>Manuel Naranjo &lt;manuel@aircable.net&gt;</author>
+<widget class="QMainWindow">
+    <property name="name">
+        <cstring>qtAIRcableMainForm</cstring>
+    </property>
+    <property name="geometry">
+        <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>610</width>
+            <height>395</height>
+        </rect>
+    </property>
+    <property name="minimumSize">
+        <size>
+            <width>21</width>
+            <height>131</height>
+        </size>
+    </property>
+    <property name="maximumSize">
+        <size>
+            <width>615</width>
+            <height>400</height>
+        </size>
+    </property>
+    <property name="caption">
+        <string>AIRcable Universal Tester</string>
+    </property>
+    <widget class="QLabel">
+        <property name="name">
+            <cstring>txtDevice</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>130</x>
+                <y>10</y>
+                <width>121</width>
+                <height>20</height>
+            </rect>
+        </property>
+        <property name="text">
+            <string>Device Type:</string>
+        </property>
+    </widget>
+    <widget class="QComboBox">
+        <item>
+            <property name="text">
+                <string>AIRcable USB</string>
+            </property>
+        </item>
+        <item>
+            <property name="text">
+                <string>AIRcable OS</string>
+            </property>
+        </item>
+        <item>
+            <property name="text">
+                <string>AIRcable Serial (Old)</string>
+            </property>
+        </item>
+        <property name="name">
+            <cstring>Device</cstring>
+        </property>
+        <property name="enabled">
+            <bool>true</bool>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>240</x>
+                <y>10</y>
+                <width>360</width>
+                <height>16</height>
+            </rect>
+        </property>
+    </widget>
+    <widget class="QLineEdit">
+        <property name="name">
+            <cstring>Script</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>220</x>
+                <y>290</y>
+                <width>310</width>
+                <height>20</height>
+            </rect>
+        </property>
+    </widget>
+    <widget class="QPushButton">
+        <property name="name">
+            <cstring>Browse</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>540</x>
+                <y>290</y>
+                <width>60</width>
+                <height>20</height>
+            </rect>
+        </property>
+        <property name="text">
+            <string>&amp;Browse</string>
+        </property>
+        <property name="accel">
+            <string>Alt+B</string>
+        </property>
+    </widget>
+    <widget class="QLabel">
+        <property name="name">
+            <cstring>textLabel2</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>140</x>
+                <y>290</y>
+                <width>69</width>
+                <height>20</height>
+            </rect>
+        </property>
+        <property name="text">
+            <string>Script File:</string>
+        </property>
+    </widget>
+    <widget class="QPushButton">
+        <property name="name">
+            <cstring>Stop</cstring>
+        </property>
+        <property name="enabled">
+            <bool>false</bool>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>370</x>
+                <y>320</y>
+                <width>230</width>
+                <height>20</height>
+            </rect>
+        </property>
+        <property name="text">
+            <string>S&amp;top</string>
+        </property>
+        <property name="accel">
+            <string>Alt+T</string>
+        </property>
+        <property name="default">
+            <bool>true</bool>
+        </property>
+    </widget>
+    <widget class="QPushButton">
+        <property name="name">
+            <cstring>Start</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>140</x>
+                <y>320</y>
+                <width>220</width>
+                <height>20</height>
+            </rect>
+        </property>
+        <property name="text">
+            <string>&amp;Start</string>
+        </property>
+        <property name="accel">
+            <string>Alt+S</string>
+        </property>
+        <property name="default">
+            <bool>true</bool>
+        </property>
+    </widget>
+    <widget class="QListBox">
+        <item>
+            <property name="text">
+                <string>Waiting for Device to Connect...</string>
+            </property>
+        </item>
+        <item>
+            <property name="text">
+                <string>Working</string>
+            </property>
+        </item>
+        <property name="name">
+            <cstring>Progress</cstring>
+        </property>
+        <property name="enabled">
+            <bool>true</bool>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>330</x>
+                <y>40</y>
+                <width>270</width>
+                <height>240</height>
+            </rect>
+        </property>
+        <property name="paletteForegroundColor">
+            <color>
+                <red>0</red>
+                <green>0</green>
+                <blue>255</blue>
+            </color>
+        </property>
+        <property name="currentItem">
+            <number>0</number>
+        </property>
+    </widget>
+    <widget class="QLabel">
+        <property name="name">
+            <cstring>Image</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>140</x>
+                <y>40</y>
+                <width>180</width>
+                <height>240</height>
+            </rect>
+        </property>
+        <property name="frameShape">
+            <enum>Box</enum>
+        </property>
+        <property name="margin">
+            <number>1</number>
+        </property>
+        <property name="text">
+            <string></string>
+        </property>
+        <property name="scaledContents">
+            <bool>true</bool>
+        </property>
+    </widget>
+    <widget class="KLed">
+        <property name="name">
+            <cstring>Failure</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>10</x>
+                <y>10</y>
+                <width>110</width>
+                <height>110</height>
+            </rect>
+        </property>
+        <property name="sizePolicy">
+            <sizepolicy>
+                <hsizetype>3</hsizetype>
+                <vsizetype>0</vsizetype>
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+            </sizepolicy>
+        </property>
+        <property name="color">
+            <color>
+                <red>255</red>
+                <green>0</green>
+                <blue>0</blue>
+            </color>
+        </property>
+    </widget>
+    <widget class="KLed">
+        <property name="name">
+            <cstring>Done</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>10</x>
+                <y>230</y>
+                <width>111</width>
+                <height>111</height>
+            </rect>
+        </property>
+    </widget>
+    <widget class="KLed">
+        <property name="name">
+            <cstring>Working</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>10</x>
+                <y>120</y>
+                <width>111</width>
+                <height>111</height>
+            </rect>
+        </property>
+        <property name="color">
+            <color>
+                <red>255</red>
+                <green>255</green>
+                <blue>0</blue>
+            </color>
+        </property>
+    </widget>
+</widget>
+<menubar>
+    <property name="name">
+        <cstring>MenuBarEditor</cstring>
+    </property>
+    <item text="File" name="File">
+        <action name="fileDefault_SettingsAction"/>
+        <action name="fileExitAction"/>
+    </item>
+    <item text="&amp;Help" name="Help">
+        <action name="helpAboutAction"/>
+    </item>
+    <separator/>
+</menubar>
+<toolbars>
+</toolbars>
+<customwidgets>
+</customwidgets>
+<actions>
+    <action>
+        <property name="name">
+            <cstring>helpAboutAction</cstring>
+        </property>
+        <property name="text">
+            <string>&amp;About</string>
+        </property>
+        <property name="menuText">
+            <string>&amp;About</string>
+        </property>
+    </action>
+    <action>
+        <property name="name">
+            <cstring>fileDefault_SettingsAction</cstring>
+        </property>
+        <property name="text">
+            <string>Load Default Settings</string>
+        </property>
+        <property name="menuText">
+            <string>Load Default Settings</string>
+        </property>
+    </action>
+    <action>
+        <property name="name">
+            <cstring>fileExitAction</cstring>
+        </property>
+        <property name="text">
+            <string>Exit</string>
+        </property>
+        <property name="menuText">
+            <string>Exit</string>
+        </property>
+    </action>
+</actions>
+<connections>
+    <connection>
+        <sender>Device</sender>
+        <signal>activated(int)</signal>
+        <receiver>qtAIRcableMainForm</receiver>
+        <slot>deviceChanged(int)</slot>
+    </connection>
+    <connection>
+        <sender>Browse</sender>
+        <signal>clicked()</signal>
+        <receiver>qtAIRcableMainForm</receiver>
+        <slot>Browse_clicked()</slot>
+    </connection>
+    <connection>
+        <sender>Start</sender>
+        <signal>clicked()</signal>
+        <receiver>qtAIRcableMainForm</receiver>
+        <slot>Start_clicked()</slot>
+    </connection>
+    <connection>
+        <sender>Stop</sender>
+        <signal>clicked()</signal>
+        <receiver>qtAIRcableMainForm</receiver>
+        <slot>Stop_clicked()</slot>
+    </connection>
+    <connection>
+        <sender>Script</sender>
+        <signal>textChanged(const QString&amp;)</signal>
+        <receiver>qtAIRcableMainForm</receiver>
+        <slot>ScriptChanged(const QString&amp;)</slot>
+    </connection>
+    <connection>
+        <sender>fileExitAction</sender>
+        <signal>activated()</signal>
+        <receiver>qtAIRcableMainForm</receiver>
+        <slot>fileExitAction_activated()</slot>
+    </connection>
+    <connection>
+        <sender>fileDefault_SettingsAction</sender>
+        <signal>activated()</signal>
+        <receiver>qtAIRcableMainForm</receiver>
+        <slot>fileDefault_SettingsAction_activated()</slot>
+    </connection>
+    <connection>
+        <sender>helpAboutAction</sender>
+        <signal>activated()</signal>
+        <receiver>qtAIRcableMainForm</receiver>
+        <slot>helpAboutAction_activated()</slot>
+    </connection>
+</connections>
+<includes>
+    <include location="local" impldecl="in implementation">qtaircablemainform.ui.h</include>
+</includes>
+<slots>
+    <slot>deviceChanged( int )</slot>
+    <slot>Browse_clicked()</slot>
+    <slot>Start_clicked()</slot>
+    <slot>Stop_clicked()</slot>
+    <slot>TimerEvent()</slot>
+    <slot>ScriptChanged( const QString &amp; newText )</slot>
+    <slot>fileExitAction_activated()</slot>
+    <slot>fileDefault_SettingsAction_activated()</slot>
+    <slot>helpAboutAction_activated()</slot>
+</slots>
+<functions>
+    <function>clrWorking()</function>
+    <function>setWorking()</function>
+    <function>setDone()</function>
+    <function>clrFailure()</function>
+    <function>setFailure()</function>
+    <function>init()</function>
+    <function>updateImage()</function>
+    <function>clrDone()</function>
+    <function access="private">AddProgress( QString arg )</function>
+    <function>destroy()</function>
+</functions>
+<pixmapinproject/>
+<layoutdefaults spacing="6" margin="11"/>
+<includehints>
+    <includehint>kled.h</includehint>
+    <includehint>kled.h</includehint>
+    <includehint>kled.h</includehint>
+</includehints>
+</UI>
