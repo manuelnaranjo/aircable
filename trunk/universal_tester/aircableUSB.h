@@ -35,7 +35,7 @@ using namespace USB;
 
 extern "C++" {
 	class AIRcableUSB : public SerialStream{
-		private:
+		protected:
 			string portID;
 			
 		public:
