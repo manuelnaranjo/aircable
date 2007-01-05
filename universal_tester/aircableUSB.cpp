@@ -80,10 +80,11 @@ void AIRcableUSB::sendCommand(string command){
 }
 
 string AIRcableUSB::getBTAddress(string input){
-	string out = "";
+	string out;
 	string temp = "ADDR: 112233445566";
 	unsigned int index;
 	if (input.size() >= temp.size()){
+		out = "";
 		index = input.find("ADDR: ",0);
 		if (index != string::npos){
 			temp="112233445566";

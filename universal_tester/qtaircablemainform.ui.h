@@ -17,6 +17,7 @@
 #include <qsettings.h>
 #include <qapplication.h>
 #include <qfiledialog.h>
+#include <qprocess.h>
 
 #include <iostream>
 
@@ -40,6 +41,8 @@ QFile*		file;
 QString		scriptOS, scriptUSB, scriptSerial;
 QSettings*	settings;
 int		state_usb;
+int		addr_count;
+int 		start_count;
 
 /**
  * States descriptor.
@@ -169,7 +172,7 @@ void qtAIRcableMainForm::deviceChanged( int )
 void qtAIRcableMainForm::Browse_clicked()
 {
 	QString new_script = QFileDialog::getOpenFileName(
-	    NULL,
+	    "/usr/share/aircable/script",
 	    "Script Files (*)",
 	    this,
 	    "script chooser",
@@ -271,8 +274,8 @@ void qtAIRcableMainForm::TimerEvent()
 			if (aircableUSB->checkConnected()){
 				AddProgress("Found an AIRcableUSB");
 				AddProgress("Starting test");
-				state = USB_FOUND;
-				aircableUSB->Open();
+				state = USB_FOUND;				
+				new_time=500;
 			}
 			
 			break;
@@ -280,6 +283,8 @@ void qtAIRcableMainForm::TimerEvent()
 
 		case USB_FOUND:{
 			setWorking();
+			aircableUSB->Open();
+			new_time=2000;				
 			state = USB_TESTING;
 			AddProgress("Sending testing settings");
 			state_usb = 0;
@@ -293,6 +298,7 @@ void qtAIRcableMainForm::TimerEvent()
 					aircableUSB->sendCommand("A0");
 					new_time = 4000;
 					state_usb=1;
+					addr_count = 0;
 					break;
 				}
 
@@ -300,7 +306,7 @@ void qtAIRcableMainForm::TimerEvent()
 					AddProgress("Send: ^A P1234");
 					aircableUSB->sendCommand("P1234");
 					new_time=500;
-					state_usb=2;
+					state_usb=2;					
 					break;
 				}
 
@@ -316,7 +322,23 @@ void qtAIRcableMainForm::TimerEvent()
 					AddProgress("Opening SPP");
 					QString tmp;
 					tmp = aircableUSB->getBTAddress(aircableUSB->readBuffer());
-					std::cerr<<"ADDR: "<<tmp<<std::endl;
+					if (tmp == NULL || tmp.isNull() || tmp.isEmpty()) {
+					    if (addr_count > 3) {
+						state = USB_SCRIPT_FAILURE;
+						clrDone();
+						clrWorking();
+						setFailure();
+						AddProgress("Couldn't Get Bluetooth Address");
+						AddProgress("Testing was not passed");
+					    } else {
+						addr_count++;
+						state_usb = 2;
+						new_time=500;
+					    }					    
+					    break;					    
+					}
+					
+					AddProgress("ADDR: " + tmp);
 					rfcomm = new RfComm();
 					rfcomm->setAddress(tmp);
 					aircableUSB->sendCommand("S11");
@@ -380,7 +402,13 @@ void qtAIRcableMainForm::TimerEvent()
 					if (line.length()>0){
 						line = line.remove('\n');
 						line = line.remove('\r');
-						if (!line.startsWith("#")){
+						if (line.startsWith("!")){
+						    line = line.remove("!");
+						    new_time = line.toInt();
+						    AddProgress("Sleeping for: " + line+ " ms");
+						    break;
+						}
+						else if (!line.startsWith("#")){
 							AddProgress("Sending: " + line);
 							aircableUSB->sendCommand(line);
 							new_time=400;
@@ -395,15 +423,15 @@ void qtAIRcableMainForm::TimerEvent()
 				clrFailure();
 				AddProgress("Test Ended. Results were OK");
 				AddProgress("Please Disconnect the device");
-				AddProgress("So I can test another one");
-				aircableUSB->Close();
+				AddProgress("So I can test another one");			
 			}
 			break;
 		}
 
 		case USB_TESTING_FAILURE:
 		case USB_SCRIPT_FAILURE:
-		case USB_SCRIPT_DONE:{
+		case USB_SCRIPT_DONE: {
+			aircableUSB->Close();
 			if (!aircableUSB->checkConnected()){
 				clrWorking();
 				clrDone();
@@ -414,26 +442,45 @@ void qtAIRcableMainForm::TimerEvent()
 			break;
 		}
 
-		case OS_DETECTING:{
+		case OS_DETECTING: {
 			if (aircableOS->checkConnected()){
 				state = OS_FOUND;
 				AddProgress("Found a device");
 				file->reset();
 				setWorking();
 				clrDone();
-				clrFailure();
-				AddProgress("Sending +++");
-				aircableOS->emptyBuffer();
-				aircableOS->sendCommand("+++");
-				new_time=4000;
+				clrFailure();	
+				aircableOS->emptyBuffer();			
+				new_time=500;
+				start_count=0;
 			} else
 				AddProgress("Detecting AIRcableOS device...");	
 			break;
 		}
 		
 		case OS_FOUND:{
+			QString temp;
 			state = OS_SCRIPT_RUN;
-			AddProgress("Starting to send Script");
+			
+			temp = aircableOS->readBuffer();
+			
+			if ( temp.find("AIRcable>")== -1){
+			    if (start_count > 4){
+				AddProgress("Sorry this device is not working");
+				clrDone();
+				clrWorking();
+				setFailure();								
+			    }else {
+				AddProgress("Sending +++");			
+				aircableOS->sendCommand("+++");
+				new_time=4000;
+				start_count++;
+			    }
+			} else {
+				AddProgress("Starting to send Script");
+				new_time=200;
+				state = OS_SCRIPT_RUN;
+			}
 			break;
 		}
 	
@@ -449,7 +496,12 @@ void qtAIRcableMainForm::TimerEvent()
 					if (line.length()>0){
 						line = line.remove('\n');
 						line = line.remove('\r');
-						if (line.startsWith("+")){
+						if (line.startsWith("!")){
+						    line = line.remove("!");
+						    new_time = line.toInt();
+						    AddProgress("Sleeping for: " + line +" ms");
+						    break;
+						} else if (line.startsWith("+")){
 							line = line.right(1);
 							compare = line;
 							TIME = 5;
@@ -529,6 +581,7 @@ void qtAIRcableMainForm::TimerEvent()
 					aircableSerial->sendCommand("A0");
 					new_time = 4000;
 					state_usb=1;
+					addr_count = 0;
 					break;
 				}
 
@@ -552,6 +605,21 @@ void qtAIRcableMainForm::TimerEvent()
 					AddProgress("Opening SPP");
 					QString tmp;
 					tmp = aircableSerial->getBTAddress(aircableSerial->readBuffer());
+					if (tmp == NULL || tmp.isNull() || tmp.isEmpty()) {
+					    if (addr_count > 3) {
+						state = USB_SCRIPT_FAILURE;
+						clrDone();
+						clrWorking();
+						setFailure();
+						AddProgress("Couldn't Get Bluetooth Address");
+						AddProgress("Testing was not passed");
+					    } else {
+						addr_count++;
+						state_usb = 2;
+						new_time=500;
+					    }					    
+					    break;					    
+					}					
 					rfcomm = new RfComm();
 					rfcomm->setAddress(tmp);
 					aircableSerial->sendCommand("S11");
@@ -615,7 +683,12 @@ void qtAIRcableMainForm::TimerEvent()
 					if (line.length()>0){
 						line = line.remove('\n');
 						line = line.remove('\r');
-						if (!line.startsWith("#")){
+						if (line.startsWith("!")){
+						    line = line.remove("!");
+						    new_time = line.toInt();
+						    AddProgress("Sleeping for: " + line +" ms");
+						    break;
+						} else if (!line.startsWith("#")){
 							AddProgress("Sending: " + line);
 							aircableSerial->sendCommand(line);
 							new_time=400;
@@ -729,10 +802,10 @@ void qtAIRcableMainForm::fileExitAction_activated()
 
 void qtAIRcableMainForm::fileDefault_SettingsAction_activated()
 {
-	scriptUSB = "/usr/share/aircable/script/usb";
-	scriptOS = "/usr/share/aircable/script/os";
-	scriptSerial = "/usr/share/aircable/script/serial";
-	updateImage();
+    scriptUSB = "/usr/share/aircable/script/usb";
+    scriptOS = "/usr/share/aircable/script/os";
+    scriptSerial = "/usr/share/aircable/script/serial";
+    updateImage();
 }
 
 
@@ -741,4 +814,15 @@ void qtAIRcableMainForm::helpAboutAction_activated()
     qtAbout* form;
     form = new qtAbout();    
     form->exec();   
+}
+
+
+void qtAIRcableMainForm::Edit_clicked()
+{
+    QProcess* kwrite;
+    kwrite = new QProcess(this);
+    kwrite->addArgument( "kwrite" );
+    kwrite->addArgument( Script->text() );
+    kwrite->start();
+    delete(kwrite);
 }

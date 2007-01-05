@@ -16,7 +16,7 @@
     <property name="minimumSize">
         <size>
             <width>21</width>
-            <height>131</height>
+            <height>147</height>
         </size>
     </property>
     <property name="maximumSize">
@@ -73,38 +73,6 @@
                 <width>360</width>
                 <height>16</height>
             </rect>
-        </property>
-    </widget>
-    <widget class="QLineEdit">
-        <property name="name">
-            <cstring>Script</cstring>
-        </property>
-        <property name="geometry">
-            <rect>
-                <x>220</x>
-                <y>290</y>
-                <width>310</width>
-                <height>20</height>
-            </rect>
-        </property>
-    </widget>
-    <widget class="QPushButton">
-        <property name="name">
-            <cstring>Browse</cstring>
-        </property>
-        <property name="geometry">
-            <rect>
-                <x>540</x>
-                <y>290</y>
-                <width>60</width>
-                <height>20</height>
-            </rect>
-        </property>
-        <property name="text">
-            <string>&amp;Browse</string>
-        </property>
-        <property name="accel">
-            <string>Alt+B</string>
         </property>
     </widget>
     <widget class="QLabel">
@@ -170,67 +138,6 @@
             <bool>true</bool>
         </property>
     </widget>
-    <widget class="QListBox">
-        <item>
-            <property name="text">
-                <string>Waiting for Device to Connect...</string>
-            </property>
-        </item>
-        <item>
-            <property name="text">
-                <string>Working</string>
-            </property>
-        </item>
-        <property name="name">
-            <cstring>Progress</cstring>
-        </property>
-        <property name="enabled">
-            <bool>true</bool>
-        </property>
-        <property name="geometry">
-            <rect>
-                <x>330</x>
-                <y>40</y>
-                <width>270</width>
-                <height>240</height>
-            </rect>
-        </property>
-        <property name="paletteForegroundColor">
-            <color>
-                <red>0</red>
-                <green>0</green>
-                <blue>255</blue>
-            </color>
-        </property>
-        <property name="currentItem">
-            <number>0</number>
-        </property>
-    </widget>
-    <widget class="QLabel">
-        <property name="name">
-            <cstring>Image</cstring>
-        </property>
-        <property name="geometry">
-            <rect>
-                <x>140</x>
-                <y>40</y>
-                <width>180</width>
-                <height>240</height>
-            </rect>
-        </property>
-        <property name="frameShape">
-            <enum>Box</enum>
-        </property>
-        <property name="margin">
-            <number>1</number>
-        </property>
-        <property name="text">
-            <string></string>
-        </property>
-        <property name="scaledContents">
-            <bool>true</bool>
-        </property>
-    </widget>
     <widget class="KLed">
         <property name="name">
             <cstring>Failure</cstring>
@@ -292,6 +199,118 @@
             </color>
         </property>
     </widget>
+    <widget class="QLineEdit">
+        <property name="name">
+            <cstring>Script</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>220</x>
+                <y>290</y>
+                <width>240</width>
+                <height>24</height>
+            </rect>
+        </property>
+    </widget>
+    <widget class="QListBox">
+        <item>
+            <property name="text">
+                <string>Waiting for Device to Connect...</string>
+            </property>
+        </item>
+        <item>
+            <property name="text">
+                <string>Working</string>
+            </property>
+        </item>
+        <property name="name">
+            <cstring>Progress</cstring>
+        </property>
+        <property name="enabled">
+            <bool>true</bool>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>330</x>
+                <y>40</y>
+                <width>270</width>
+                <height>240</height>
+            </rect>
+        </property>
+        <property name="paletteForegroundColor">
+            <color>
+                <red>0</red>
+                <green>0</green>
+                <blue>255</blue>
+            </color>
+        </property>
+        <property name="currentItem">
+            <number>0</number>
+        </property>
+    </widget>
+    <widget class="QPushButton">
+        <property name="name">
+            <cstring>Browse</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>540</x>
+                <y>290</y>
+                <width>60</width>
+                <height>20</height>
+            </rect>
+        </property>
+        <property name="text">
+            <string>&amp;Browse</string>
+        </property>
+        <property name="accel">
+            <string>Alt+B</string>
+        </property>
+    </widget>
+    <widget class="QLabel">
+        <property name="name">
+            <cstring>Image</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>140</x>
+                <y>40</y>
+                <width>180</width>
+                <height>240</height>
+            </rect>
+        </property>
+        <property name="frameShape">
+            <enum>Box</enum>
+        </property>
+        <property name="margin">
+            <number>1</number>
+        </property>
+        <property name="text">
+            <string></string>
+        </property>
+        <property name="scaledContents">
+            <bool>true</bool>
+        </property>
+    </widget>
+    <widget class="QPushButton">
+        <property name="name">
+            <cstring>Edit</cstring>
+        </property>
+        <property name="geometry">
+            <rect>
+                <x>470</x>
+                <y>290</y>
+                <width>60</width>
+                <height>20</height>
+            </rect>
+        </property>
+        <property name="text">
+            <string>&amp;Edit</string>
+        </property>
+        <property name="accel">
+            <string>Alt+E</string>
+        </property>
+    </widget>
 </widget>
 <menubar>
     <property name="name">
@@ -308,8 +327,6 @@
 </menubar>
 <toolbars>
 </toolbars>
-<customwidgets>
-</customwidgets>
 <actions>
     <action>
         <property name="name">
@@ -394,6 +411,12 @@
         <receiver>qtAIRcableMainForm</receiver>
         <slot>helpAboutAction_activated()</slot>
     </connection>
+    <connection>
+        <sender>Edit</sender>
+        <signal>clicked()</signal>
+        <receiver>qtAIRcableMainForm</receiver>
+        <slot>Edit_clicked()</slot>
+    </connection>
 </connections>
 <includes>
     <include location="local" impldecl="in implementation">qtaircablemainform.ui.h</include>
@@ -408,6 +431,7 @@
     <slot>fileExitAction_activated()</slot>
     <slot>fileDefault_SettingsAction_activated()</slot>
     <slot>helpAboutAction_activated()</slot>
+    <slot>Edit_clicked()</slot>
 </slots>
 <functions>
     <function>clrWorking()</function>
