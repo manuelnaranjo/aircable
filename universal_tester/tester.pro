@@ -7,6 +7,8 @@ LIBS	+= -lbluetooth -lkdeui -lserial -L/opt/kde/lib
 
 INCLUDEPATH	+= /opt/kde/include
 
+TARGET = aircable_tester
+
 HEADERS	+= aircableOS.h \
 	rfcomm.h \
 	aircableUSB.h \
