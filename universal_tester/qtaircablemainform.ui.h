@@ -76,7 +76,6 @@ enum STATE {
 	SERIAL_SCRIPT_FAILURE,
 
 	STOP
-
 };
 
 STATE state;
@@ -195,6 +194,7 @@ void qtAIRcableMainForm::Stop_clicked()
 {
 	AddProgress("Stop...");
 	state = STOP;
+	timer->start(100,TRUE);
 }
 
 void qtAIRcableMainForm::AddProgress( QString arg)
@@ -451,10 +451,9 @@ void qtAIRcableMainForm::TimerEvent()
 				clrDone();
 				clrFailure();	
 				aircableOS->emptyBuffer();			
-				new_time=500;
+				new_time=5000;
 				start_count=0;
-			} else
-				AddProgress("Detecting AIRcableOS device...");	
+			}
 			break;
 		}
 		
@@ -553,6 +552,7 @@ void qtAIRcableMainForm::TimerEvent()
 				clrDone();
 				clrWorking();
 				clrFailure();
+				AddProgress("Detecting AIRcable OS...");
 			} 
 			break;
 		}
@@ -759,7 +759,7 @@ void qtAIRcableMainForm::TimerEvent()
 		default:
 			return;
 	}
-	timer->start(new_time);
+	timer->start(new_time, TRUE);
 }
 
 void qtAIRcableMainForm::destroy()
