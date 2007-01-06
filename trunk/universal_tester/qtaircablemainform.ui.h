@@ -450,9 +450,10 @@ void qtAIRcableMainForm::TimerEvent()
 				setWorking();
 				clrDone();
 				clrFailure();	
+				aircableOS->readBuffer();
 				aircableOS->emptyBuffer();			
-				new_time=5000;
-				start_count=0;
+				new_time=9000;
+				start_count=0;				
 			}
 			break;
 		}
@@ -463,7 +464,7 @@ void qtAIRcableMainForm::TimerEvent()
 			
 			temp = aircableOS->readBuffer();
 			
-			if ( temp.find("AIRcable>")== -1){
+			if ( temp.find("AIRcable>") == -1){
 			    if (start_count > 4){
 				AddProgress("Sorry this device is not working");
 				clrDone();
@@ -552,8 +553,10 @@ void qtAIRcableMainForm::TimerEvent()
 				clrDone();
 				clrWorking();
 				clrFailure();
-				AddProgress("Detecting AIRcable OS...");
-			} 
+				AddProgress("Detecting AIRcableOS device...");				
+			}  else
+			    aircableOS->readBuffer();
+			
 			break;
 		}
 

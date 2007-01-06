@@ -90,9 +90,9 @@ string AIRcableOS::readBuffer(void){
 	/*if (debug > 0)
 		std::cerr<<endl;*/
 
-	buffer+=temp;
+//	buffer+=temp;
 
-	return buffer;
+	return temp;
 }
 
 bool AIRcableOS::checkConnected(void){
