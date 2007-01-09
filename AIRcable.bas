@@ -219,7 +219,7 @@
 90 J = 0
 
 91 $3[3] = 48;
-92 GOTO 96;
+
 0 REM should go to mode dump
 92 IF $9[2] = 48 THEN 94
 93 GOSUB 700
@@ -227,15 +227,26 @@
 0 REM let's start up, green LED on
 94 A = pioset ($8[1]-48)
 
-0 REM stop FTP and OBEX if not on debug
-0 REM this code is also called from the command line on exit
-95 IF $9[3] = 49 THEN 97
-96 A = disable 3
-
-97 K = 1
+96 K = 1
 0 REM now we go to @IDLE, and then we get into the @ALARM
-98 A = uartint
-99 RETURN
+95 A = uartint
+97 H = 1
+98 RETURN
+
+0 REM Obex/ObexFTP timing handler
+0 REM this code is also called from the command line on exit
+99 B = readcnt
+100 IF B < 120 THEN 108
+101 GOSUB 105
+103 H = 0
+104 GOTO 235
+
+105 IF $9[3] = 49 THEN 107
+106 A = disable 3
+107 RETURN
+
+108 ALARM 30
+109 GOTO 235
 
 @SENSOR 111
 0 REM baud rate selector switch implementation
@@ -422,6 +433,8 @@
 0 REM should go to mode dumping
 232 IF $9[2] = 48 THEN 234
 233 GOSUB 700
+
+234 IF H = 1 THEN 99
 
 235 IF $3[0] > 52 THEN 988
 
@@ -853,7 +866,7 @@
 0 REM that @SLAVE starts all again, and that
 0 REM we start unvisible
 600 PRINTU "Bye!!\n\r
-601 GOSUB 95;
+601 GOSUB 105;
 603 $3[3] = 48;
 604 A = slave-1;
 605 A = uartint
