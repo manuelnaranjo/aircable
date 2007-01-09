@@ -6,7 +6,7 @@
 0 REM let's reserve the first 30 lines for internal stuff
 
 0 REM $1 is the version of the command line
-1 0.4
+1 0.5a
 
 0 REM defaults setting for mode
 0 REM uncomment the one you want to use as default
@@ -79,9 +79,11 @@
 0 REM first char is for Z enabled/disabled
 0 REM second char is for shell
 0 REM third is for dumping states
-0 REM fourth for obexftp
-0 REM fifth for obex
-9 00000
+0 REM fourth for Obex/ObexFTP
+0 REM	0 Enabled only on command line
+0 REM 	1 Always enabled
+0 REM	2 Always Disabled
+9 0000
 
 0 REM $10 stores our friendly name
 10 AIRcable
@@ -219,30 +221,21 @@
 91 $3[3] = 48;
 92 GOTO 96;
 0 REM should go to mode dump
-96 IF $9[2] = 48 THEN 98
-97 GOSUB 700
+92 IF $9[2] = 48 THEN 94
+93 GOSUB 700
 
 0 REM let's start up, green LED on
-98 A = pioset ($8[1]-48)
+94 A = pioset ($8[1]-48)
 
 0 REM stop FTP and OBEX if not on debug
 0 REM this code is also called from the command line on exit
-99 IF $9[3] = 49 THEN 103
-100 IF $9[4] = 49 THEN 106
-101 A = disable 3
-102 GOTO 108
+95 IF $9[3] = 49 THEN 97
+96 A = disable 3
 
-103 IF $9[4] = 49 THEN 107
-104 A = disable 2
-105 GOTO 107
-
-106 A = disable 1
-
-107 K = 1
+97 K = 1
 0 REM now we go to @IDLE, and then we get into the @ALARM
-108 A = uartint
-109 RETURN
-
+98 A = uartint
+99 RETURN
 
 @SENSOR 111
 0 REM baud rate selector switch implementation
@@ -802,14 +795,14 @@
 555 PRINTU "see the list of 
 556 PRINTU "commands";
 557 PRINTU "\n\rAIRcable> "
-558 GOSUB 940;
+558 GOSUB 950;
 559 PRINTU"\n\r
 
 0 REM h: help, l: list,
 0 REM n: name, p: pin, b: name filter, g: address filter
 0 REM c: class of device, u: uart, d: date,
 0 REM s: slave, i: inquiry, m: master, a: mode
-0 REM o: obex, f: obexftp,
+0 REM o: obex
 0 REM e: exit
 
 0 REM help
@@ -833,9 +826,7 @@
 0 REM master
 569 IF $529[0] = 109 THEN 870;
 0 REM obex
-570 IF $529[0] = 111 THEN 950;
-0 REM obexFTP
-571 IF $529[0] = 102 THEN 930;
+570 IF $529[0] = 111 THEN 930;
 0 REM modes
 572 IF $529[0] = 97 THEN 660;
 0 REM exit
@@ -862,7 +853,7 @@
 0 REM that @SLAVE starts all again, and that
 0 REM we start unvisible
 600 PRINTU "Bye!!\n\r
-601 GOSUB 99;
+601 GOSUB 95;
 603 $3[3] = 48;
 604 A = slave-1;
 605 A = uartint
@@ -930,7 +921,7 @@
 666 PRINTU"aster\n\r5: Maste
 667 PRINTU"r Relay Mode\n\rM
 668 PRINTU"ode: 
-669 GOSUB 940;
+669 GOSUB 950;
 670 IF $529[0] = 48 THEN 680;
 671 IF $529[0] = 49 THEN 683;
 672 IF $529[0] = 50 THEN 687;
@@ -998,8 +989,8 @@
 731 PRINTU": date\n\rs: slav
 732 PRINTU"e, i: inquiry, m:
 733 PRINTU"master, a: mode\n
-734 PRINTU"\ro: obex, f: obex
-735 PRINTU"ftp, j: relay 
+734 PRINTU"\ro: obex, 
+735 PRINTU"j: relay 
 736 PRINTU"mode pair\n\re: exi
 737 PRINTU"t, r: reboot
 738 GOTO 557;
@@ -1178,35 +1169,38 @@
 928 PRINTU"\n\rInvalid format
 929 GOTO 557
 
-0 REM activate obexFTP
-930 PRINTU"Enable FTP? (Need
-931 PRINTU" Reboot)\n\r
-932 GOSUB 940
-933 IF $529[0] = 0x59 THEN 937
-934 IF $529[0] = 0x79 THEN 937
-935 $9[3] = 48
-935 GOTO 557
-937 $9[3] = 49
-938 GOTO 557
+0 REM activate Obex/ObexFTP
+0 REM	0 Enabled only on command line
+0 REM 	1 Always enabled
+0 REM	2 Always Disabled
+930 PRINTU"Obex/ObexFTP setti
+931 PRINTU"ngs:\n\r0 Enabled 
+932 PRINTU"only on command li
+933 PRINTU"ne\n\r1 Always Ena
+934 PRINTU"bled\n\r2 Always D
+935 PRINTU"isabled\n\rChoose 
+936 PRINTU"Option: 
+937 GOSUB 950
+938 939 $9[3] = $529[0]
+939 IF $529[0] = 50 THEN 945
+940 $0[0] = 0
+941 A = psget 6
+942 $0[11] = 48
+943 A = psset 3
+944 GOTO 557
+945 $0[0] = 0
+946 A = psget 6
+947 $0[11] = 54
+948 A = psset 3
+949 GOTO 557
 
 0 REM one char read function
-940 A = 1
-941 $529[0] = 0;
-942 UART A
-943 PRINTU $0
-944 $529 = $0
-945 RETURN
-
-0 REM activate obex
-950 PRINTU"Enable Obex? (Need
-951 PRINTU" Reboot)\n\r
-952 GOSUB 940
-953 IF $529[0] = 0x59 THEN 957
-954 IF $529[0] = 0x79 THEN 957
-955 $9[4] = 48
-956 GOTO 557
-957 $9[4] = 49
-958 GOTO 557
+950 A = 1
+951 $529[0] = 0;
+952 UART A
+953 PRINTU $0
+954 $529 = $0
+955 RETURN
 
 0 REM reboot code
 960 PRINTU"Rebooting, please 
