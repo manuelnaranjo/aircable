@@ -80,9 +80,9 @@
 0 REM second char is for shell
 0 REM third is for dumping states
 0 REM fourth for Obex/ObexFTP
-0 REM	0 Enabled only on command line
-0 REM 	1 Always enabled
-0 REM	2 Always Disabled
+0 REM 0 Enabled only on command line
+0 REM 1 Always enabled
+0 REM 2 Always Disabled
 9 0000
 
 0 REM $10 stores our friendly name
@@ -113,6 +113,10 @@
 0 REM 0 means read from dip swithces
 0 REM any other number is converted to an int.
 15 1152
+
+0 REM 16 this is the time that the Obex/ObexFTP will be available after
+0 REM boot up
+16 120
 
 0 REM on variable I we store the baud rate setting.
 0 REM this variable is initializated by @SENSOR
@@ -236,8 +240,9 @@
 0 REM Obex/ObexFTP timing handler
 0 REM this code is also called from the command line on exit
 99 B = readcnt
-100 IF B < 120 THEN 108
-101 GOSUB 105
+100 C = atoi $16
+101 IF B < C THEN 108
+102 GOSUB 105
 103 H = 0
 104 GOTO 235
 
