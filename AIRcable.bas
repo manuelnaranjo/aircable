@@ -466,45 +466,34 @@
 248 IF $3[1] = 48 THEN 260
 
 0 REM ok, we are on service mode, are we master or slave?
-249 IF $3[0] > 50 THEN 256
+0 REM both modes have a fast blink in common
+0 REM slave  2 fast blink
+0 REM master 1 fast blink
+249 A = pioset ($8[1]-48);
+250 A = pioset ($8[0]-48)
+251 A = pioclr ($8[0]-48);
+252 IF $3[0] > 50 THEN 256
 0 REM we are on service-slave, green on blue fast blink
-250 A = pioset ($8[1]-48);
-251 A = pioset ($8[0]-48)
-252 A = pioclr ($8[0]-48);
 253 A = pioset ($8[0]-48)
 254 A = pioclr ($8[0]-48);
 255 GOTO 320
 
 0 REM we are on service-master, blue on, green fast blink
-256 A = pioset ($8[0]-48);
-257 A = pioset ($8[1]-48)
-258 A = pioclr ($8[1]-48);
-259 GOTO 325
+256 GOTO 325
 
 0 REM we are on cable
+0 REM both modes have an slow blink in common
+0 REM slave  2 slow blink
+0 REM master 1 slow blink
+260 A = pioset ($8[1]-48)
+261 A = pioset ($8[0]-48)
+262 A = pioclr ($8[0]-48)
 0 REM we are on cable, are we master or slave?
-260 IF $3[0] > 50 THEN 270;
-0 REM we are on cable-slave, both on, both off
-261 IF J = 1 THEN 266;
-262 A = pioset ($8[0]-48);
-263 A = pioset ($8[1]-48);
-264 J = 1;
-265 GOTO 340;
-266 J = 0;
-267 A = pioclr ($8[0]-48);
-268 A = pioclr ($8[1]-48);
-269 GOTO 340;
-
-0 REM we are on cable-master, one on and the other off, intermitent
-270 IF J = 1 THEN 275
-271 J = 1
-272 B = pioset ($8[0]-48);
-273 B = pioclr ($8[1]-48);
-274 GOTO 340
-275 J = 0
-276 B = pioset ($8[1]-48);
-277 B = pioclr ($8[0]-48);
-278 GOTO 340
+263 IF $3[0] > 50 THEN 340
+0 REM we are on cable-slave
+264 A = pioset ($8[0]-48)
+265 A = pioclr ($8[0]-48)
+266 GOTO 340;
 
 0 REM manual idle code, this is the only mode that ends here.
 280 B = pioset ($8[1]-48);
