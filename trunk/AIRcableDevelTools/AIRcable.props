@@ -1,0 +1,64 @@
+# jEdit only needs to load the plugin the first time the user accesses it
+# the presence of this property also tells jEdit the plugin is using the new API
+plugin.QuickNotepadPlugin.activate=defer
+
+# These two properties are required for all plugins
+plugin.AIRcablePlugin.name=AIRcable Basic Plugin
+plugin.AIRcablePlugin.author=Manuel Naranjo <manuel@aircable.net>
+
+# version number == jEdit version number
+plugin.AIRcablePlugin.version=4.3
+
+# online help
+plugin.AIRcablePlugin.docs=
+
+# we only have one dependency, jEdit 4.2final, since we use the new plugin API
+plugin.AIRcablePlugin.depend.0=jedit 04.02.99.00
+
+# plugin menu
+plugin.AIRcablePlugin.menu=AIRcable \
+	- \
+	AIRcable.find-ocurrences
+#	AIRcable.choose-file \
+#	AIRcable.save-file \
+#	AIRcable.copy-to-buffer
+	
+plugin.AIRcablePlugin.description=AIRcable's BASIC Code Plugin for JEdit
+plugin.AIRcablePlugin.longdescription=
+
+# action labels for actions supplied by dockables.xml
+AIRcable.label=AIRcable
+
+# action labels for actions supplied by actions.xml
+AIRcable.find-ocurrences.label=Find ocurrences
+
+# plugin option pane
+plugin.AIRcablePlugin.option-pane=AIRcable
+
+# Option pane activation BeanShell snippet
+options.AIRcable.code=new AIRcableOptionPane();
+
+# Option pane labels
+options.AIRcable.label=AIRcable
+options.AIRcable.file=File:
+options.AIRcable.choose-file=Choose
+options.AIRcable.choose-file.title=Choose a notepad file
+options.AIRcable.choose-font=Font:
+options.AIRcable.show-filepath.title=Display notepad file path
+
+# window title
+AIRcable.title=AIRcable
+
+# window toolbar buttons
+AIRcable.choose-file.icon=Open.png
+AIRcable.save-file.icon=Save.png
+AIRcable.copy-to-buffer.icon=CopyToBuffer.png
+
+# default settings
+options.AIRcable.show-filepath=true
+options.AIRcable.font=Monospaced
+options.AIRcable.fontstyle=0
+options.AIRcable.fontsize=14
+
+# Setting not defined but supplied for completeness
+options.AIRcable.filepath=
