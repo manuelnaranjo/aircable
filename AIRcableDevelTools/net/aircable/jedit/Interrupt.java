@@ -53,6 +53,11 @@ public class Interrupt extends Line {
 		Interrupt inte = new Interrupt();
 		inte.text = intName;
 		
+		inte.comments = comment_buffer;
+		comment_buffer = "";
+		
+		inte.originalString = text;
+		
 		if (text.indexOf(' ') > -1) {		
 			inte.lineNumber = Integer.parseInt(text.substring(text.indexOf(' ')).trim());
 			inte.nextLine = Line.getLine(inte.lineNumber);
@@ -78,7 +83,11 @@ public class Interrupt extends Line {
 	}
 	
 	public String toString(){
-		String temp = "@" + this.text;
+		String temp ="";
+		
+		/*if (comments != null && !comments.trim().isEmpty())
+			temp+= comments;*/
+		temp += "@" + this.text;
 		if (this.lineNumber>-1)
 			temp += " " + this.lineNumber;
 		return temp;
