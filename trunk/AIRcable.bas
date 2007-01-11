@@ -143,6 +143,7 @@
 43 GOTO 215
 
 0 REM $44 RESERVED
+44 RESERVED
 
 0 REM THIS TURNS A CHAR AT $0[E] into
 0 REM and integer in F
@@ -682,6 +683,7 @@
 418 RETURN
 
 0 REM $419 RESERVED
+419 RESERVED
 0 REM inquiry code, only in mode pair_as_master
 @INQUIRY 420
 420 $419 = $0
@@ -774,7 +776,9 @@
 0 REM read from uart and echo function
 0 REM on line 940 we have the other uart echo function.
 0 REM result is on $529
-0 REM 520, 529 RESERVED FOR TEMP
+0 REM 528, 529 RESERVED FOR TEMP
+528 RESERVED
+529 RESERVED
 530 A = 1;
 531 $529[0] = 0;
 532 UART A;
