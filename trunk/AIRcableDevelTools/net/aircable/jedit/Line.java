@@ -26,10 +26,14 @@ public class Line {
 	protected int		lineNumber=-1;
 	protected String 	text, original;
 	protected Line		nextLine;
+	protected String	comments;
+	protected String	originalString;
 	
 	private static Stack<Line> stack;
 	
 	private static TreeMap<Integer,Line> lines;
+	
+	protected static String comment_buffer ="";
 	
 	protected Line(){}
 	
@@ -40,6 +44,14 @@ public class Line {
 		return k;
 	}
 	
+	public String getOriginalString() {
+		return originalString;
+	}
+	
+	public void updateOriginalString() {
+		originalString = this.toString();
+	}
+
 	public static Line getLine(String text){
 		if (lines == null){
 			GenerateLineMap();			
@@ -47,16 +59,16 @@ public class Line {
 		
 		int lineNumber;
 		
+		if (text.indexOf(" ")==-1 || text.indexOf("REM")>-1){
+			comment_buffer += text;
+			comment_buffer += System.getProperty("line.separator");
+			return null;
+		}
+		
 		if (text.startsWith("@")) {
 			return (Line)Interrupt.getInterrupt(text);
 		}
-		
-		if (text.indexOf(" ")==-1)
-			return null;
-			
-		if (text.indexOf("REM")>-1)
-			return null;			
-		
+					
 		try {		
 			lineNumber = Integer.parseInt(text.substring(0,text.indexOf(" ")));	 
 		} catch (java.lang.NumberFormatException e2) {
@@ -65,6 +77,9 @@ public class Line {
 		Line out = new Line();
 		out.text = text.substring(text.indexOf(' ')).trim();
 		out.lineNumber = lineNumber;
+		out.comments = comment_buffer;
+		out.originalString = text;
+		comment_buffer = "";
 		lines.put(new Integer(lineNumber), out);
 		return out;
 	}
@@ -123,7 +138,11 @@ public class Line {
 	}
 	
 	public String toString(){
-		return lineNumber + " " + text;
+		String out ="";
+	
+		out += lineNumber + " " + text;
+		
+		return  out;
 	}
 		
 	public boolean isJumpStatement(){
@@ -262,7 +281,7 @@ public class Line {
 	
 	public static void parseFile(String input){
 		lines = new TreeMap<Integer, Line>();
-		StringTokenizer in = new StringTokenizer(input,"\n\r");
+		StringTokenizer in = new StringTokenizer(input,System.getProperty("line.separator"));
 				
 		while (in.hasMoreElements()){
 			Line k = Line.getLine(in.nextToken());
