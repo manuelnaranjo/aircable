@@ -124,23 +124,7 @@
 
 
 0 REM $20 is used for relay mode, it stores the master address
-
-0 REM @MASTER part of relay mode, this should be moved !!!!
-1050 IF $3[0] = 53 THEN 1057
-1051 A = pioset ($8[1]-48);
-1052 A = pioset ($8[0]-48);
-1053 $3[0] = 56
-1054 A = link 3;
-1055 ALARM 4
-1056 RETURN
-1057 $3[0]=54
-1058 A = disconnect 1
-1059 PRINTU"\n\rPair successful
-1060 ALARM 0
-1061 GOTO 557
-
-1062 $3[0] = 55
-1063 GOTO 215
+20 000000000000
 
 0 REM $44 RESERVED
 44 RESERVED
@@ -227,7 +211,7 @@
 
 0 REM should go to mode dump
 92 IF $9[2] = 48 THEN 94
-93 GOSUB 799
+93 GOSUB 671
 
 0 REM let's start up, green LED on
 94 A = pioset ($8[1]-48)
@@ -383,7 +367,7 @@
 0 REM handle the slave mode stuff
 0 REM idle used for slave connections, pairing or paired
 @IDLE 193
-193 IF $3[3] <> 48 THEN 820;
+193 IF $3[3] <> 48 THEN 853;
 194 IF $3[0] > 52 THEN 202;
 195 IF W <> 0 THEN 201;
 196 IF K = 1 THEN 199;
@@ -398,7 +382,7 @@
 
 202 IF $3[0] = 53 THEN 215
 203 IF $3[0] = 54 THEN 207
-204 IF $3[0] = 55 THEN 781
+204 IF $3[0] = 55 THEN 814
 205 A = disconnect 1
 206 $3[0] = 54
 207 A = uartint
@@ -438,11 +422,11 @@
 
 0 REM should go to mode dumping
 232 IF $9[2] = 48 THEN 234
-233 GOSUB 799
+233 GOSUB 671
 
 234 IF H = 1 THEN 99
 
-235 IF $3[0] > 52 THEN 845
+235 IF $3[0] > 52 THEN 878
 
 0 REM now the led stuff, and finally we handle the state.
 0 REM firstly see if we are connected, then do what you need
@@ -459,42 +443,42 @@
 
 245 A = baud 1152
 0 REM are we on automatic or manual?
-246 IF $3[3] <> 48 THEN 761
+246 IF $3[3] <> 48 THEN 794
 0 REM we are on automatic.
 0 REM are we on automatic - manual?
 247 IF $3[0] = 48 THEN 280
-0 REM are we on automatic - service?
-248 IF $3[1] = 48 THEN 260
 
-0 REM ok, we are on service mode, are we master or slave?
-0 REM both modes have a fast blink in common
-0 REM slave  2 fast blink
-0 REM master 1 fast blink
-249 A = pioset ($8[1]-48);
-250 A = pioset ($8[0]-48)
-251 A = pioclr ($8[0]-48);
-252 IF $3[0] > 50 THEN 256
-0 REM we are on service-slave, green on blue fast blink
+0 REM LED SCHEMA:
+0 REM CABLE 	SLAVE 	1 fast blink
+0 REM SERVICE 	SLAVE 	2 fast blink
+0 REM CABLE	MASTER 	3 fast blink
+0 REM SERVICE	MASTER 	4 fast blink
+248 A = pioset ($8[1]-48);
+249 A = pioset ($8[0]-48)
+250 A = pioclr ($8[0]-48);
+0 REM are we on master or slave?
+251 IF $3[0] > 50 THEN 256
+0 REM ok we are on slave
+0 REM CABLE 	SLAVE 1 fast BLINK
+0 REM SERVICE 	SLAVE 2 fast BLINK
+
+0 REM now are we on cable or service?
+252 IF $3[1] = 48 THEN 340
+0 REM service slave
 253 A = pioset ($8[0]-48)
 254 A = pioclr ($8[0]-48);
-255 GOTO 320
+255 GOTO 320;
 
-0 REM we are on service-master, blue on, green fast blink
-256 GOTO 325
-
-0 REM we are on cable
-0 REM both modes have an slow blink in common
-0 REM slave  2 slow blink
-0 REM master 1 slow blink
-260 A = pioset ($8[1]-48)
+0 REM we are on master modes
+256 FOR B = 0 TO 2
+257 A = pioset ($8[0]-48)
+258 A = pioclr ($8[0]-48
+259 NEXT B
+260 IF $3[1] = 48 THEN 340;
 261 A = pioset ($8[0]-48)
-262 A = pioclr ($8[0]-48)
-0 REM we are on cable, are we master or slave?
-263 IF $3[0] > 50 THEN 340
-0 REM we are on cable-slave
-264 A = pioset ($8[0]-48)
-265 A = pioclr ($8[0]-48)
-266 GOTO 340;
+262 A = pioclr ($8[0]-48);
+263 GOTO 325;
+
 
 0 REM manual idle code, this is the only mode that ends here.
 280 B = pioset ($8[1]-48);
@@ -544,7 +528,7 @@
 0 REM cable mode timeout
 315 IF $9[2] = 48 THEN 317
 316 PRINTU "Timeout\n\r";
-317 $3[0] = 48;
+317 ALARM 0;
 318 GOTO 280;
 
 0 REM automatic modes code.
@@ -584,7 +568,7 @@
 @SLAVE 350
 350 IF $9[2] = 48 THEN 352;
 351 PRINTU "@SLAVE\n\r";
-352 IF $3[0] = 54 THEN 1062;
+352 IF $3[0] = 54 THEN 902;
 0 REM if we are not on slave mode, then we must ignore slave connections :D
 353 IF $3[3] = 50 THEN 380;
 354 IF $3[0] > 50 THEN 384;
@@ -643,7 +627,7 @@
 0 REM successful master connection
 389 IF $9[2] = 48 THEN 391 
 390 PRINTU "@MASTER\n\r";
-391 IF $3[0] > 52 THEN 1050
+391 IF $3[0] > 52 THEN 890
 0 REM if we are on manual master, then we have some requests
 392 IF $3[3] = 52 THEN 402
 393 $3[3] = 54
@@ -802,11 +786,11 @@
 551 PRINTU "\r\nAIRcable OS "
 552 PRINTU "command line v
 553 PRINTU $1
-554 PRINTU "\r\nType h to
-555 PRINTU "see the list of
+554 PRINTU "\r\nType h to "
+555 PRINTU "see the list of "
 556 PRINTU "commands";
 557 PRINTU "\n\rAIRcable> "
-558 GOSUB 805;
+558 GOSUB 776;
 559 PRINTU"\n\r
 
 0 REM h: help, l: list,
@@ -817,25 +801,25 @@
 0 REM e: exit
 
 0 REM help
-560 IF $529[0] = 104 THEN 787;
+560 IF $529[0] = 104 THEN 692;
 0 REM info
 561 IF $529[0] = 108 THEN 591;
 0 REM name
-562 IF $529[0] = 110 THEN 801;
+562 IF $529[0] = 110 THEN 706;
 0 REM pin
-563 IF $529[0] = 112 THEN 811;
+563 IF $529[0] = 112 THEN 716;
 0 REM class
-564 IF $529[0] = 99 THEN 815;
+564 IF $529[0] = 99 THEN 720;
 0 REM uart
 565 IF $529[0] = 117 THEN 617;
 0 REM date
-566 IF $529[0] = 100 THEN 808;
+566 IF $529[0] = 100 THEN 746;
 0 REM inquiry
-567 IF $529[0] = 105 THEN 787;
+567 IF $529[0] = 105 THEN 820;
 0 REM slave
-568 IF $529[0] = 115 THEN 812;
+568 IF $529[0] = 115 THEN 845;
 0 REM master
-569 IF $529[0] = 109 THEN 797;
+569 IF $529[0] = 109 THEN 830;
 0 REM obex
 570 IF $529[0] = 111 THEN 756;
 0 REM modes
@@ -843,15 +827,15 @@
 0 REM exit
 572 IF $529[0] = 101 THEN 584;
 0 REM name filter
-573 IF $529[0] = 98 THEN 798;
+573 IF $529[0] = 98 THEN 736;
 0 REM addr filter
-574 IF $529[0] = 103 THEN 803;
+574 IF $529[0] = 103 THEN 741;
 0 REM hidden debug settings
 575 IF $529[0] = 122 THEN 580;
 0 REM reboot
-576 IF $529[0] = 114 THEN 811;
+576 IF $529[0] = 114 THEN 786;
 0 REM relay mode pair
-577 IF $529[0] = 106 THEN 832;
+577 IF $529[0] = 106 THEN 865;
 578 PRINTU"Command not found
 579 GOTO 557;
 
@@ -866,12 +850,12 @@
 584 PRINTU "Bye!!\n\r
 585 GOSUB 105;
 586 $3[3] = 48;
-587 A = slave-1;
+587 A = slave -1;
 588 A = uartint
 589 A = zerocnt
 590 RETURN
 
-0 REM info code
+0 REM ----------------------- Listing Code ------------------------------------
 591 PRINTU"Command Line v
 592 PRINTU $1
 593 PRINTU"\n\rName: ";
@@ -896,7 +880,7 @@
 612 PRINTU $5;
 613 PRINTU"\n\rAddr Filter:
 614 PRINTU $6;
-615 GOSUB 799
+615 GOSUB 671
 616 GOTO 557;
 
 617 PRINTU"Enter new Baud Ra
@@ -932,7 +916,7 @@
 636 PRINTU"aster\n\r5: Maste
 637 PRINTU"r Relay Mode\n\rM
 638 PRINTU"ode:
-639 GOSUB 805;
+639 GOSUB 776;
 640 IF $529[0] = 48 THEN 648;
 641 IF $529[0] = 49 THEN 651;
 642 IF $529[0] = 50 THEN 655;
@@ -967,27 +951,27 @@
 670 GOTO 557
 
 0 REM -------------------------- Listing code ---------------------------------
-799 PRINTU "\n\rMode: "
-800 IF $3[0] > 52 THEN 756
-801 IF $3[0] = 48 THEN 816
-802 IF $3[1] = 48 THEN 805
-803 PRINTU"Service - "
-804 GOTO 806;
-805 PRINTU"Cable - "
-806 IF $3[0] >= 51 THEN 809;
-807 PRINTU"Slave"
-808 GOTO 810;
-809 PRINTU"Master"
-810 IF $3[0] = 50 THEN 814;
-811 IF $3[0] = 52 THEN 814;
-812 PRINTU"\n\rUnpaired"
-813 RETURN
-814 PRINTU"\n\rPaired"
-815 RETURN
-816 PRINTU"Idle"
-817 RETURN
-756 PRINTU"Relay Mode Master
-786 RETURN
+671 PRINTU "\n\rMode: "
+672 IF $3[0] > 52 THEN 690
+673 IF $3[0] = 48 THEN 688
+674 IF $3[1] = 48 THEN 677
+675 PRINTU"Service - "
+676 GOTO 678;
+677 PRINTU"Cable - "
+678 IF $3[0] >= 51 THEN 681;
+679 PRINTU"Slave"
+680 GOTO 682;
+681 PRINTU"Master"
+682 IF $3[0] = 50 THEN 686;
+683 IF $3[0] = 52 THEN 686;
+684 PRINTU"\n\rUnpaired"
+685 RETURN
+686 PRINTU"\n\rPaired"
+687 RETURN
+688 PRINTU"Idle"
+689 RETURN
+690 PRINTU"Relay Mode Master
+691 RETURN
 
 0 REM ----------------------- Help code ---------------------------------------
 0 REM h: help, l: list,
@@ -996,264 +980,278 @@
 0 REM s: slave, i: inquiry, m: master, a: mode
 0 REM o: obex, f: obexftp, j: relay mode pair
 0 REM e: exit, r: reboot
-787 PRINTU"h: help, l: li
-788 PRINTU"st\n\rn: name, p:
-789 PRINTU"pin, b: name filte
-790 PRINTU"r, g: address filt
-791 PRINTU"er\n\rc: class of
-792 PRINTU"device, u: uart, d
-793 PRINTU": date\n\rs: slav
-794 PRINTU"e, i: inquiry, m:
-795 PRINTU"master, a: mode\n
-796 PRINTU"\ro: obex,
-797 PRINTU"j: relay
-798 PRINTU"mode pair\n\re: exi
-671 PRINTU"t, r: reboot
-672 GOTO 557;
+692 PRINTU"h: help, l: li
+693 PRINTU"st\n\rn: name, p: "
+694 PRINTU"pin, b: name filte
+695 PRINTU"r, g: address filt
+696 PRINTU"er\n\rc: class of "
+697 PRINTU"device, u: uart, d
+698 PRINTU": date\n\rs: slav
+699 PRINTU"e, i: inquiry, m: "
+700 PRINTU"master, a: mode\n
+701 PRINTU"\ro: obex, j: relay
+702 PRINTU" mode pair\n\re: ex
+703 PRINTU"it, r: reboot
+704 GOTO 557;
 
 0 REM Name Function
-673 PRINTU"New Name:
-674 GOSUB 530;
-675 $10 = $529;
-0 REM correct when $0 = $(NUMBER) works
-676 $0[0] = 0;
-677 PRINTV $10;
-678 PRINTV " ";
-679 A = getuniq $44;
-680 PRINTV $44;
-681 A = name $0;
-682 GOTO 557
+706 PRINTU"New Name:
+707 GOSUB 530;
+708 $10 = $529;
+709 $0[0] = 0;
+710 PRINTV $10;
+711 PRINTV " ";
+712 A = getuniq $44;
+713 PRINTV $44;
+714 A = name $0;
+715 GOTO 557
 
 0 REM Pin Function
-683 PRINTU"New PIN: ";
-684 GOSUB 530;
-685 $11 = $529;
-686 GOTO 557
+716 PRINTU"New PIN: ";
+717 GOSUB 530;
+718 $11 = $529;
+719 GOTO 557
 
-687 PRINTU"Type the class of
-688 PRINTU"device as xxxx xxx
-689 PRINTU"x: "
-690 GOSUB 530
-691 $0[0] = 0;
-692 PRINTV"@0000 =
-693 PRINTV$529;
-694 $529 = $0;
-695 A = psget 0;
-696 $528 =$0
-697 $0[0]=0;
-698 PRINTV $529;
-699 $529 = $528[17]
-700 PRINTV $529;
-701 A = psset 3
-702 GOTO 557
+720 PRINTU"Type the class of
+721 PRINTU"device as xxxx xxx
+722 PRINTU"x: "
+723 GOSUB 530
+724 $0[0] = 0;
+725 PRINTV"@0000 =
+726 PRINTV$529;
+727 $529 = $0;
+728 A = psget 0;
+729 $528 =$0
+730 $0[0]=0;
+731 PRINTV $529;
+732 $529 = $528[17]
+733 PRINTV $529;
+734 A = psset 3
+735 GOTO 557
 
 0 REM friendly name filter code
-703 PRINTU"Enter the new name
-704 PRINTU" filter:
-705 GOSUB 530
-706 $5 = $529
-707 GOTO 557;
+736 PRINTU"Enter the new name
+737 PRINTU" filter:
+738 GOSUB 530
+739 $5 = $529
+740 GOTO 557;
 
 0 REM addr filter code
-708 PRINTU"Enter the new addr
-709 PRINTU"ess filter:
-710 GOSUB 530
-711 $6 = $529
-712 GOTO 557
+741 PRINTU"Enter the new addr
+742 PRINTU"ess filter:
+743 GOSUB 530
+744 $6 = $529
+745 GOTO 557
 
 0 REM date changing methods
-713 PRINTU"Insert new dat
-714 PRINTU"e, check the manua
-715 PRINTU"l for formating:
-716 GOSUB 530;
-717 A = strlen $529
-718 IF A <> 16 THEN 721
-719 A = setdate $529
-720 GOTO 557
-721 PRINTU"\n\rInvalid format
-722 GOTO 557
+746 PRINTU"Insert new dat
+747 PRINTU"e, check the manua
+748 PRINTU"l for formating:
+749 GOSUB 530;
+750 A = strlen $529
+751 IF A <> 16 THEN 754
+752 A = setdate $529
+753 GOTO 557
+754 PRINTU"\n\rInvalid format
+755 GOTO 557
 
 0 REM activate Obex/ObexFTP
 0 REM 0 Enabled only on command line
 0 REM 1 Always enabled
 0 REM 2 Always Disabled
-723 PRINTU"Obex/ObexFTP setti
-724 PRINTU"ngs:\n\r0 Enabled
-725 PRINTU"only on command li
-726 PRINTU"ne\n\r1 Always Ena
-727 PRINTU"bled\n\r2 Always D
-728 PRINTU"isabled\n\rChoose
-729 PRINTU"Option:
-730 GOSUB 743
-731 939 $9[3] = $529[0]
-732 IF $529[0] = 50 THEN 738
-733 $0[0] = 0
-734 A = psget 6
-735 $0[11] = 48
-736 A = psset 3
-737 GOTO 557
-738 $0[0] = 0
-739 A = psget 6
-740 $0[11] = 54
-741 A = psset 3
-742 GOTO 557
+756 PRINTU"Obex/ObexFTP setti
+757 PRINTU"ngs:\n\r0 Enabled
+758 PRINTU"only on command li
+759 PRINTU"ne\n\r1 Always Ena
+760 PRINTU"bled\n\r2 Always D
+761 PRINTU"isabled\n\rChoose
+762 PRINTU"Option:
+763 GOSUB 776
+764 939 $9[3] = $529[0]
+765 IF $529[0] = 50 THEN 771
+766 $0[0] = 0
+767 A = psget 6
+768 $0[11] = 48
+769 A = psset 3
+770 GOTO 557
+771 $0[0] = 0
+772 A = psget 6
+773 $0[11] = 54
+774 A = psset 3
+775 GOTO 557
 
 0 REM one char read function
-743 A = 1
-744 $529[0] = 0;
-745 UART A
-746 PRINTU $0
-747 $529 = $0
-748 RETURN
+776 A = 1
+777 $529[0] = 0;
+778 UART A
+779 PRINTU $0
+780 $529 = $0
+781 RETURN
 
 0 REM reboot code
-749 PRINTU"Rebooting, please
-750 PRINTU"do not disconnect
-751 PRINTU"electric power\n\r
-752 $3[3] = 48
-753 A = reboot
-754 WAIT 2
-755 RETURN
+782 PRINTU"Rebooting, please
+783 PRINTU"do not disconnect
+784 PRINTU"electric power\n\r
+785 $3[3] = 48
+786 A = reboot
+787 WAIT 2
+788 RETURN
 
 0 REM ---------------------- Manual Modes code --------------------------------
 
-756 PRINTU "\n\rThere is BT
-757 PRINTU "activity, please
-758 PRINTU "wait and try agai
-759 PRINTU "n
-760 GOTO 557;
+789 PRINTU "\n\rThere is BT
+790 PRINTU "activity, please
+791 PRINTU "wait and try agai
+792 PRINTU "n
+793 GOTO 557;
 
 0 REM Led STUFF for manual 
-761 IF $3[3] = 50 THEN 770
-762 IF $3[3] = 51 THEN 775
-763 IF $3[3] = 52 THEN 782
+794 IF $3[3] = 50 THEN 803
+795 IF $3[3] = 51 THEN 808
+796 IF $3[3] = 52 THEN 815
 0 REM command line has just started?
-764 IF $3[3] = 49 THEN 546
-765 IF $3[3] = 54 THEN 767
-766 RETURN
+797 IF $3[3] = 49 THEN 546
+798 IF $3[3] = 54 THEN 800
+799 RETURN
 
-767 A = pioclr ($8[0]-48);
-768 A = pioclr ($8[1]-48);
-769 GOTO 557
+800 A = pioclr ($8[0]-48);
+801 A = pioclr ($8[1]-48);
+802 GOTO 557
 
 0 REM slave connecting leds
-770 A = pioset ($8[1]-48);
-771 A = pioset ($8[0]-48)
-772 A = pioclr ($8[0]-48)
-773 ALARM 4
-774 GOTO 820
+803 A = pioset ($8[1]-48);
+804 A = pioset ($8[0]-48)
+805 A = pioclr ($8[0]-48)
+806 ALARM 4
+807 GOTO 853
 
 0 REM inq leds
-775 A = pioset ($8[0]-48);
-776 A = pioset ($8[1]-48)
-777 A = pioclr ($8[0]-48);
-778 A = pioclr ($8[1]-48);
-779 ALARM 2
-780 GOTO 820
+808 A = pioset ($8[0]-48);
+809 A = pioset ($8[1]-48)
+810 A = pioclr ($8[0]-48);
+811 A = pioclr ($8[1]-48);
+812 ALARM 2
+813 GOTO 853
 
 
 0 REM this line is part of the relay mode
-781 A = zerocnt
+814 A = zerocnt
 0 REM master connecting leds
-782 A = pioset ($8[0]-48);
-783 A = pioset ($8[1]-48)
-784 A = pioclr ($8[1]-48);
-785 ALARM 4
-786 GOTO 820
+815 A = pioset ($8[0]-48);
+816 A = pioset ($8[1]-48)
+817 A = pioclr ($8[1]-48);
+818 ALARM 4
+819 GOTO 853
 
 0 REM inquiry code
 0 REM by default we inquiry for 10 seconds
-787 GOSUB 1000;
-788 IF $44[0] = 49 THEN 756
-789 PRINTU"Inquirying for
-790 PRINTU" 16s. Please wait.
-791 B = inquiry 10
-792 $3[3] = 51;
-793 GOSUB 1000;
-794 A = zerocnt
-795 A = nextsns 0
-796 GOTO 775;
+820 GOSUB 1000;
+821 IF $44[0] = 49 THEN 789
+822 PRINTU"Inquirying for
+823 PRINTU" 16s. Please wait.
+824 B = inquiry 10
+825 $3[3] = 51;
+826 GOSUB 1000;
+827 A = zerocnt
+828 A = nextsns 0
+829 GOTO 808;
 
 0 REM master code
-797 GOSUB 1000;
-798 IF $44[3] = 49 THEN 756
-799 PRINTU"Please input
-800 PRINTU"the addr of your
-801 PRINTU"peer:
-802 GOSUB 530
-803 B = strlen$529
-804 IF B<>12 THEN 809
-805 $3[3] = 52;
-806 B = master $529
-807 B = zerocnt
-808 GOTO 782
+830 GOSUB 1000;
+831 IF $44[3] = 49 THEN 789
+832 PRINTU"Please input
+833 PRINTU"the addr of your
+834 PRINTU"peer:
+835 GOSUB 530
+836 B = strlen$529
+837 IF B<>12 THEN 842
+838 $3[3] = 52;
+839 B = master $529
+840 B = zerocnt
+841 GOTO 815
 
-809 PRINTU"Invalid add
-810 PRINTU"r, try again.
-811 GOTO 557;
+842 PRINTU"Invalid add
+843 PRINTU"r, try again.
+844 GOTO 557;
 
 0 REM slave code
 0 REM manual slave
 0 REM by default we open the slave channel for 60 seconds
-812 GOSUB 1000;
-813 IF $44[4] = 49 THEN 756
-814 PRINTU"Slave Open for
-815 PRINTU" 16s. Please wait.
-816 $3[3] = 50
-817 A = slave 15
-818 A = zerocnt
-819 GOTO 770
+845 GOSUB 1000;
+846 IF $44[4] = 49 THEN 789
+847 PRINTU"Slave Open for
+848 PRINTU" 16s. Please wait.
+849 $3[3] = 50
+850 A = slave 15
+851 A = zerocnt
+852 GOTO 803
 
 
 0 REM timeout for any manual mode, as this part of the code
 0 REM will be called as soon as the slave channel is opened
 0 REM we check for activity firstly
-820 B = readcnt
-821 IF B < 16 THEN 831
-822 $3[3] = 49
-823 ALARM 0
-824 A = cancel
-825 A = disconnect 0
-826 A = disconnect 1
-827 A = pioclr ($8[0]-48)
-828 A = pioclr ($8[1]-48)
-829 A = nextsns 4
-830 GOTO 557
+853 B = readcnt
+854 IF B < 16 THEN 864
+855 $3[3] = 49
+856 ALARM 0
+857 A = cancel
+858 A = disconnect 0
+859 A = disconnect 1
+860 A = pioclr ($8[0]-48)
+861 A = pioclr ($8[1]-48)
+862 A = nextsns 4
+863 GOTO 557
 
-831 RETURN
+864 RETURN
 
 0 REM ---------------------------- RELAY CODE ----------------------------------
 
 0 REM relay mode pair
 0 REM Enter the address of your peer: 
-832 PRINTU"Enter the address
-833 PRINTU"of your peer:
-834 GOSUB 530;
-835 A = strlen $529;
-836 IF A = 12 THEN 839;
-837 PRINTU"\n\rNot valid peer
-838 GOTO 557
-839 PRINTU"\n\rTrying to pair
-840 $3[0] = 53;
-841 $20 = $529
-842 A = zerocnt
-843 A = master $20
-844 GOTO 782
+865 PRINTU"Enter the address
+866 PRINTU"of your peer:
+867 GOSUB 530;
+868 A = strlen $529;
+869 IF A = 12 THEN 872;
+870 PRINTU"\n\rNot valid peer
+871 GOTO 557
+872 PRINTU"\n\rTrying to pair
+873 $3[0] = 53;
+874 $20 = $529
+875 A = zerocnt
+876 A = master $20
+877 GOTO 815
 
 0 REM relay mode alarm handler
 0 REM first check for command line
-845 IF $3[3] <> 48 THEN 546
-846 ALARM 5
-847 IF $3[0] = 53 THEN 782
-848 B = status
-849 IF $3[0] = 54 THEN 209
-850 IF B < 1 THEN 207
-851 IF $3[0] = 55 THEN 216
-852 IF B > 10 THEN 244
-853 A = disconnect 0
-854 A = disconnect 1
-855 $3[0] = 54
-856 GOTO 509
+878 IF $3[3] <> 48 THEN 546
+879 ALARM 5
+880 IF $3[0] = 53 THEN 815
+881 B = status
+882 IF $3[0] = 54 THEN 209
+883 IF B < 1 THEN 207
+884 IF $3[0] = 55 THEN 216
+885 IF B > 10 THEN 244
+886 A = disconnect 0
+887 A = disconnect 1
+888 $3[0] = 54
+889 GOTO 509
+
+890 IF $3[0] = 53 THEN 897
+891 A = pioset ($8[1]-48);
+892 A = pioset ($8[0]-48);
+893 $3[0] = 56
+894 A = link 3;
+895 ALARM 4
+896 RETURN
+897 $3[0]=54
+898 A = disconnect 1
+899 PRINTU"\n\rPair successful
+900 ALARM 0
+901 GOTO 557
+
+902 $3[0] = 55
+903 GOTO 215
 
 0 REM -------------------------- END RELAY CODE --------------------------------
 

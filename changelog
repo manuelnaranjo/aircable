@@ -14,4 +14,7 @@ Version 0.5:
 	There is an extra feauture this timing is personalizable, so users can
 	make the device fit they're solution.
     * Code Reorganization, some pieces of code had been moved arround using the
-	new tool
+	new tool that can be found on the svn under the Tools TAG
+    * Cable modes will boot up into unpaired mode in case it has timed out 
+	before.
+
