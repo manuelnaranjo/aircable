@@ -17,4 +17,7 @@ Version 0.5:
 	new tool that can be found on the svn under the Tools TAG
     * Cable modes will boot up into unpaired mode in case it has timed out 
 	before.
+    * Added two different modes for Relay, Service and Cable, while one Service
+	the device is always discoverable, on Cable mode the device is visible
+	only for two minutes after each boot up.
 

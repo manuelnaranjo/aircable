@@ -43,6 +43,8 @@
 0 REM $3[3] = 5 53 manual slave, connected
 0 REM $3[3] = 6 54 manual master, connected
 
+0 REM $3[4] = 1 49 means service relay mode
+0 REM $3[4] = 2 50 means cable relay mode
 
 0 REM if var K = 1 then we must do a slave-1
 
@@ -388,7 +390,7 @@
 207 A = uartint
 208 B = status
 209 IF B > 0 THEN 211
-210 A = slave 8
+210 GOSUB 915
 211 A = pioset ($8[1]-48);
 212 A = pioset ($8[0]-48)
 213 A = pioclr ($8[0]-48)
@@ -568,7 +570,7 @@
 @SLAVE 350
 350 IF $9[2] = 48 THEN 352;
 351 PRINTU "@SLAVE\n\r";
-352 IF $3[0] = 54 THEN 902;
+352 IF $3[0] = 54 THEN 912;
 0 REM if we are not on slave mode, then we must ignore slave connections :D
 353 IF $3[3] = 50 THEN 380;
 354 IF $3[0] > 50 THEN 384;
@@ -1247,11 +1249,29 @@
 897 $3[0]=54
 898 A = disconnect 1
 899 PRINTU"\n\rPair successful
-900 ALARM 0
-901 GOTO 557
+900 PRINTU"\n\rPlease choose 
+901 PRINTU"\n\rwhich kind of 
+902 PRINTU"\n\rrelay you want:
+903 PRINTU"\n\r1: Service Rela
+903 PRINTU"y\n\r2: Cable Relay
+904 GOSUB 776
+905 IF $529[0] = 49 THEN 910
+906 IF $529[0] = 50 THEN 910
+907 PRINTU"\n\rInvalid Option
+908 GOTO 900
+910 $3[4] = $529[0];
+911 GOTO 557
 
-902 $3[0] = 55
-903 GOTO 215
+912 $3[0] = 55
+913 GOTO 215
+
+915 B = readcnt;
+916 IF $3[4] = 50 THEN 919
+917 A = slave 8;
+918 RETURN
+919 IF B < 120 THEN 917
+920 A = slave -8;
+921 RETURN
 
 0 REM -------------------------- END RELAY CODE --------------------------------
 
