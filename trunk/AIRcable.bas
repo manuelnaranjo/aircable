@@ -780,6 +780,7 @@
 541 RETURN
 
 0 REM command line interface
+545 ALARM 0
 546 A = baud 1152
 547 A = pioclr ($8[0]-48);
 548 A = pioclr ($8[1]-48);
@@ -1113,7 +1114,7 @@
 795 IF $3[3] = 51 THEN 808
 796 IF $3[3] = 52 THEN 815
 0 REM command line has just started?
-797 IF $3[3] = 49 THEN 546
+797 IF $3[3] = 49 THEN 545
 798 IF $3[3] = 54 THEN 800
 799 RETURN
 
@@ -1228,7 +1229,7 @@
 
 0 REM relay mode alarm handler
 0 REM first check for command line
-890 IF $3[3] <> 48 THEN 546
+890 IF $3[3] <> 48 THEN 545
 891 ALARM 5
 892 IF $3[0] = 53 THEN 815
 893 B = status
