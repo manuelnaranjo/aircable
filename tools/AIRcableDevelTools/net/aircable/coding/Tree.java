@@ -3,7 +3,7 @@
  * @since 08/01/2007
  * 
  */
-package net.aircable.jedit;
+package net.aircable.coding;
 
 /**
  *

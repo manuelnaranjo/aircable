@@ -3,9 +3,7 @@
  * @since 08/01/2007
  * 
  */
-package net.aircable.jedit;
-
-import static net.aircable.jedit.AIRcableJEditPlugin.parseLine;
+package net.aircable.coding;
 
 import java.util.EmptyStackException;
 import java.util.Iterator;
@@ -74,6 +72,18 @@ public class Line {
 		} catch (java.lang.NumberFormatException e2) {
 			return null;
 		}
+		
+		Line t;
+		
+		if ((t=lines.get(new Integer(lineNumber)))!=null){
+			System.err.println("There are two lines with the same number:\n"+
+					text + "\n" +
+					t.toString() + "\n" +
+					"I can' go on");
+			
+			System.exit(1);
+		}
+		
 		Line out = new Line();
 		out.text = text.substring(text.indexOf(' ')).trim();
 		out.lineNumber = lineNumber;
@@ -313,6 +323,23 @@ public class Line {
 		if (Pattern.compile("(\\$)" + oldIndex +"(?=\\D|$)").matcher(this.text).find())
 			text = Pattern.compile("(\\$)" + oldIndex +"(?=\\D|$)").matcher(this.text).replaceFirst("\\$" + newIndex);				
 			
+	}
+	
+	protected static String parseLine(String in){
+		String out = "";
+		boolean a = false;
+		boolean b = false;
+		
+		for (int i = 0 ; i < in.length(); i++)
+			if (!a && in.charAt(i)!=' ')
+				out+=in.charAt(i);
+			else if (in.charAt(i)=='"')
+				b = true;
+			else if (b || in.charAt(i)!=' ')
+				out+=in.charAt(i);				
+		
+		
+		return out;
 	}
 	
 }
