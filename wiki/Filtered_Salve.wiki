@@ -1,3 +1,4 @@
+#labels Featured
 Tutorial 3 - Filtered Slave Code.
 
 = Introduction =
@@ -73,5 +74,4 @@ The other thing that is new is this piece of code:
 23 IF A <> 0 THEN 33
 }}}
 When ever there is an incomming connection on the slave channel you can call getconn to get the device address that wants to connect with this device on $0. Once we have this information we compare it with $1 which is the string we are going to use as filter. If the string comparisson (strcmp) is equal to 0 that means that both string start with the same pattern, which means to us that the peer matches our filter.
-
 
