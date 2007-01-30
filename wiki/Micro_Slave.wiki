@@ -1,10 +1,9 @@
-Micro Slave Code Description.
+Tutorial 1 - Micro Slave Code.
 
 = Introduction =
 
 On this tutorial we will show you a very simple slave code, which you can use as a base for developing your own solutions or use it as is if you want.
 This example is very simple, it is hard to think in a simpler slave code. It will only open the slave channel on discoverable mode, accept every incoming connection and finally link the serial channel to the serial interface.
-
 
 = Details =
 
