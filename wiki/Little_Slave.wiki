@@ -48,6 +48,8 @@ First of all lets see the code.
 
 }}}
 
+[http://aircable.googlecode.com/svn/examples/small_slave/AIRcable.bas Download File]
+
 = Explanation =
 If you compare this code against the *[http://code.google.com/p/aircable/wiki/Micro_Slave Micro Slave]* you will see some differences. For example you will see lots of lines that start with *0 REM*, those lines are comments and will not be used by the BASIC processor.
 
