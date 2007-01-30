@@ -1063,12 +1063,12 @@
 0 REM 0 Enabled only on command line
 0 REM 1 Always enabled
 0 REM 2 Always Disabled
-756 PRINTU"Obex/ObexFTP setti
-757 PRINTU"ngs:\n\r0: Enabled
-758 PRINTU"only on command li
-759 PRINTU"ne\n\r1: Always Ena
-760 PRINTU"bled\n\r2: Always D
-761 PRINTU"isabled\n\rChoose
+756 PRINTU"Obex/ObexFTP setti"
+757 PRINTU"ngs:\n\r0: Enabled "
+758 PRINTU"only on command li"
+759 PRINTU"ne\n\r1: Always Ena"
+760 PRINTU"bled\n\r2: Always D"
+761 PRINTU"isabled\n\rChoose "
 762 PRINTU"Option: "
 763 GOSUB 776
 764 939 $9[3] = $529[0]
@@ -1253,7 +1253,7 @@
 918 A = disconnect 1
 919 PRINTU"\n\rPair successfull"
 920 PRINTU"\n\rPlease choose "
-921 PRINTU"which kind of relay"
+921 PRINTU"which kind of relay "
 922 PRINTU"you want:\n\r1: Serv"
 923 PRINTU"ice Relay\n\r2: Cabl"
 924 PRINTU"e Relay\n\rMode: "
