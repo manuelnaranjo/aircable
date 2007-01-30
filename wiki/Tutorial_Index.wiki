@@ -1,0 +1,32 @@
+This page shows all the examples we had been working on.
+
+= Index = 
+
+== Slave Related Code ==
+  # *[http://code.google.com/p/aircable/wiki/Micro_Slave Micro Slave]*: A simple code that opens the slave port on discoverable mode and accepts all the incoming connections. It will teach you how to open the slave channel, how to make slave connections, and how to use debugging.
+  # Little Slave: Like the micro slave, but now it will open the shell if the user press "+" when the connection is firstly started. It will teach you how to handle input characters, how to open shell connections and finally will introduce Leds handling.
+  # Filtered Service Slave: A more complex mode, it will open the port in discoverable mode, but will check that those who want to connect to this peer complies with an address pattern. It will teach you how to compare string, and reject incoming connections.
+  # Restrictive Slave: This is a piece of code taken from our command line, that will pair to a device, and then will apair invisible to all the other devices. It will teach you how to make an slave device discover and undiscoverable.
+
+== Master Related Code ==
+  # Mini Master: This code will make inquires, and once it found a device it will try to connect, once the connection is closed. This will teach you how to handle alarms, make inquires, handle inquires results, make master connection, and check master connections.
+  # Filtered Service Master: This code will make inquires, and if the device it discovers matches a given pattern it will make a connection, once the connection is lost it will connect to the first thing it can find. It will teach you how to work with inquires showing how sensitive they are.
+  # Listed Master: Those interested on buying AIRcable Mini or SMD can be very interested in this code. This code will have a predefined list of devices (between 0 and 30), will open a connection to each one of this (one at the time), will make some work over the connection, will close the connection and will continue with the next device, all this on an endless working cycle. It will teach you how to iterate, control state and close master connections from the master side.
+  # Cable Master: This code is like our Cable Master, it will make inquires and will pair with the first device it can find. Once it is paired it will not inquiry any more and will only connect to it's peer. This code will show you a way to handle pairs from the master side.
+
+== Interactive Code ==
+  # Interactive Code: Sometimes you need an interactive shell on the other side, this code will teach you how to write a simple interactive program that will let the user control a series of leds and will read some analog/digital inputs.
+ 
+== Networking ==
+  # Relay Mode Code: This code will show you how easy is to create a network of AIRcable devices. For this example you will need at least 3 different bluetooth devices, and one of those 3 must be an AIRcable OS enabled device. In this mode the AIRcable OS device will be connected to two other devices and will make a bridge between them, this way you can make the range of your bluetooth devices much longer.
+
+== Hardware Interfacing ==
+  # Advanced Uart: This example read from Uart and writte to SPP, via BASIC program
+  # UART Interrupting: doing reads and writes manually with @UART interrupts
+  # Timing: attach clock, use time functions
+  # GPS: attach GPS, use NMEA filter functions and use the distance function to calculate some range
+  # Analog Interface: read from analog 1 and 2, a battery monitor that blinks when battery is low
+  # Temperature Sensor: temperature sensor and use @SENSOR
+  # I2C Interface: use the i2c function to talk to an ADC ads1112
+  # Having Some Fun: make some noise with a speaker 
+
