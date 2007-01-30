@@ -1,0 +1,14 @@
+@ERASE
+
+@INIT 50
+50 Z = 0
+51 RETURN
+
+@IDLE 100
+100 A = slave 5
+101 RETURN
+
+@SLAVE 150
+150 A = link 1
+151 RETURN
+
