@@ -1,4 +1,4 @@
-#Micro Slave Code Description.
+Micro Slave Code Description.
 
 = Introduction =
 
