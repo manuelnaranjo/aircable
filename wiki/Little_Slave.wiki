@@ -1,3 +1,4 @@
+#labels Featured
 Tutorial 2 - Little Slave Code.
 
 = Introduction =
@@ -87,4 +88,3 @@ Finally, the most interesting changes are inside of the *@SLAVE* interrupt:
 28 RETURN
 }}}
 Those lines starts by setting a timeout to the Slave Channel, this is important with out this timeout the BASIC parser will hang up until it receives an end of line over the slave channel. Then you have a line that reads from the slave channel and puts that input on the string $0. The next line compares the first character of the input to be equal '+', there is something very important here you can't compare against a character you need to compare against the ASCII value of the character. If the compare is true it goes to line 26 connects the shell to the slave channel and turns on the LED, if the compare is false it will go to the next line link the Slave channel with the UART channel and turn on the led.
-
