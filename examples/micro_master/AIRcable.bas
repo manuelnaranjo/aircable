@@ -5,12 +5,12 @@
 
 @INIT 50
 0 REM debug
-50 Z = 1
+50 Z = 0 
 0 REM empty discovered device buffer.
 51 $1 = "0"
 52 A = slave -1
 0 REM J stores the pio where the led is attached
-53 J = 10
+53 J = 20
 0 REM LED output an don
 54 A = pioset J
 55 A = baud 96
