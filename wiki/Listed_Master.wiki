@@ -2,7 +2,7 @@ Tutorial 3 - Listed Master Code.
 
 = Introduction =
 
-Welcome back, in this example we will do a totally new thing. On this example we will see how to create an automated data distpatcher, that will connect to a predefined list of devices.
+Welcome back, in this example we will do a totally new thing. On this example we will see how to create an automated data distpatcher, that will connect to a predefined list of devices. You will also learn how to write data to the Master and UART port.
 
 Here take a look at the code:
 
@@ -93,5 +93,8 @@ Here take a look at the code:
 [http://aircable.googlecode.com/svn/examples/listed_master/AIRcable.bas Download File]
 
 = Explanation =
+As you can see this example is a mixture of all what we had seen before, it only adds a couple of commands. The first new command you will see is *_unpair_*, unpair is used to erase the link key from the bluetooth processor, we do this because we have a limit of 8 paired devices at the time.
 
+The next new thing you will notice is *_PRINTU_* and *_PRINTM_* those commands print the string given as argument to the *UART* and *MASTER* channel respectively.
 
+_*NOTE:* This code will take 30 seconds to start, but once it has started it will connect to each device until the unit is turned off, the connection cycle is 30 seconds per device._
