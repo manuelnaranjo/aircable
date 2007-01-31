@@ -11,7 +11,7 @@
 10 A = pioset 20
 11 A = baud 96
 0 REM debug
-12 Z = 1
+12 Z =  0
 0 REM We need to intializate the state
 0 REM if $2 lenght is not 12 then we don't have been paired before
 0 REM E shows our state
