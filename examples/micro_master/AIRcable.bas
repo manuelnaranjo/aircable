@@ -5,22 +5,19 @@
 
 @INIT 50
 0 REM debug
-50 Z = 0
+50 Z = 1
 0 REM empty discovered device buffer.
 51 $1 = "0"
-0 REM E = 0 need to inquiry
-0 REM E = 1 inquiring
-0 REM E = 2 device found
-0 REM E = 3 connecting
-0 REM E = 4 coonected
-52 E = 0
-53 A = slave -1
+52 A = slave -1
 0 REM J stores the pio where the led is attached
-54 J = 20
+53 J = 10
 0 REM LED output an don
-55 A = pioset J
-56 A = baud 96
-
+54 A = pioset J
+55 A = baud 96
+0 REM E will be used for state
+0 REM E = 0 disconnected
+0 REM E = 1 connected
+56 E = 0
 57 RETURN
 
 @IDLE 60
@@ -28,48 +25,23 @@
 61 RETURN
 
 @ALARM 100
-100 IF E = 0 THEN 110;
-101 IF E = 1 THEN 120;
-102 IF E = 2 THEN 130;
-103 IF E = 3 THEN 140;
-104 IF E = 4 THEN 150;
-105 RETURN
-
 0 REM we need to start an inquiry
 0 REM blink leds
-110 A = pioset J;
-111 A = pioclr J
-112 ALARM 6
-113 A = status
-114 IF A <> 0 THEN 116
-115 A = inquiry 5
-116 E = 1
-117 RETURN
-
-0 REM we are inquirying
-120 A = status
-121 ALARM 5
-122 IF A <> 0 THEN 117
-123 ALARM 1
-124 RETURN
+100 IF E = 1 THEN 150
+101 A = pioset J;
+102 A = pioclr J
+103 ALARM 6
+104 A = strlen $1
+105 IF A > 11 THEN 130
+106 A = inquiry 5
+107 RETURN
 
 0 REM a device has been discoverd, let's try to connect
 130 A = pioset J
-132 A = master $1
+131 A = master $1
 132 ALARM 6
-133 E = 3
+133 $1 = "0
 134 RETURN
-
-0 REM if we reach this point is because the @MASTER was never called, that means
-0 REM that the connection failured.
-140 A = pioclr J;
-141 A = pioset J
-142 A = pioclr J;
-143 A = pioset J
-144 A = pioclr J;
-145 E = 0
-146 ALARM 1
-147 RETURN
 
 0 REM we are connected, lets check we are still connected
 150 A = status
@@ -79,25 +51,26 @@
 
 0 REM we were disconencted
 155 $1 = "0
-156 E = 0
-157 A = pioclr J
-158 ALARM 1
+156 A = pioclr J
+157 ALARM 1
+158 E = 0
+159 A = unlink 3
 160 RETURN
 
 @INQUIRY 200
+0 REM when this interrupt gets called we have on $0 an string like this:
+0 REM 00112233445566 NAME where the number is the bt address.
 200 $1 = $0
-201 E = 2
-202 A = pioset 20;
-203 A = pioclr 20
-204 A = pioset 20;
-205 A = pioclr 20
-206 A = pioset 20;
-207 A = pioclr 20
-208 ALARM 1
-209 RETURN
+201 A = pioset J;
+202 A = pioclr J
+203 A = pioset J;
+204 A = pioclr J
+205 ALARM 1
+206 RETURN
 
 @MASTER 300
-300 E = 4
+300 E = 1
 301 A = pioset J
 302 C = link 2
 303 RETURN
+
