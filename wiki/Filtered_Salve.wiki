@@ -1,4 +1,3 @@
-#labels Featured
 Tutorial 3 - Filtered Slave Code.
 
 = Introduction =
