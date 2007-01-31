@@ -132,6 +132,8 @@ Now lets focus on the *_@ALARM_*:
 
 As you can see firstly we check if we are connected or not (we are actually checking our _saved_ state not the bluetooth status, so this is not accurate, but is very usefull). If we are not connected we have two posibilities to happen one is that we need to inquiry in which case we do inquiry *_inquiry 5_*, the other posibility is that we had discovered a device and we try to connect to it *_master $1_*. You might ask your self wy do we check if the $1 length is over 11 characters, easy each bluetooth address is 12 characters long, when the _*@INQUIRY*_ interrupt is called it dumps into $0 the Bluetooth Address plus the name of the device, as we don't sepparate the address from the name we need to check the length to be over 11.
 
+If you check the *_@ALARM_* code you will notice that no matter what happens before a _*RETURN*_ there is an *ALARM* schedulling. Why we do this? The cause is quite simple alarms are not triggered automatically, and we need a way to control the flow of the code, well this is the way we use to do it.
+
 The last interesting part in _*@ALARM*_ is *_A = status_* this command is used to get the bluetooth processor status, check the [http://docs.google.com/View?docid=dcvjvpkp_40c6nw49 documentation] for more info on *_status_*. There is a last thing regarding this piece of code and that is _*unlink 3*_ we use this to make sure the Master Channel is _unliked_ from the Serial Port.
 
 Finally you have _*@INQUIRY*_ and _*@MASTER*_, _*@INQUIRY*_ is called once the inquiry process has ended and when there has been devices discovered, take special care with this interrupts because it is very sensistive and can loose results if the processor is busy on the momemnt the _*inquiry*_ command ends.
