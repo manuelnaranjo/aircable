@@ -45,6 +45,5 @@
 32 RETURN
 
 33 A = disconnect 0
-34 PRINTU A
-35 RETURN
+34 RETURN
 
