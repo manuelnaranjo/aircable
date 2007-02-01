@@ -21,7 +21,7 @@ All this examples are released under the [http://aircable.googlecode.com/svn/tru
   # *[http://code.google.com/p/aircable/wiki/Interactive_PIO Interactive Code]*: Sometimes you need an interactive shell on the other side, this code will teach you how to write a simple interactive program that will let the user control a series of leds and will read some analog/digital inputs.
  
 == Networking ==
-  # Relay Mode Code: This code will show you how easy is to create a network of AIRcable devices. For this example you will need at least 3 different bluetooth devices, and one of those 3 must be an AIRcable OS enabled device. In this mode the AIRcable OS device will be connected to two other devices and will make a bridge between them, this way you can make the range of your bluetooth devices much longer.
+  # *[http://code.google.com/p/aircable/wiki/Relay Relay Mode Code]*: This code will show you how easy is to create a network of AIRcable devices. For this example you will need at least 3 different bluetooth devices, and one of those 3 must be an AIRcable OS enabled device. In this mode the AIRcable OS device will be connected to two other devices and will make a bridge between them, this way you can make the range of your bluetooth devices much longer.
 
 == Hardware Interfacing ==
   # Advanced Uart: This example read from Uart and writte to SPP, via BASIC program
