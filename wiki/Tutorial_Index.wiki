@@ -18,7 +18,7 @@ All this examples are released under the [http://aircable.googlecode.com/svn/tru
   # *[http://code.google.com/p/aircable/wiki/Cable_Master Cable Master]*: This code is like our Cable Master, it will make inquires and will pair with the first device it can find. Once it is paired it will not inquiry any more and will only connect to it's peer. This code will show you a way to handle pairs from the master side.
 
 == Interactive Code ==
-  # Interactive Code: Sometimes you need an interactive shell on the other side, this code will teach you how to write a simple interactive program that will let the user control a series of leds and will read some analog/digital inputs.
+  # *[http://code.google.com/p/aircable/wiki/Interactive_PIO Interactive Code]*: Sometimes you need an interactive shell on the other side, this code will teach you how to write a simple interactive program that will let the user control a series of leds and will read some analog/digital inputs.
  
 == Networking ==
   # Relay Mode Code: This code will show you how easy is to create a network of AIRcable devices. For this example you will need at least 3 different bluetooth devices, and one of those 3 must be an AIRcable OS enabled device. In this mode the AIRcable OS device will be connected to two other devices and will make a bridge between them, this way you can make the range of your bluetooth devices much longer.
