@@ -5,10 +5,10 @@
 
 @INIT 50
 0 REM debug
-50 Z = 0
+50 Z = 1
 51 A = slave -1
 0 REM J stores the pio where the led is attached
-52 J = 20
+52 J = 10
 0 REM LED output an don
 53 A = pioset J
 54 A = baud 96
@@ -17,14 +17,14 @@
 0 REM E = 1 paired - disconnected
 0 REM E = 2 paired - connected
 0 REM E = 3 upaired - timeout
-56 A = strlen $1
-57 IF A > 11 THEN 61
-58 E = 0
-59 A = zerocnt
-60 RETURN
+55 A = strlen $1
+56 IF A > 11 THEN 60
+57 E = 0
+58 A = zerocnt
+59 RETURN
 
-61 E = 1
-62 RETURN
+60 E = 1
+61 RETURN
 
 @IDLE 70
 70 ALARM 1
@@ -50,9 +50,10 @@
 
 0 REM a device has been discoverd, let's try to connect
 130 A = pioset J
-131 A = master $1
-132 ALARM 6
-133 RETURN
+131 A = pioclr J
+132 A = master $1
+133 ALARM 6
+134 RETURN
 
 0 REM we are connected, lets check we are still connected
 150 A = status
