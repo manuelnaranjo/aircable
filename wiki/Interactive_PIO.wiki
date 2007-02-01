@@ -125,5 +125,6 @@ Here you have the code:
 304 PRINTS "\n\r
 305 ALARM 3 
 306 GOTO 208
-
 }}}
+
+[http://aircable.googlecode.com/svn/examples/interactive_code/AIRcable.bas Download File]
