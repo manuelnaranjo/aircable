@@ -22,7 +22,7 @@
 51 E = 1
 52 A = slave -1
 0 REM J stores the pio where the led is attached
-53 J = 10
+53 J = 20
 0 REM LED output and on
 54 A = pioclr J
 55 A = baud 96
