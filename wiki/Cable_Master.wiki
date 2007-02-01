@@ -19,7 +19,7 @@ Here you have the code:
 50 Z = 1
 51 A = slave -1
 0 REM J stores the pio where the led is attached
-52 J = 10
+52 J = 20
 0 REM LED output an don
 53 A = pioset J
 54 A = baud 96
