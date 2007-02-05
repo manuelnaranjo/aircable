@@ -87,7 +87,7 @@
 0 REM RS232 POWER ON
 0 REM DTR
 0 REM DSR
-12 A005364
+12 A0053640
 
 
 0 REM PIO_IRQ SETTINGS
@@ -103,3 +103,4 @@
 0 REM any other number is converted to an int.
 15 0
 
+21 P00000000000

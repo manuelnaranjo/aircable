@@ -1,5 +1,8 @@
 Changelog:
 
+Version 0.6:
+    * Added support for Power Switch.
+
 Version 0.5:
     * New Leds Schema: We moved from a two leds schema (Serial OS) to a 1 led
 	schema (The rest of our devices).

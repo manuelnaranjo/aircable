@@ -74,6 +74,7 @@
 0 REM $8[4] RS232 POWER ON
 0 REM $8[5] DTR
 0 REM $8[6] DSR
+0 REM $8[7] POWER SWITCH
 0 REM LINE $12 STORES THE DEFAULT VALUE
 0 REM z means unitializated
 8 z
@@ -102,15 +103,16 @@
 0 REM RS232 POWER ON
 0 REM DTR
 0 REM DSR
-12 K000000
+0 REM POWER SWITCH
+12 K0000000
 
 0 REM PIO_IRQ SETTINGS
 0 REM 13 only buttons pio, used for starting interrupts when there is
 0 REM no connection going on
-13 P00000000000
+13 P000000000000
 0 REM 14 button + DSR interrupt, interrupts that must be listened while
 0 REM there is a connection going on
-14 P00000000000
+14 P000000000000
 
 0 REM 15 is the settings for the uart when a connection is made
 0 REM 0 means read from dip swithces
@@ -129,119 +131,127 @@
 0 REM $20 is used for relay mode, it stores the master address
 20 000000000000
 
-0 REM $44 RESERVED
-44 RESERVED
+0 REM $21 PIO_IRQ while off mode
+21 P000000000000
+
+0 REM $43 RESERVED
+43 RESERVED
 
 0 REM THIS TURNS A CHAR AT $0[E] into
 0 REM and integer in F
-45 IF $0[E] > 57 THEN 48
-46 F = $0[E] - 48;
-47 RETURN
+40 IF $0[E] > 57 THEN 43
+41 F = $0[E] - 48;
+42 RETURN
 0 REM WE NEED TO ADD 10 BECAUSE "A" IS NOT 0
 0 REM IS 10
-48 F = $0[E] - 55;
-49 RETURN
+43 F = $0[E] - 55;
+44 RETURN
 
 
-@INIT 50
-50 Z = $9[0] - 48;
-51 A = uart 1152
-52 IF $9[2] = 48 THEN 54
-53 PRINTU "@INIT\n\r";
-54 IF $8[0] <> 122 THEN 62
-55 $0[0] = 0
-56 PRINTV $12
-57 FOR E = 0 TO 6
-58 GOSUB 45
-59 $8[E] = F + 48
-60 NEXT E
-61 $8[8] = 0
+@INIT 45
+45 Z = $9[0] - 48;
+46 A = uart 1152
+47 IF $9[2] = 48 THEN 49
+48 PRINTU "@INIT\n\r";
+49 IF $8[0] <> 122 THEN 57
+50 $0[0] = 0
+51 PRINTV $12
+52 FOR E = 0 TO 6
+53 GOSUB 40
+54 $8[E] = F + 48
+55 NEXT E
+56 $8[8] = 0
 
-62 $0[0] = 0;
-63 PRINTV $10;
-64 PRINTV " ";
-65 A = getuniq $44;
-66 PRINTV $44;
-67 A = name $0;
+57 $0[0] = 0;
+58 PRINTV $10;
+59 PRINTV " ";
+60 A = getuniq $43;
+61 PRINTV $43;
+62 A = name $0;
 
 0 REM button as input
-68 A = pioin ($8[2]-48);
+63 A = pioin ($8[2]-48);
 0 REM bias pull up to high
-69 A = pioset ($8[2]-48);
+64 A = pioset ($8[2]-48);
 0 REM green LED output, off
-70 A=pioout ($8[1]-48);
-71 A=pioclr ($8[1]-48);
+65 A=pioout ($8[1]-48);
+66 A=pioclr ($8[1]-48);
 0 REM blue LED output, off
-72 A=pioout ($8[0]-48)
+67 A=pioout ($8[0]-48)
 0 REM RS232_off set, switch on RS232
-73 A=pioout ($8[3]-48)
-74 A=pioset ($8[3]-48)
+68 A=pioout ($8[3]-48)
+69 A=pioset ($8[3]-48)
 0 REM RS232_on power on, switch to automatic later
-75 A=pioout ($8[4]-48)
-76 A=pioset ($8[4]-48)
+70 A=pioout ($8[4]-48)
+71 A=pioset ($8[4]-48)
 0 REM DTR output set -5V
-77 A=pioout ($8[5]-48)
-78 A=pioset ($8[5]-48)
+72 A=pioout ($8[5]-48)
+73 A=pioset ($8[5]-48)
 0 REM DSR input
-79 A=pioin ($8[6]-48)
+74 A=pioin ($8[6]-48)
 0 REM set DSR to IRQ so that PIO_IRQ is called
 0 REM just button interrupts here
-80 A=pioirq $13
+75 A=pioirq $13
 
 0 REM start baud rate
-81 A = baud 1152
-82 A = nextsns 6
+76 A = baud 1152
+77 A = nextsns 6
 0 REM reset for pairing timeout
-83 A = zerocnt
-84 IF $9[2] = 48 THEN 86
-85 PRINTU "Command Line ready
+78 A = zerocnt
+79 IF $9[2] = 48 THEN 81
+80 PRINTU "Command Line ready
 
 0 REM state initialize
-86 IF $3[0] <> 90 THEN 88
+81 IF $3[0] <> 90 THEN 83
 0 REM newly updated BASIC program, goto SLAVE mode
-87 $3 = $2;
+82 $3 = $2;
 
 0 REM init button state
-88 W = 0
+83 W = 0
 
 0 REM in idle mode we wait for a command line interface start
 0 REM you must type a +++ and enter
 0 REM blue LED off
-89 A = pioclr ($8[0]-48)
-90 J = 0
+84 A = pioclr ($8[0]-48)
+85 J = 0
 
-91 $3[3] = 48;
+86 $3[3] = 48;
 
 0 REM should go to mode dump
-92 IF $9[2] = 48 THEN 94
-93 GOSUB 671
+87 IF $9[2] = 48 THEN 89
+88 GOSUB 671
 
 0 REM let's start up, green LED on
-94 A = pioset ($8[1]-48)
+89 A = pioset ($8[1]-48)
 
-96 K = 1
+90 K = 1
 0 REM now we go to @IDLE, and then we get into the @ALARM
-95 A = uartint
-97 H = 1
-98 RETURN
+91 A = uartint
+92 H = 1
+0 REM for Unisex V2 switch detector
+93 A = pioset $8[7]
+94 A = pioin $8[7]
+95 M = 0
+96 RESERVED
+97 RETURN
 
 0 REM Obex/ObexFTP timing handler
 0 REM this code is also called from the command line on exit
-99 B = readcnt
-100 C = atoi $16
-101 IF B < C THEN 108
-102 GOSUB 105
-103 H = 0
-104 GOTO 235
+101 B = readcnt
+102 C = atoi $16
+103 IF B < C THEN 110
+104 GOSUB 107
+105 H = 0
+106 GOTO 235
 
-105 IF $9[3] = 49 THEN 107
-106 A = disable 3
-107 RETURN
+107 IF $9[3] = 49 THEN 109
+108 A = disable 3
+109 RETURN
 
-108 ALARM 30
-109 GOTO 235
+110 ALARM 30
+111 GOTO 235
 
-@SENSOR 111
+@SENSOR 112
 0 REM baud rate selector switch implementation
 0 REM thresholds (medians) for BAUD rate switch
 0 REM AIO0 has voltage, use 1000 (3e8) as analog correction factor
@@ -249,40 +259,40 @@
 0 REM voltages: 160, 450, 650, 810, 930, 1020, 1090, >
 0 REM switch    111, 110, 101, 100, 011,  010,  001, 000
 0 REM baud:    1152,  96, 384, 000, 576,   48,  192, 321
-111 IF $15[0] = 48 THEN 117;
+112 IF $15[0] = 48 THEN 118;
 0 REM we need to convert from string to integer, because we are on internal
 0 REM baud rate, if an error ocurs while converting, then we switch
 0 REM to the dip's automatically
-112 C = atoi $15;
-113 IF C = 0 THEN 117;
-114 I = C;
-115 A = baud I
-116 RETURN
-117 C = sensor $0;
-118 IF C < 160 THEN 127;
-119 IF C < 450 THEN 129;
-120 IF C < 650 THEN 131;
-121 IF C < 810 THEN 133;
-122 IF C < 930 THEN 135;
-123 IF C < 1020 THEN 137;
-124 IF C < 1090 THEN 139;
-125 I = 321;
-126 GOTO 115;
+113 C = atoi $15;
+114 IF C = 0 THEN 118;
+115 I = C;
+116 A = baud I
+117 RETURN
+118 C = sensor $0;
+119 IF C < 160 THEN 128;
+120 IF C < 450 THEN 130;
+121 IF C < 650 THEN 132;
+122 IF C < 810 THEN 134;
+123 IF C < 930 THEN 136;
+124 IF C < 1020 THEN 138;
+125 IF C < 1090 THEN 140;
+126 I = 321;
+127 GOTO 116;
 
-127 I = 1152;
-128 GOTO 115;
-129 I = 96;
-130 GOTO 115;
-131 I = 384;
-132 GOTO 115;
-133 I = 1152;
-134 GOTO 115;
-135 I = 576;
-136 GOTO 115;
-137 I = 48;
-138 GOTO 115;
-139 I = 192;
-140 GOTO 115;
+128 I = 1152;
+129 GOTO 116;
+130 I = 96;
+131 GOTO 116;
+132 I = 384;
+133 GOTO 116;
+134 I = 1152;
+135 GOTO 116;
+136 I = 576;
+137 GOTO 116;
+138 I = 48;
+139 GOTO 116;
+140 I = 192;
+141 GOTO 116;
 
 142 RETURN
 0 REM handle button press and DSR, status is $0
@@ -427,7 +437,7 @@
 232 IF $9[2] = 48 THEN 234
 233 GOSUB 671
 
-234 IF H = 1 THEN 99
+234 IF H = 1 THEN 101
 
 235 IF $3[0] > 52 THEN 890
 
@@ -498,8 +508,8 @@
 0 REM if we aren't then we must reboot and go to idle mode.
 285 GOSUB 1000;
 286 W = 2
-287 IF $44[3] = 49 THEN 300
-289 IF $44[4] = 49 THEN 300
+287 IF $43[3] = 49 THEN 300
+289 IF $43[4] = 49 THEN 300
 
 0 REM reboot 
 290 $3[0] = 48
@@ -511,7 +521,7 @@
 296 W = 3
 297 A = reboot
 298 WAIT 3;
-299 RETURN
+2100 RETURN
 
 0 REM disconnects, disconnect restarts @IDLE
 300 ALARM 0
@@ -563,7 +573,7 @@
 345 GOTO 327;
 
 347 A = slave -5;
-348 RETURN
+344 RETURN
 
 
 0 REM this interrupt is launched when there is an incomming
@@ -852,7 +862,7 @@
 0 REM that @SLAVE starts all again, and that
 0 REM we start unvisible
 584 PRINTU "Bye!!\n\r
-585 GOSUB 105;
+585 GOSUB 107;
 586 $3[3] = 48;
 587 A = slave -1;
 588 A = uartint
@@ -879,7 +889,7 @@
 607 PRINTU $0
 608 GOSUB 1000;
 609 PRINTU"\n\rBT Status:
-610 PRINTU $44;
+610 PRINTU $43;
 611 PRINTU"\n\rName Filter:
 612 PRINTU $5;
 613 PRINTU"\n\rAddr Filter:
@@ -1005,8 +1015,8 @@
 709 $0[0] = 0;
 710 PRINTV $10;
 711 PRINTV " ";
-712 A = getuniq $44;
-713 PRINTV $44;
+712 A = getuniq $43;
+713 PRINTV $43;
 714 A = name $0;
 715 GOTO 557
 
@@ -1116,7 +1126,7 @@
 0 REM command line has just started?
 797 IF $3[3] = 49 THEN 545
 798 IF $3[3] = 54 THEN 800
-799 RETURN
+7100 RETURN
 
 800 A = pioclr ($8[0]-48);
 801 A = pioclr ($8[1]-48);
@@ -1150,7 +1160,7 @@
 0 REM inquiry code
 0 REM by default we inquiry for 10 seconds
 820 GOSUB 1000;
-821 IF $44[0] = 49 THEN 789
+821 IF $43[0] = 49 THEN 789
 822 PRINTU"Inquirying for
 823 PRINTU" 16s. Please wait.
 824 B = inquiry 10
@@ -1162,7 +1172,7 @@
 
 0 REM master code
 830 GOSUB 1000;
-831 IF $44[3] = 49 THEN 789
+831 IF $43[3] = 49 THEN 789
 832 PRINTU"Please input "
 833 PRINTU"the addr of your "
 834 PRINTU"peer:
@@ -1182,7 +1192,7 @@
 0 REM manual slave
 0 REM by default we open the slave channel for 60 seconds
 845 GOSUB 1000;
-846 IF $44[4] = 49 THEN 789
+846 IF $43[4] = 49 THEN 789
 847 PRINTU"Slave Open for
 848 PRINTU" 16s. Please wait.
 849 $3[3] = 50
@@ -1284,23 +1294,23 @@
 0 REM convert status to a string
 0 REM store the result on $44
 1000 B = status
-1001 $44[0] = 0;
-1002 $44 = "00000";
+1001 $43[0] = 0;
+1002 $43 = "00000";
 1003 IF B < 10000 THEN 1006;
-1004 $44[0] = 49;
+1004 $43[0] = 49;
 1005 B = B -10000;
 1006 IF B < 1000 THEN 1009;
-1007 $44[1] = 49;
+1007 $43[1] = 49;
 1008 B = B -1000;
 1009 IF B < 100 THEN 1012;
-1010 $44[2] = 49; 
+1010 $43[2] = 49;
 1011 B = B -100;
 1012 IF B < 10 THEN 1015;
-1013 $44[3] = 49;
+1013 $43[3] = 49;
 1014 B = B -10;
 1015 IF B < 1 THEN 1017;
-1016 $44[4] = 49;
-1017 $44[5] = 0;
+1016 $43[4] = 49;
+1017 $43[5] = 0;
 1018 RETURN
 
 
