@@ -72,8 +72,7 @@
 0 REM second char is for shell
 0 REM third is for dumping states
 0 REM fourth for obexftp
-0 REM fifth for obex
-9 00000
+9 0000
 
 0 REM $10 stores our friendly name
 10 AIRcable
@@ -96,6 +95,7 @@
 0 REM 13 only buttons pio, used for starting interrupts when there is
 0 REM no connection going on
 13 P000100000001
+0 REM 13 P000101000001
 0 REM 14 button + DSR interrupt, interrupts that must be listened while
 0 REM there is a connection going on
 14 P000101000001
@@ -108,10 +108,11 @@
 0 REM $21 PIO_IRQ for off mode
 21 P000000000001
 
-96 GOTO 990
+98 GOTO 875
 
-@PIO_IRQ 970
-970 IF $0[$8[7]-48]=49 THEN 985
+@PIO_IRQ 850
+850 A = pioget ($8[7]-48)
+851 IF A = 1 THEN 870
 
 0 REM we were turned off
 0 REM switch off:
@@ -119,26 +120,69 @@
 0 REM 	sensors
 0 REM 	uart interrupt
 0 REM 	and go invisible
-971 M = 1;
-972 ALARM 0;
-973 A = nextsns 0;
-974 A = pioclr ($8[2]-48);
-975 A = pioclr ($8[1]-48);
-976 A = pioclr ($8[0]-48);
-977 A = pioclr ($8[3]-48);
-978 A = pioclr ($8[4]-48);
-979 A = pioclr ($8[5]-48);
-980 A = slave -1;
-981 A = pioirq $21;
-982 RETURN
+852 M = 1;
+853 ALARM 0;
+854 A = nextsns 0;
+855 A = pioclr ($8[0]-48);
+856 A = pioclr ($8[1]-48);
+857 A = pioclr ($8[2]-48);
+858 A = pioclr ($8[3]-48);
+859 A = pioclr ($8[4]-48);
+860 A = pioclr ($8[5]-48);
+861 A = pioclr ($8[6]-48);
+862 A = disconnect 0;
+863 A = disconnect 1;
+864 A = slave -1;
+865 A = pioirq $21;
+866 RETURN
 
-985 IF M = 0 THEN 143
-986 GOTO 45
+870 IF M = 0 THEN 142
+871 ALARM 5
+872 GOTO 64
 
-990 A = pioget ($8[7]-48)
-991 IF A = 0 THEN 971
-992 RETURN
+875 A = pioget ($8[7]-48);
+876 H = 0;
+877 N = 0;
+878 IF A = 0 THEN 852;
+879 RETURN
 
-@SLAVE 995
-995 IF M = 0 THEN 350
-996 RETURN
+@IDLE 880
+880 IF N = 1 THEN 910
+881 IF M = 0 THEN 192
+882 RETURN
+
+@SENSOR 885
+885 A = sensor $0
+886 V = atoi $0[5]
+887 A = nextsns 600
+888 IF V > 3000 THEN 890
+889 GOTO 985
+
+890 N = 1
+891 ALARM 5
+892 GOTO 112
+
+895 N = 0
+896 ALARM 5
+897 GOTO 112
+
+@ALARM 900
+900 IF N = 1 THEN 905 
+901 GOTO 227
+
+905 A = pioclr ($8[1]-48)
+906 A = pioset ($8[1]-48);
+907 ALARM 5
+908 IF $3[0] = 48 THEN 915
+909 GOTO 227
+
+910 IF $3[3] <> 48 THEN 881;
+911 IF $3[0] = 48 THEN 915;
+912 GOTO 881
+
+915 IF K = 0 THEN 918
+916 A = slave -1
+917 K = 0
+918 RETURN
+
+
