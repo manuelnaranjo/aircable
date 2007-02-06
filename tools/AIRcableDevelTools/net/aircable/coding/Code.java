@@ -231,11 +231,24 @@ public class Code {
 					
 					while (diffLines.hasMoreTokens()){
 						String diffLine = diffLines.nextToken();
-						int lineNum = Integer.parseInt(diffLine.substring(0,diffLine.indexOf(' ')));
-						String orgLine = base.substring(base.indexOf(Integer.toString(lineNum)+ " "));
-						orgLine = orgLine.substring(0,orgLine.indexOf("\r\n"));
+						String orgLine = "";
+						try {
+						if (diffLine.trim().length()>0)
+						if (!diffLine.startsWith("@")){							
+								int lineNum = Integer.parseInt(diffLine.substring(0,diffLine.indexOf(' ')));
+								orgLine = base.substring(base.indexOf(Integer.toString(lineNum)+ " "));
+								orgLine = orgLine.substring(0,orgLine.indexOf("\r\n"));							 
+						} else {							
+							orgLine = base.substring(base.indexOf(diffLine.substring(0,diffLine.indexOf(' '))));
+							orgLine = orgLine.substring(0,orgLine.indexOf("\r\n"));
+						}
 						
-						replace = replace.replace(orgLine, diffLine);						
+						replace = replace.replace(orgLine, diffLine);
+						} catch (java.lang.Exception e)							  
+						{
+							replace+=diffLine;
+							replace+="\r\n";							
+						}
 					}
 					
 					System.out.printf("File %s done.%n", dirs[i].getName());
