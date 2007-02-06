@@ -108,55 +108,59 @@
 0 REM $21 PIO_IRQ for off mode
 21 P000000000001
 
+75 ;
+
 98 GOTO 875
 
-@PIO_IRQ 850
+@PIO_IRQ 849
+849 IF L = 1 THEN 930
 850 A = pioget ($8[7]-48)
-851 IF A = 1 THEN 870
+851 IF A = 1 THEN 871
 
 0 REM we were turned off
+0 REM firstly reboot
+852 GOTO 920
+
+0 REM then when it comes up again
 0 REM switch off:
 0 REM 	alarms
 0 REM 	sensors
 0 REM 	uart interrupt
 0 REM 	and go invisible
-852 M = 1;
-853 ALARM 0;
-854 A = nextsns 0;
-855 A = pioclr ($8[0]-48);
-856 A = pioclr ($8[1]-48);
-857 A = pioclr ($8[2]-48);
-858 A = pioclr ($8[3]-48);
-859 A = pioclr ($8[4]-48);
-860 A = pioclr ($8[5]-48);
-861 A = pioclr ($8[6]-48);
-862 A = disconnect 0;
-863 A = disconnect 1;
-864 A = slave -1;
+
+853 M = 1;
+854 ALARM 0;
+855 A = nextsns 0;
+856 A = pioclr ($8[0]-48);
+857 A = pioclr ($8[1]-48);
+858 A = pioclr ($8[2]-48);
+859 A = pioclr ($8[3]-48);
+860 A = pioclr ($8[4]-48);
+861 A = pioclr ($8[5]-48);
+862 A = pioclr ($8[6]-48);
+863 A = slave -1;
+864 A = disable 3
 865 A = pioirq $21;
 866 RETURN
 
-870 IF M = 0 THEN 142
-871 ALARM 5
-872 GOTO 64
+871 IF M = 0 THEN 142
+872 ALARM 5
+873 GOTO 64
 
-875 A = pioget ($8[7]-48);
-876 H = 0;
-877 N = 0;
-878 IF A = 0 THEN 852;
-879 RETURN
-
-@IDLE 880
-880 IF N = 1 THEN 910
-881 IF M = 0 THEN 192
-882 RETURN
+875 A = pioirq $13
+876 A = pioget ($8[7]-48);
+877 H = 0;
+878 N = 0;
+879 L = 1
+880 IF A = 0 THEN 853;
+881 RETURN
 
 @SENSOR 885
 885 A = sensor $0
 886 V = atoi $0[5]
 887 A = nextsns 600
-888 IF V > 3000 THEN 890
-889 GOTO 905
+888 IF V < 3000 THEN 890
+889 GOTO 895
 
 890 N = 1
 891 ALARM 5
@@ -185,4 +189,15 @@
 917 K = 0
 918 RETURN
 
+920 A = reboot
+921 WAIT 3
+922 RETURN
 
+930 L = 0
+931 RETURN
+
+@IDLE 940
+940 L = 0
+941 IF N = 1 THEN 910
+942 IF M = 0 THEN 192
+943 RETURN
