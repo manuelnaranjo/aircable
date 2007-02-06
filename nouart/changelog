@@ -4,7 +4,8 @@ Version 0.1:
     * Moved from INPUTU and PRINTU to INPUTS and PRINTS
     * Removed Manual Modes
     * Removed PIO_IRQ
-    *  
+    * Removed DIP Switches measurment
+    * 
 
 Version 0.0:
     * Forked from Command Line Version 0.6
