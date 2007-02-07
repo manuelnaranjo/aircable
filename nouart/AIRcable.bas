@@ -110,10 +110,10 @@
 0 REM PIO_IRQ SETTINGS
 0 REM 13 only buttons pio, used for starting interrupts when there is
 0 REM no connection going on
-13 P000000000000
+13 P000101000000
 0 REM 14 button + DSR interrupt, interrupts that must be listened while
 0 REM there is a connection going on
-14 P000000000000
+14 P000101000000
 
 0 REM 15 is the settings for the uart when a connection is made
 0 REM 0 means read from dip swithces
@@ -133,7 +133,14 @@
 20 000000000000
 
 0 REM $21 PIO_IRQ while off mode
-21 P000000000000
+21 P000010100000
+
+0 REM $22 Stores the state previous to the Command Line Switch was activated
+22 1110
+
+0 REM $23 Stores the mode to which the module will switch once command line
+0 REM switch is activated
+23 1110
 
 0 REM $39 RESERVED
 39 RESERVED
@@ -222,7 +229,7 @@
 
 0 REM should go to mode dump
 88 IF $9[2] = 48 THEN 90
-89 GOSUB 590
+89 GOSUB 575
 
 0 REM let's start up, green LED on
 90 A = pioset ($8[1]-48)
@@ -230,51 +237,52 @@
 91 K = 1
 0 REM now we go to @IDLE, and then we get into the @ALARM
 92 H = 1
-0 REM for Unisex V2 switch detector
+0 REM for Command Line Switch.
 93 A = pioset $8[7]-48
 94 A = pioin $8[7]-48
 95 M = 0
-96 IF H = 0 THEN 99
-97 RESERVED
-98 RETURN
+96 GOSUB 800
+97 IF H = 0 THEN 100
+98 RESERVED
+99 RETURN
 
 0 REM Obex/ObexFTP timing handler
 0 REM this code is also called from the command line on exit
-99 B = readcnt
-100 C = atoi $16
-101 IF B < C THEN 108
-102 GOSUB 105
-103 H = 0
-104 GOTO 150
+100 B = readcnt
+101 C = atoi $16
+102 IF B < C THEN 109
+103 GOSUB 106
+104 H = 0
+105 GOTO 150
 
-105 IF $9[3] = 49 THEN 107
-106 A = disable 3
-107 RETURN
+106 IF $9[3] = 49 THEN 108
+107 A = disable 3
+108 RETURN
 
-108 ALARM 30
-109 GOTO 150
+109 ALARM 30
+110 GOTO 150
 
 0 REM idle will be called, when the command line ends working
 0 REM when the slave connection is closed, and when slave calls
 0 REM timeouts, in any of those cases we will let the @ALARM
 0 REM handle the slave mode stuff
 0 REM idle used for slave connections, pairing or paired
-@IDLE 110
-111 IF $3[3] <> 48 THEN 120;
-112 IF W <> 0 THEN 118;
-113 IF K = 1 THEN 116;
-114 IF K = 2 THEN 117;
+@IDLE 120
+120 IF $3[3] <> 48 THEN 128;
+121 IF W <> 0 THEN 127;
+122 IF K = 1 THEN 125;
+123 IF K = 2 THEN 126;
 0 REM lets trigger the alarm manually
-115 GOTO 144;
+124 GOTO 144;
 
 
-116 A = slave-1;
-117 K = 0;
-118 RETURN
+125 A = slave-1;
+126 K = 0;
+127 RETURN
 
-120 $3[3] = 48;
-121 ALARM 1
-122 RETURN
+128 $3[3] = 48;
+129 ALARM 1
+130 RETURN
 
 @PIN_CODE 140
 140 IF $9[2] = 48 THEN 142
@@ -294,9 +302,9 @@
 
 0 REM should go to mode dumping
 147 IF $9[2] = 48 THEN 149
-148 GOSUB 590
+148 GOSUB 575
 
-149 IF H = 1 THEN 99
+149 IF H = 1 THEN 100
 
 150 IF $3[0] > 52 THEN 783
 
@@ -315,7 +323,7 @@
 
 160 A = baud 1152
 0 REM are we on automatic or manual?
-161 IF $3[3] <> 48 THEN 718
+161 IF $3[3] <> 48 THEN 685
 0 REM we are on automatic.
 0 REM are we on automatic - manual?
 162 IF $3[0] = 48 THEN 179
@@ -344,7 +352,7 @@
 0 REM we are on master modes
 171 FOR B = 0 TO 2
 172 A = pioset ($8[0]-48)
-173 A = pioclr ($8[0]-48
+173 A = pioclr ($8[0]-48)
 174 NEXT B
 175 IF $3[1] = 48 THEN 222;
 176 A = pioset ($8[0]-48)
@@ -365,7 +373,7 @@
 0 REM this is a long button press, we have stuff to do
 0 REM if we are connected, then we disconnect and reboot to unpaired
 0 REM if we aren't then we must reboot and go to idle mode.
-184 GOSUB 800;
+184 GOSUB 690;
 185 W = 2
 186 IF $39[3] = 49 THEN 198
 187 IF $39[4] = 49 THEN 198
@@ -410,7 +418,7 @@
 
 0 REM service - master
 213 A = strlen $7;
-214 IF A > 1 THEN 218
+214 IF A > 1 THEN 230
 215 A = inquiry 6
 216 ALARM 8
 217 RETURN
@@ -434,6 +442,9 @@
 228 A = slave -5;
 229 RETURN
 
+230 A = master $7
+231 $7 = "0"
+232 GOTO 219
 
 0 REM this interrupt is launched when there is an incomming
 0 REM slave connection
@@ -503,7 +514,7 @@
 281 INPUTS $279
 282 IF $279[0] <> 43 THEN 242
 283 IF $279[2] <> 43 THEN 242
-284 GOTO 451
+284 GOTO 452
 
 @MASTER 346
 0 REM successful master connection
@@ -518,12 +529,12 @@
 353 GOTO 362
 0 REM if we are not on master modes, then we must avoid this connection.
 354 IF $3[0] > 50 THEN 357;
-355 IF $3[0] > 48 THEN 372;
-356 IF $3[0] = 48 THEN 372;
+355 IF $3[0] > 48 THEN 383;
+356 IF $3[0] = 48 THEN 383;
 357 A = pioset ($8[1]-48);
 358 A = pioset ($8[0]-48);
 0 REM don't switch state in service mode or manual
-359 IF $3[3] = 52 THEN 369
+359 IF $3[3] = 52 THEN 380
 360 IF $3[1] = 49 THEN 362
 0 REM set state master paired
 361 $3[0] = 52
@@ -539,113 +550,116 @@
 366 ALARM 5
 0 REM allow DSR interrupts
 367 A = pioirq $14
-368 RETURN
+368 IF $3[1] = 48 THEN 370
+0 REM in service master clear buffer
+369 $7 = "0";
+370 RETURN
 
-369 PRINTU"\n\rCONNECTED\n\r
-370 $3[4] = 54
-371 GOTO 362
+380 PRINTU"\n\rCONNECTED\n\r
+381 $3[4] = 54
+382 GOTO 362
 
-372 A = disconnect 1
-373 RETURN
+383 A = disconnect 1
+384 RETURN
 
-0 REM $374 RESERVED
-374 RESERVED
+0 REM $399 RESERVED
+399 RESERVED
 0 REM inquiry code, only in mode pair_as_master
-@INQUIRY 375
-375 $374 = $0
-376 IF $9[2] = 48 THEN 378
-377 PRINTU "@INQUIRY\n\r";
-378 IF $3[3] <> 51 THEN 383
-379 PRINTU"\n\rFound device: "
-380 PRINTU $374
-381 ALARM 4
-382 RETURN
+@INQUIRY 400
+400 $399 = $0
+401 IF $9[2] = 48 THEN 403
+402 PRINTU "@INQUIRY\n\r";
+403 IF $3[3] <> 51 THEN 408
+404 PRINTU"\n\rFound device: "
+405 PRINTU $399
+406 ALARM 4
+407 RETURN
 
-383 $4 = $374;
-384 $374 = $0[13];
-385 IF $3[0] <> 51 THEN 388;
+408 $4 = $399;
+409 $399 = $0[13];
+410 IF $3[0] <> 51 THEN 413;
 0 REM inquiry filter active
-386 IF $3[2] = 48 THEN 388;
-387 IF $3[2] = 49 THEN 389;
-388 RETURN
+411 IF $3[2] = 48 THEN 413;
+412 IF $3[2] = 49 THEN 414;
+413 RETURN
 
-389 IF $9[2] = 48 THEN 392;
-390 PRINTU "found "
-391 PRINTU $4
+414 IF $9[2] = 48 THEN 417;
+415 PRINTU "found "
+416 PRINTU $4
 0 REM check name of device
-392 $0[0]=0;
-393 PRINTV $374;
-394 B = strcmp $5;
-395 IF B <> 0 THEN 402;
+417 $0[0]=0;
+418 PRINTV $399;
+419 B = strcmp $5;
+420 IF B <> 0 THEN 427;
 
 0 REM found one, try to connect, inquiry canceled automaticall
 0 REM 447 GOSUB 485;
-396 B = master $4;
+421 B = master $4;
 0 REM if master busy keep stored address in $4, get next
-397 IF B = 0 THEN 403;
+422 IF B = 0 THEN 428;
 0 REM master accepted, store address, restart alarms, give it 8 seconds to connect
 0 REM corrected by mn
-398 $7 = $4;
-399 ALARM 8;
+423 $7 = $4;
+424 ALARM 8;
 0 REM all on to indicate we have one
-400 A = pioset ($8[1]-48);
-401 A = pioset ($8[0]-48);
-402 RETURN
+425 A = pioset ($8[1]-48);
+426 A = pioset ($8[0]-48);
+427 RETURN
 
 0 REM get next result, give the inq result at least 2 sec time
-403 GOSUB 405;
-404 RETURN
+428 GOSUB 430;
+429 RETURN
 
 0 REM blink sub-routine pair as master mode, blue-on green-off and reverse
-405 IF J = 1 THEN 410;
-406 J = 1;
-407 A = pioset ($8[0]-48);
-408 A = pioclr ($8[1]-48);
-409 RETURN
-410 A = pioclr ($8[0]-48);
-411 A = pioset ($8[0]-48);
-412 J = 0;
-413 RETURN;
+430 IF J = 1 THEN 435;
+431 J = 1;
+432 A = pioset ($8[0]-48);
+433 A = pioclr ($8[1]-48);
+434 RETURN
+435 A = pioclr ($8[0]-48);
+436 A = pioset ($8[0]-48);
+437 J = 0;
+438 RETURN;
 
-@CONTROL 414
+@CONTROL 439
 0 REM remote request for DTR pin on the RS232
-414 IF $0[0] < 128 THEN 417
-415 A = uartcfg$0[0]
-416 RETURN
-417 IF $0[0] = 49 THEN 419;
-418 A=pioset ($8[5]-48);
-419 RETURN;
-420 A=pioclr ($8[5]-48);
-421 RETURN
+439 IF $0[0] < 128 THEN 442
+440 A = uartcfg$0[0]
+441 RETURN
+442 IF $0[0] = 49 THEN 444;
+443 A=pioset ($8[5]-48);
+444 RETURN;
+445 A=pioclr ($8[5]-48);
+446 RETURN
 
 
 0 REM read from uart and echo function
 0 REM on line 940 we have the other uart echo function.
 0 REM result is on $529
-0 REM 528, 438 RESERVED FOR TEMP
-437 RESERVED
-438 RESERVED
-439 INPUTS $438;
-440 GOTO 441;
-441 RETURN
+0 REM 528, 448 RESERVED FOR TEMP
+447 RESERVED
+448 RESERVED
+449 INPUTS $448;
+450 GOTO 451;
+451 RETURN
 
 0 REM command line interface
-451 ALARM 0
-452 A = baud 1152
-453 A = pioclr ($8[0]-48);
-454 A = pioclr ($8[1]-48);
-455 $3[3] = 49
+452 ALARM 0
+453 A = baud 1152
+454 A = pioclr ($8[0]-48);
+455 A = pioclr ($8[1]-48);
+456 $3[3] = 49
 0 REM enable FTP again
-456 A = enable 3
-457 PRINTS "\r\nAIRcable OS "
-458 PRINTS "command line v
-459 PRINTS $1
-460 PRINTS "\r\nType h to "
-461 PRINTS "see the list of "
-462 PRINTS "commands";
-463 PRINTS "\n\rAIRcable> "
-464 GOSUB 710;
-465 PRINTS"\n\r
+457 A = enable 3
+458 PRINTS "\r\nAIRcable OS "
+459 PRINTS "command line v
+460 PRINTS $1
+461 PRINTS "\r\nType h to "
+462 PRINTS "see the list of "
+463 PRINTS "commands";
+464 PRINTS "\n\rAIRcable> "
+465 GOSUB 677;
+466 PRINTS"\n\r
 
 0 REM h: help, l: list,
 0 REM n: name, p: pin, b: name filter, g: address filter
@@ -655,96 +669,96 @@
 0 REM e: exit
 
 0 REM help
-466 IF $438[0] = 104 THEN 620;
+467 IF $448[0] = 104 THEN 596;
 0 REM info
-467 IF $438[0] = 108 THEN 510;
+468 IF $448[0] = 108 THEN 495;
 0 REM name
-468 IF $438[0] = 110 THEN 640;
+469 IF $448[0] = 110 THEN 607;
 0 REM pin
-469 IF $438[0] = 112 THEN 650;
+470 IF $448[0] = 112 THEN 617;
 0 REM class
-470 IF $438[0] = 99 THEN 654;
+471 IF $448[0] = 99 THEN 621;
 0 REM uart
-471 IF $438[0] = 117 THEN 536;
+472 IF $448[0] = 117 THEN 521;
 0 REM date
-472 IF $438[0] = 100 THEN 680;
+473 IF $448[0] = 100 THEN 647;
 0 REM shell
-473 IF $438[0] = 115 THEN 740;
+474 IF $448[0] = 115 THEN 688;
 0 REM obex
-476 IF $438[0] = 111 THEN 690;
+475 IF $448[0] = 111 THEN 657;
 0 REM modes
-477 IF $438[0] = 97 THEN 549;
+476 IF $448[0] = 97 THEN 534;
 0 REM exit
-478 IF $438[0] = 101 THEN 490;
+477 IF $448[0] = 101 THEN 488;
 0 REM name filter
-479 IF $438[0] = 98 THEN 670;
+478 IF $448[0] = 98 THEN 637;
 0 REM addr filter
-480 IF $438[0] = 103 THEN 675;
+479 IF $448[0] = 103 THEN 642;
 0 REM hidden debug settings
-481 IF $438[0] = 122 THEN 486;
+480 IF $448[0] = 122 THEN 484;
 0 REM reboot
-482 IF $438[0] = 114 THEN 713;
-484 PRINTS"Command not found
-485 GOTO 463;
+481 IF $448[0] = 114 THEN 680;
+482 PRINTS"Command not found
+483 GOTO 464;
 
-486 PRINTS"Input settings: "
-487 GOSUB 439
-488 $9 = $438
-489 GOTO 463
+484 PRINTS"Input settings: "
+485 GOSUB 449
+486 $9 = $448
+487 GOTO 464
 
 0 REM exit code, we end with slave-1 to ensure
 0 REM that @SLAVE starts all again, and that
 0 REM we start unvisible
-490 PRINTS "Bye!!\n\r
-491 GOSUB 105;
-492 $3[3] = 48;
-493 A = disconnect 0;
-495 A = zerocnt
-496 A = slave -1
-497 RETURN
+488 PRINTS "Bye!!\n\r
+489 GOSUB 106;
+490 $3[3] = 48;
+491 A = disconnect 0;
+492 A = zerocnt
+493 A = slave -1
+494 RETURN
 
 0 REM ----------------------- Listing Code ------------------------------------
-510 PRINTS"Command Line v
-511 PRINTS $1
-512 PRINTS"\n\rName: ";
-513 PRINTS $10;
-514 PRINTS"\n\rPin: ";
-515 PRINTS$11;
-516 A = psget 0;
-517 PRINTS"\n\rClass: ";
-518 PRINTS $0;
-519 PRINTS"\n\rBaud Rate: "
-520 GOSUB 543
-521 PRINTS"\n\rDate: ";
-522 A = date $0;
-523 PRINTS $0;
-524 A = getaddr;
-525 PRINTS"\n\rBT Address:
-526 PRINTS $0
-527 GOSUB 800;
-528 PRINTS"\n\rBT Status:
-529 PRINTS $39;
-530 PRINTS"\n\rName Filter:
-531 PRINTS $5;
-532 PRINTS"\n\rAddr Filter:
-533 PRINTS $6;
-534 GOSUB 590
-535 GOTO 463;
+495 PRINTS"Command Line v
+496 PRINTS $1
+497 PRINTS"\n\rName: ";
+498 PRINTS $10;
+499 PRINTS"\n\rPin: ";
+500 PRINTS$11;
+501 A = psget 0;
+502 PRINTS"\n\rClass: ";
+503 PRINTS $0;
+504 PRINTS"\n\rBaud Rate: "
+505 GOSUB 528
+506 PRINTS"\n\rDate: ";
+507 A = date $0;
+508 PRINTS $0;
+509 A = getaddr;
+510 PRINTS"\n\rBT Address:
+511 PRINTS $0
+512 GOSUB 690;
+513 PRINTS"\n\rBT Status:
+514 PRINTS $39;
+515 PRINTS"\n\rName Filter:
+516 PRINTS $5;
+517 PRINTS"\n\rAddr Filter:
+518 PRINTS $6;
+519 GOSUB 575
+520 GOTO 464;
 
-536 PRINTS"Enter new Baud Ra
-537 PRINTS"te divide by 100,
-538 PRINTS"or 0 for switches
-539 PRINTS": "
-540 GOSUB 439
-541 $15 = $438
-542 GOTO 463
+521 PRINTS"Enter new Baud Ra
+522 PRINTS"te divide by 100,
+523 PRINTS"or 0 for switches
+524 PRINTS": "
+525 GOSUB 449
+526 $15 = $448
+527 GOTO 464
 
-543 IF $15[0] = 48 THEN 547
-544 PRINTS $15
-545 PRINTS "00 bps
-546 RETURN
-547 PRINTS "External
-548 RETURN
+528 IF $15[0] = 48 THEN 532
+529 PRINTS $15
+530 PRINTS "00 bps
+531 RETURN
+532 PRINTS "External
+533 RETURN
 
 0 REM -------------------------- Modes chooser --------------------------------
 0 REM the user should select between
@@ -753,73 +767,70 @@
 0 REM 2: Service Master
 0 REM 3: Cable Slave
 0 REM 4: Cable Master
-0 REM 5: Master Relay Mode
 0 REM Mode:
-549 PRINTS"Select new mode\n
-550 PRINTS"\r0: Manual\n\r1:
-551 PRINTS" Service Slave\n
-552 PRINTS"\r2: Service Mast
-553 PRINTS"er\n\r3: Cable Sl
-554 PRINTS"ave\n\r4: Cable M
-555 PRINTS"aster\n\r5: Maste
-556 PRINTS"r Relay Mode\n\rM
-557 PRINTS"ode: "
-558 GOSUB 710;
-559 IF $438[0] = 48 THEN 567;
-560 IF $438[0] = 49 THEN 570;
-561 IF $438[0] = 50 THEN 574;
-562 IF $438[0] = 51 THEN 578;
-563 IF $438[0] = 52 THEN 582;
-564 IF $438[0] = 53 THEN 586;
-565 PRINTS"\n\rInvalid Option
-566 GOTO 463;
+534 PRINTS"Select new mode\n
+535 PRINTS"\r0: Manual\n\r1:
+536 PRINTS" Service Slave\n
+537 PRINTS"\r2: Service Mast
+538 PRINTS"er\n\r3: Cable Sl
+539 PRINTS"ave\n\r4: Cable M
+540 PRINTS"aster\n\rMode: "
+543 GOSUB 677;
+544 IF $448[0] = 48 THEN 552;
+545 IF $448[0] = 49 THEN 555;
+546 IF $448[0] = 50 THEN 559;
+547 IF $448[0] = 51 THEN 563;
+548 IF $448[0] = 52 THEN 567;
+549 IF $448[0] = 53 THEN 571;
+550 PRINTS"\n\rInvalid Option
+551 GOTO 464;
 
-567 $3[0]=48;
-568 $3[3]=49;
-569 GOTO 463;
-570 $3[0] = 49;
-571 $3[1] = 49;
-572 $3[3] = 48;
-573 GOTO 463;
-574 $3[0] = 51;
-575 $3[1] = 49;
-576 $3[3] = 48;
-577 GOTO 463;
-578 $3[0] = 49;
-579 $3[1] = 48;
-580 $3[3] = 48;
-581 GOTO 463;
-582 $3[0] = 51;
-583 $3[2] = 49;
-584 $3[3] = 48;
-585 GOTO 463;
-586 $3[0] = 53;
-587 $3[1] = 50;
-588 $3[2] = 48;
-589 GOTO 463
+552 $3[0]=48;
+553 $3[3]=49;
+554 GOTO 810;
+555 $3[0] = 49;
+556 $3[1] = 49;
+557 $3[3] = 48;
+558 GOTO 810;
+559 $3[0] = 51;
+560 $3[1] = 49;
+561 $3[3] = 48;
+562 GOTO 810;
+563 $3[0] = 49;
+564 $3[1] = 48;
+565 $3[3] = 48;
+566 GOTO 810;
+567 $3[0] = 51;
+568 $3[2] = 49;
+569 $3[3] = 48;
+570 GOTO 810;
+571 $3[0] = 53;
+572 $3[1] = 50;
+573 $3[2] = 48;
+574 GOTO 810
 
 0 REM -------------------------- Listing code ---------------------------------
-590 PRINTS "\n\rMode: "
-591 IF $3[0] > 52 THEN 609
-592 IF $3[0] = 48 THEN 607
-593 IF $3[1] = 48 THEN 596
-594 PRINTS"Service - "
-595 GOTO 597;
-596 PRINTS"Cable - "
-597 IF $3[0] >= 51 THEN 600;
-598 PRINTS"Slave"
-599 GOTO 601;
-600 PRINTS"Master"
-601 IF $3[0] = 50 THEN 605;
-602 IF $3[0] = 52 THEN 605;
-603 PRINTS"\n\rUnpaired"
-604 RETURN
-605 PRINTS"\n\rPaired"
-606 RETURN
-607 PRINTS"Idle"
-608 RETURN
-609 PRINTS"Relay Mode Master
-610 RETURN
+575 PRINTS "\n\rMode: "
+576 IF $3[0] > 52 THEN 594
+577 IF $3[0] = 48 THEN 592
+578 IF $3[1] = 48 THEN 581
+579 PRINTS"Service - "
+580 GOTO 582;
+581 PRINTS"Cable - "
+582 IF $3[0] >= 51 THEN 585;
+583 PRINTS"Slave"
+584 GOTO 586;
+585 PRINTS"Master"
+586 IF $3[0] = 50 THEN 590;
+587 IF $3[0] = 52 THEN 590;
+588 PRINTS"\n\rUnpaired"
+589 RETURN
+590 PRINTS"\n\rPaired"
+591 RETURN
+592 PRINTS"Idle"
+593 RETURN
+594 PRINTS"Relay Mode Master
+595 RETURN
 
 0 REM ----------------------- Help code ---------------------------------------
 0 REM h: help, l: list,
@@ -827,141 +838,166 @@
 0 REM c: class of device, u: uart, d: date,
 0 REM o: obex, a: mode
 0 REM e: exit, r: reboot
-620 PRINTS"h: help, l: li
-621 PRINTS"st\n\rn: name, p: "
-622 PRINTS"pin, b: name filte"
-623 PRINTS"r, g: address filt"
-624 PRINTS"er\n\rc: class of "
-625 PRINTS"device, u: uart, d"
-626 PRINTS": date\n\ro: obex, "
-627 PRINTS"a: mode, s: shell\n"
-628 PRINTS"\re: exit, r: reboo
-629 PRINTS"t"
-630 GOTO 463;
+596 PRINTS"h: help, l: li
+597 PRINTS"st\n\rn: name, p: "
+598 PRINTS"pin, b: name filte"
+599 PRINTS"r, g: address filt"
+600 PRINTS"er\n\rc: class of "
+601 PRINTS"device, u: uart, d"
+602 PRINTS": date\n\ro: obex, "
+603 PRINTS"a: mode, s: shell\n"
+604 PRINTS"\re: exit, r: reboo
+605 PRINTS"t"
+606 GOTO 464;
 
 0 REM Name Function
-640 PRINTS"New Name: "
-641 GOSUB 439;
-642 $10 = $438;
-643 $0[0] = 0;
-644 PRINTV $10;
-645 PRINTV " ";
-646 A = getuniq $39;
-647 PRINTV $39;
-648 A = name $0;
-649 GOTO 463
+607 PRINTS"New Name: "
+608 GOSUB 449;
+609 $10 = $448;
+610 $0[0] = 0;
+611 PRINTV $10;
+612 PRINTV " ";
+613 A = getuniq $39;
+614 PRINTV $39;
+615 A = name $0;
+616 GOTO 464
 
 0 REM Pin Function
-650 PRINTS"New PIN: ";
-651 GOSUB 439;
-652 $11 = $438;
-653 GOTO 463
+617 PRINTS"New PIN: ";
+618 GOSUB 449;
+619 $11 = $448;
+620 GOTO 464
 
-654 PRINTS"Type the class of "
-655 PRINTS"device as xxxx xxx"
-656 PRINTS"x: "
-657 GOSUB 439
-658 $0[0] = 0;
-659 PRINTV"@0000 =
-660 PRINTV$438;
-661 $438 = $0;
-662 A = psget 0;
-663 $437 =$0
-664 $0[0]=0;
-665 PRINTV $438;
-666 $438 = $437[17]
-667 PRINTV $438;
-668 A = psset 3
-669 GOTO 463
+621 PRINTS"Type the class of "
+622 PRINTS"device as xxxx xxx"
+623 PRINTS"x: "
+624 GOSUB 449
+625 $0[0] = 0;
+626 PRINTV"@0000 =
+627 PRINTV$448;
+628 $448 = $0;
+629 A = psget 0;
+630 $447 =$0
+631 $0[0]=0;
+632 PRINTV $448;
+633 $448 = $447[17]
+634 PRINTV $448;
+635 A = psset 3
+636 GOTO 464
 
 0 REM friendly name filter code
-670 PRINTS"Enter the new name"
-671 PRINTS" filter: "
-672 GOSUB 439
-673 $5 = $438
-674 GOTO 463;
+637 PRINTS"Enter the new name"
+638 PRINTS" filter: "
+639 GOSUB 449
+640 $5 = $448
+641 GOTO 464;
 
 0 REM addr filter code
-675 PRINTS"Enter the new addr"
-676 PRINTS"ess filter: "
-677 GOSUB 439
-678 $6 = $438
-679 GOTO 463
+642 PRINTS"Enter the new addr"
+643 PRINTS"ess filter: "
+644 GOSUB 449
+645 $6 = $448
+646 GOTO 464
 
 0 REM date changing methods
-680 PRINTS"Insert new dat
-681 PRINTS"e, check the manua
-682 PRINTS"l for formating: "
-683 GOSUB 439;
-684 A = strlen $438
-685 IF A <> 16 THEN 688
-686 A = setdate $438
-687 GOTO 463
-688 PRINTS"\n\rInvalid format
-689 GOTO 463
+647 PRINTS"Insert new dat
+648 PRINTS"e, check the manua
+649 PRINTS"l for formating: "
+650 GOSUB 449;
+651 A = strlen $448
+652 IF A <> 16 THEN 655
+653 A = setdate $448
+654 GOTO 464
+655 PRINTS"\n\rInvalid format
+656 GOTO 464
 
 0 REM activate Obex/ObexFTP
 0 REM 0 Enabled only on command line
 0 REM 1 Always enabled
 0 REM 2 Always Disabled
-690 PRINTS"Obex/ObexFTP setti"
-691 PRINTS"ngs:\n\r0: Enabled "
-692 PRINTS"only on command li"
-693 PRINTS"ne\n\r1: Always Ena"
-694 PRINTS"bled\n\r2: Always D"
-695 PRINTS"isabled\n\rChoose "
-696 PRINTS"Option: "
-697 GOSUB 710
-698 939 $9[3] = $438[0]
-699 IF $438[0] = 50 THEN 705
-700 $0[0] = 0
-701 A = psget 6
-702 $0[11] = 48
-703 A = psset 3
-704 GOTO 463
-705 $0[0] = 0
-706 A = psget 6
-707 $0[11] = 54
-708 A = psset 3
-709 GOTO 463
+657 PRINTS"Obex/ObexFTP setti"
+658 PRINTS"ngs:\n\r0: Enabled "
+659 PRINTS"only on command li"
+660 PRINTS"ne\n\r1: Always Ena"
+661 PRINTS"bled\n\r2: Always D"
+662 PRINTS"isabled\n\rChoose "
+663 PRINTS"Option: "
+664 GOSUB 677
+665 939 $9[3] = $448[0]
+666 IF $448[0] = 50 THEN 672
+667 $0[0] = 0
+668 A = psget 6
+669 $0[11] = 48
+670 A = psset 3
+671 GOTO 464
+672 $0[0] = 0
+673 A = psget 6
+674 $0[11] = 54
+675 A = psset 3
+676 GOTO 464
 
 0 REM one char read function
-710 A = 1
-711 INPUTS $438
-712 RETURN
+677 A = 1
+678 INPUTS $448
+679 RETURN
 
 0 REM reboot code
-713 PRINTS"Rebooting, please "
-714 PRINTS"do not disconnect "
-715 PRINTS"electric power\n\r
-716 $3[3] = 48
+680 PRINTS"Rebooting, please "
+681 PRINTS"do not disconnect "
+682 PRINTS"electric power\n\r
+683 $3[3] = 48
 
-717 A = disconnect 0
-718 A = reboot
-718 WAIT 2
-719 RETURN
+684 A = disconnect 0
+685 A = reboot
+686 WAIT 2
+687 RETURN
+
+688 A = shell
+689 RETURN
 
 0 REM convert status to a string
 0 REM store the result on $44
-800 B = status
-801 $39[0] = 0;
-802 $39 = "00000";
-803 IF B < 10000 THEN 806;
-804 $39[0] = 49;
-805 B = B -10000;
-806 IF B < 1000 THEN 809;
-807 $39[1] = 49;
-808 B = B -1000;
-809 IF B < 100 THEN 812;
-810 $39[2] = 49;
-811 B = B -100;
-812 IF B < 10 THEN 815;
-813 $39[3] = 49;
-814 B = B -10;
-815 IF B < 1 THEN 817;
-816 $39[4] = 49;
-817 $39[5] = 0;
-818 RETURN
+690 B = status
+691 $39[0] = 0;
+692 $39 = "00000";
+693 IF B < 10000 THEN 696;
+694 $39[0] = 49;
+695 B = B -10000;
+696 IF B < 1000 THEN 699;
+697 $39[1] = 49;
+698 B = B -1000;
+699 IF B < 100 THEN 702;
+700 $39[2] = 49;
+701 B = B -100;
+702 IF B < 10 THEN 705;
+703 $39[3] = 49;
+704 B = B -10;
+705 IF B < 1 THEN 707;
+706 $39[4] = 49;
+707 $39[5] = 0;
+708 RETURN
 
-740 A = shell
-741 RETURN
+@PIO_IRQ 800
+800 A = pioget ($8[7]-48);
+
+801 IF A = 1 THEN 804
+
+802 $3 = $22
+803 GOTO 806
+
+804 $22 = $3
+805 $3 = $23
+
+806 A = disconnect 0
+807 A = disconnect 1
+808 ALARM 1
+809 RETURN
+
+0 REM called from command line on mode changing
+810 A = pioget ($8[7]-48);
+811 IF A = 1 THEN 814
+812 GOTO 464
+814 $22 = $3
+815 $3 = $23
+816 GOTO 464
+

@@ -5,7 +5,8 @@ Version 0.1:
     * Removed Manual Modes
     * Removed PIO_IRQ
     * Removed DIP Switches measurment
-    * 
+    * Improved Service Master, now it really does: Inquiry, Connect, Inquiry,.. instead of Inqury, Connect, Connect,...
+    * Added PIO_IRQ again, Command Line Switch ON must ensure that the command line is available, this also means getting the module into service slave mode.
 
 Version 0.0:
     * Forked from Command Line Version 0.6
