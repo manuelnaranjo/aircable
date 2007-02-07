@@ -87,10 +87,10 @@
 0 REM 0 48 Enabled only on command line
 0 REM 1 49 Always enabled
 0 REM 2 50 Always Disabled
-9 1000
+9 0000
 
 0 REM $10 stores our friendly name
-10 AIRcable
+10 AIRcableSMD
 
 0 REM $11 stores our PIN
 11 1234
@@ -104,16 +104,18 @@
 0 REM DTR
 0 REM DSR
 0 REM POWER SWITCH / COMMAND LINE ENABLED
-0 REM 12 K0000000
-12 A94B3566
+12 K0000000
+0 REM DEBUG 12 A94B3566
 
 0 REM PIO_IRQ SETTINGS
 0 REM 13 only buttons pio, used for starting interrupts when there is
 0 REM no connection going on
-13 P000101000000
+0 REM DEBUG 13 P000101000000
+13 P000000000000
 0 REM 14 button + DSR interrupt, interrupts that must be listened while
 0 REM there is a connection going on
-14 P000101000000
+0 REM DEBUG 14 P000101000000
+14 P000000000000
 
 0 REM 15 is the settings for the uart when a connection is made
 0 REM 0 means read from dip swithces
@@ -133,7 +135,8 @@
 20 000000000000
 
 0 REM $21 PIO_IRQ while off mode
-21 P000010100000
+0 REM DEBUG 21 P000010100000
+21 P000000000000
 
 0 REM $22 Stores the state previous to the Command Line Switch was activated
 22 1110
