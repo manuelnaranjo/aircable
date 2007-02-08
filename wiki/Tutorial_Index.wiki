@@ -24,10 +24,11 @@ All this examples are released under the [http://aircable.googlecode.com/svn/tru
   # *[http://code.google.com/p/aircable/wiki/Relay Relay Mode Code]*: This code will show you how easy is to create a network of AIRcable devices. For this example you will need at least 3 different bluetooth devices, and one of those 3 must be an AIRcable OS enabled device. In this mode the AIRcable OS device will be connected to two other devices and will make a bridge between them, this way you can make the range of your bluetooth devices much longer.
 
 == Hardware Interfacing ==
+  # *[http://code.google.com/p/aircable/wiki/GPS_Data_Logging GPS and Data Logging]*: In this example we will get connected to a Bluetooth Enabled GPS and will log all the data to a file.
   # Advanced Uart: This example read from Uart and writte to SPP, via BASIC program
   # UART Interrupting: doing reads and writes manually with @UART interrupts
   # Timing: attach clock, use time functions
-  # GPS: attach GPS, use NMEA filter functions and use the distance function to calculate some range
+  
   # Analog Interface: read from analog 1 and 2, a battery monitor that blinks when battery is low
   # Temperature Sensor: temperature sensor and use @SENSOR
   # I2C Interface: use the i2c function to talk to an ADC ads1112
