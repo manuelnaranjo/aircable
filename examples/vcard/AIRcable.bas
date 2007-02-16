@@ -8,7 +8,7 @@
 50 Z = 1
 51 A = baud 1152
 0 REM we must be visible
-52 A = slave 5
+52 A = slave -1
 0 REM J stores the pio where the led is attached
 53 J = 20
 0 REM LED output an don
@@ -16,9 +16,7 @@
 55 A = pioset J
 56 A = enable 2
 0 REM E is the start line of the hash table
-0 REM J is the index of the hash table
 57 E = 300
-58 J = 0
 0 REM L is the start line of the inq results table
 0 REM M is the index inside the result table
 59 L = 900
@@ -125,4 +123,3 @@
 222 M = M+1
 223 K = 2
 224 RETURN
-
