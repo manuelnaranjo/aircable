@@ -25,10 +25,12 @@ All this examples are released under the [http://aircable.googlecode.com/svn/tru
 
 == Hardware Interfacing ==
   # *[http://code.google.com/p/aircable/wiki/GPS_Data_Logging GPS and Data Logging]*: In this example we will get connected to a Bluetooth Enabled GPS and will log all the data to a file.
+  # *[http://code.google.com/p/aircable/wiki/vCard vCard Sender]*: In this brief example we will show you how to create an automatic vCard sender.
+
+== Future Examples ==
   # Advanced Uart: This example read from Uart and writte to SPP, via BASIC program
   # UART Interrupting: doing reads and writes manually with @UART interrupts
-  # Timing: attach clock, use time functions
-  
+  # Timing: attach clock, use time functions  
   # Analog Interface: read from analog 1 and 2, a battery monitor that blinks when battery is low
   # Temperature Sensor: temperature sensor and use @SENSOR
   # I2C Interface: use the i2c function to talk to an ADC ads1112
