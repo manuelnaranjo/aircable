@@ -27,7 +27,7 @@ All this examples are released under the [http://aircable.googlecode.com/svn/tru
   # *[http://code.google.com/p/aircable/wiki/GPS_Data_Logging GPS and Data Logging]*: In this example we will get connected to a Bluetooth Enabled GPS and will log all the data to a file.
   # *[http://code.google.com/p/aircable/wiki/vCard vCard Sender]*: In this brief example we will show you how to create an automatic vCard sender.
   # *[http://code.google.com/p/aircable/wiki/vCard/smsSender SMS Sender]*: This example will show you how to
-  generate SMS messages on a BT enabled cell phone, and send them.
+generate SMS messages on a BT enabled cell phone, and send them.
 
 == Future Examples ==
   # Advanced Uart: This example read from Uart and writte to SPP, via BASIC program
