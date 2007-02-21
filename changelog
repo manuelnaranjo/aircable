@@ -3,6 +3,9 @@ Changelog:
 Version 0.6:
     * Added support for Power Switch.
     * Added battery measurment support.
+    * Added support for Parity and Stop Bits.
+    * Added support for uniq setting related to name and pin.
+    
 
 Version 0.5:
     * New Leds Schema: We moved from a two leds schema (Serial OS) to a 1 led
