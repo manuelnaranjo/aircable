@@ -10,7 +10,7 @@ This set of tools include functions to find calls to a line in a file, find empt
 As you can see you get some useful tools, specially for two of them lines moving and empty line suppressing.
 
 = Getting the Tools =
-You can Download the tools from [http://aircable.googlecode.com/files/aircabletools.jar Here]. In order to use the tools you will require Java 1.6 which you can get from {http://www.java.com here}.
+You can Download the tools from [http://aircable.googlecode.com/files/aircabletools.jar Here]. In order to use the tools you will require Java 1.6 which you can get from [http://www.java.com here].
 
 = Usage =
 In order to run this tools you will need to open a console on your OS, on Windows you can use CMD (START->EXECUTE cmd(, under Linux you can use KConsole, or any other console, and under Mac you can use Terminal.
@@ -57,4 +57,3 @@ _Usage:_ java -jar aircabletools.jar s <In File> <Out File>
 
 == make make binary folder for distribution ==
 This command will take a folder and will generate the binary file for each device. It is mean for internal use of the company, if you need to use it please ask our support, or contact the author to his mail: manuel _at_ aircable _dot_ net (suppress spaces and replace _at_ for @ and _dot_ for .)
-
