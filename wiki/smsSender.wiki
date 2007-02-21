@@ -146,7 +146,6 @@ valid cell phone number_
 _*Note 2:* To use this code you will need AIRcable Firmware R28, please contact our
 customer support to get it_
 
-
 = Explanation =
 This code is quite simple, firstly it will read the sensors, then it will open
 a connection to the DUN profile of your cell phone. Finally it will generate the
