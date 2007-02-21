@@ -13,7 +13,7 @@ As you can see you get some useful tools, specially for two of them lines moving
 You can Download the tools from [http://aircable.googlecode.com/files/aircabletools.jar Here]. In order to use the tools you will require Java 1.6 which you can get from [http://www.java.com here].
 
 = Usage =
-In order to run this tools you will need to open a console on your OS, on Windows you can use CMD (START->EXECUTE cmd(, under Linux you can use KConsole, or any other console, and under Mac you can use Terminal.
+In order to run this tools you will need to open a console on your OS, on Windows you can use CMD (START->EXECUTE cmd), under Linux you can use KConsole, or any other console, and under Mac you can use Terminal.
 
 Future versions of this tools will get integrated with JEdit and you will not need to use the command line any more.
 
