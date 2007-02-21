@@ -6,7 +6,7 @@
 0 REM let's reserve the first 30 lines for internal stuff
 
 0 REM $1 is the version of the command line
-1 0.5
+1 0.6a
 
 0 REM defaults setting for mode
 0 REM uncomment the one you want to use as default
@@ -164,7 +164,7 @@
 
 @INIT 45
 45 Z = $9[0] - 48;
-46 A = uart 1152
+46 A = baud 1152
 47 IF $9[2] = 48 THEN 49
 48 PRINTU "@INIT\n\r";
 49 IF $8[0] <> 122 THEN 57
