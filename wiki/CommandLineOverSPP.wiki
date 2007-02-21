@@ -13,6 +13,8 @@ The main difference between using the UART and the SPP, is that SPP does the ech
 
 There is only one disadvantage in this case, you will need some sort of switch or something to protect the command line. You need to do this because of two reasons, one reason is that if there is no kind of protection then anyone who can open a connection to your device, can get full control over it. And the other is that you need a way to ensure the command line is on. In our case we used a dip switch connected to a PIO, when the port has a logical "1" the device will get into slave mode and will allow access to the command line (the user will need to input +++ when the connection is opened). If the PIO has a logical "0" then the module will work on normal mode.
 
+If the command line is on accessible mode (meaning the PIO has a logical 1) the user has 5 seconds to write +++. In case you need want a shorter or longer time you have to modify this line: {{{280 TIMEOUTS 5}}}, to: {{{280 TIMEOUTS 2}}} if you want 2 seconds for example.
+
 = Code =
 [http://aircable.googlecode.com/svn/nouart/AIRcable.bas Download]
 {{{
