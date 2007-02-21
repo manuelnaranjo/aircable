@@ -1,9 +1,9 @@
 @ERASE
 0 REM $1 is the bt address of your phone
-1 001700E6E953
+1 AABBCCDDEEFF
 
 0 REM $2 is the dest phone number
-2 +543416198572
+2 +111111111111
 
 0 REM $3 Message Header check line 59
 3 0
@@ -87,7 +87,7 @@
 166 RETURN
 
 180 B = readcnt
-181 IF B < 10 * 60 THEN 184
+181 IF B < 10 * 60 THEN 183
 182 E = 0
 183 ALARM 5
 184 RETURN
@@ -127,3 +127,4 @@
 
 320 A =disconnect 1
 321 RETURN
+
