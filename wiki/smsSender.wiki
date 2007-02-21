@@ -140,10 +140,37 @@ sms messages.
 
 [http://aircable.googlecode.com/svn/examples/smsSender/AIRcable.bas Download AIRcable.bas]
 
-_*Note;* Change line $1 to your Cell Phone Bluetooth Address, and line $2 to a 
+_*Note:* Change line $1 to your Cell Phone Bluetooth Address, and line $2 to a 
 valid cell phone number_
 
-= Explanation =
-This code is quite simple, as you can see it simply gets a connection to the DUN
-profile of your cell phone
+_*Note 2:* To use this code you will need AIRcable Firmware R28, please contact our
+customer support to get it_
 
+
+= Explanation =
+This code is quite simple, firstly it will read the sensors, then it will open
+a connection to the DUN profile of your cell phone. Finally it will generate the
+sms message using the AT Hayes standard. It will repeat this cycle once each 10 
+minutes.
+
+The interesting part here, is how to generate and send SMS messages. Here you have
+a dump of the sms part:
+
+{{{
+AT
+OK
+AT+CMGF=1
+OK
+AT+CMGW="+111111111111"
+> AIRcable Sensors: 484 49 31 -1 -1"
++CMGW: 2536
+OK
+AT+CMSS= 2536
+OK
+}}}
+
+The first AT only check if the phone is available to work. Then AT+CMGF=1 sets the sms mode to plain text
+this will let us create sms messages without worry about binary formats. Then AT+CMGW creates a message to
+the number +111111111111 and will start asking the text for the message, you can end message by writting 
+CTRL+Z. AT+CMGW will reply with the sms number, this number is needed in order to send the message
+with AT+CMSS.
