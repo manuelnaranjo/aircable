@@ -1,4 +1,4 @@
-#This page will is a simple brief of the BASIC Code Tools we had made.
+#This page will is a brief description of the BASIC Code Tools we had made.
 
 = Introduction =
 
