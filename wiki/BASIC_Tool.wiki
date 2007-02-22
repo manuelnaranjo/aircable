@@ -56,4 +56,9 @@ _Usage:_ java -jar aircabletools.jar s <In File> <Out File>
 
 
 == make make binary folder for distribution ==
-This command will take a folder and will generate the binary file for each device. It is mean for internal use of the company, if you need to use it please ask our support, or contact the author to his mail: manuel _at_ aircable _dot_ net (suppress spaces and replace _at_ for @ and _dot_ for .)
+This command will take a folder and will generate the binary file for each device. It is mean for internal use of the company, it will only work with the folder structure of our [http://aircable.googlecode.com/svn/trunk/ subversion server]. The output folder must be outside the input folder.
+
+_Usage:_ java -jar aircabletools.jar make <In Dir> <Out Dir>
+
+= Contact =
+In case you have further questions about our tools, specially the ones described here, you can contact by email to the author: manuel_at_aircable_dot_net. Just replace _at_ for @ and _dot_ for . , or click [mailto:manuel@aircable.net here]
