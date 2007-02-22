@@ -453,7 +453,7 @@
 0 REM slave connection
 @SLAVE 240
 240 A = pioget ($8[7]-48);
-241 IF A = 1 THEN 280
+241 IF A <> 1 THEN 280
 242 IF $9[2] = 48 THEN 244;
 243 PRINTU "@SLAVE\n\r";
 244 IF $3[0] = 54 THEN 820;
