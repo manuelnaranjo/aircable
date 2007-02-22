@@ -110,16 +110,16 @@
 
 76 ;
 
-99 GOTO 953
+99 GOTO 961
 
-@PIO_IRQ 932
-932 IF L = 1 THEN 988
-933 A = pioget ($8[7]-48)
-934 IF A = 1 THEN 950
+@PIO_IRQ 940
+940 IF L = 1 THEN 997
+941 A = pioget ($8[7]-48)
+942 IF A = 1 THEN 958
 
 0 REM we were turned off
 0 REM firstly reboot
-935 GOTO 985
+943 GOTO 994
 
 0 REM then when it comes up again
 0 REM switch off:
@@ -128,77 +128,78 @@
 0 REM 	uart interrupt
 0 REM 	and go invisible
 
-936 M = 1;
-937 ALARM 0;
-938 A = nextsns 0;
-939 A = pioclr ($8[0]-48);
-940 A = pioclr ($8[1]-48);
-941 A = pioclr ($8[2]-48);
-942 A = pioclr ($8[3]-48);
-943 A = pioclr ($8[4]-48);
-944 A = pioclr ($8[5]-48);
-945 A = pioclr ($8[6]-48);
-946 A = slave -1;
-947 A = disable 3
-948 A = pioirq $21;
-949 RETURN
+944 M = 1;
+945 ALARM 0;
+946 A = nextsns 0;
+947 A = pioclr ($8[0]-48);
+948 A = pioclr ($8[1]-48);
+949 A = pioclr ($8[2]-48);
+950 A = pioclr ($8[3]-48);
+951 A = pioclr ($8[4]-48);
+952 A = pioclr ($8[5]-48);
+953 A = pioclr ($8[6]-48);
+954 A = slave -1;
+955 A = disable 3
+956 A = pioirq $21;
+957 RETURN
 
-950 IF M = 0 THEN 142
-951 ALARM 5
-952 GOTO 65
+958 IF M = 0 THEN 142
+959 ALARM 5
+960 GOTO 65
 
-953 A = pioirq $13
-954 A = pioget ($8[7]-48);
-955 H = 0;
-956 N = 0;
-957 L = 1
-958 IF A = 0 THEN 936;
-959 RETURN
+961 A = pioirq $13
+962 A = pioget ($8[7]-48);
+963 H = 0;
+964 N = 0;
+965 L = 1
+966 IF A = 0 THEN 944;
+967 RETURN
 
-@SENSOR 960
-960 A = sensor $0
-961 V = atoi $0[5]
-962 A = nextsns 600
-963 IF V < 3000 THEN 965
-964 GOTO 968
+@SENSOR 968
+968 A = sensor $0
+969 V = atoi $0[5]
+970 A = nextsns 600
+971 IF V < 3000 THEN 973
+972 GOTO 976
 
-965 N = 1
-966 ALARM 5
-967 GOTO 112
+973 N = 1
+974 ALARM 5
+975 GOTO 112
 
-968 N = 0
-969 ALARM 5
-970 GOTO 112
+976 N = 0
+977 ALARM 5
+978 GOTO 112
 
-@ALARM 971
-971 IF N = 1 THEN 973
-972 GOTO 230
+@ALARM 979
+979 IF N = 1 THEN 981
+980 GOTO 230
 
-973 A = pioclr ($8[1]-48)
-974 A = pioset ($8[1]-48);
-975 ALARM 5
-976 IF $3[0] = 48 THEN 981
-977 GOTO 230
+981 A = pioclr ($8[1]-48)
+982 A = pioset ($8[1]-48);
+983 ALARM 5
+984 IF $3[3] = 49 THEN 454
+985 IF $3[0] = 48 THEN 990
+986 GOTO 230
 
-978 IF $3[3] <> 48 THEN 959;
-979 IF $3[0] = 48 THEN 981;
-980 GOTO 959
+987 IF $3[3] <> 48 THEN 967;
+988 IF $3[0] = 48 THEN 990;
+989 GOTO 967
 
-981 IF K = 0 THEN 984
-982 A = slave -1
-983 K = 0
-984 RETURN
-
-985 A = reboot
-986 WAIT 3
-987 RETURN
-
-988 L = 0
-989 RETURN
-
-@IDLE 990
-990 L = 0
-991 IF N = 1 THEN 978
-992 IF M = 0 THEN 192
+990 IF K = 0 THEN 993
+991 A = slave -1
+992 K = 0
 993 RETURN
+
+994 A = reboot
+995 WAIT 3
+996 RETURN
+
+997 L = 0
+998 RETURN
+
+@IDLE 999
+999 L = 0
+1000 IF N = 1 THEN 987
+1001 IF M = 0 THEN 192
+1002 RETURN
 

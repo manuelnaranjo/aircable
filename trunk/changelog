@@ -1,10 +1,15 @@
 Changelog:
 
+TODO:
+     * Enable blinking of manual inquiry again.
+
 Version 0.6:
     * Added support for Power Switch.
     * Added battery measurment support.
     * Added support for Parity and Stop Bits.
     * Added support for uniq setting related to name and pin.
+    * Improved Service Master, it will now empty buffer after trying to connect.
+    * Removed manual inqury blinking.
     
 
 Version 0.5:
