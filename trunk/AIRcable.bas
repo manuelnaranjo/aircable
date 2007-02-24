@@ -293,7 +293,7 @@
 123 A = pioclr ($8[4]-48);
 124 A = pioclr ($8[5]-48);
 125 A = pioclr ($8[6]-48);
-126 A = slave -1;
+126 A = slave -1
 127 A = disable 3
 128 A = pioirq $21;
 129 RETURN
@@ -503,7 +503,7 @@
 275 $3[0] = 51;
 276 W = 0;
 277 B = zerocnt;
-278 A = slave-1;
+278 A = slave-1
 279 RETURN
 
 0 REM switch to pair as slave
@@ -556,7 +556,7 @@
 310 GOTO 342;
 
 
-311 A = slave-1;
+311 A = slave-1
 312 K = 0;
 313 RETURN
 
@@ -680,7 +680,7 @@
 0 REM manual idle code, this is the only mode that ends here.
 386 B = pioset ($8[1]-48);
 387 B = pioclr ($8[0]-48);
-388 A = slave-1;
+388 A = slave-1
 389 K = 2
 390 RETURN
 
@@ -727,7 +727,7 @@
 
 0 REM automatic modes code.
 0 REM service - slave:
-418 A = slave 5;
+418 A = slave 5
 419 RETURN
 
 0 REM service - master
@@ -755,7 +755,7 @@
 0 REM we are pairing as master,
 436 GOTO 422;
 
-437 A = slave -5;
+437 A = slave -5
 438 RETURN
 
 
@@ -1046,7 +1046,7 @@
 612 PRINTS "Bye!!\n\r
 613 GOSUB 136;
 614 $3[3] = 48;
-615 A = slave -1;
+615 A = slave -1
 616 A = disconnect 0
 617 A = zerocnt
 618 A = pioset($8[1]-48);
@@ -1432,10 +1432,10 @@
 
 923 B = readcnt;
 924 IF $3[4] = 50 THEN 927
-925 A = slave 8;
+925 A = slave 8
 926 RETURN
 927 IF B < 120 THEN 925
-928 A = slave -8;
+928 A = slave -8
 929 RETURN
 
 
