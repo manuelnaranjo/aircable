@@ -1,0 +1,35 @@
+Changelog:
+
+TODO:
+     * Enable blinking of manual inquiry again.
+
+Version 0.6:
+    * Added support for Power Switch.
+    * Added battery measurment support.
+    * Added support for Parity and Stop Bits.
+    * Added support for uniq setting related to name and pin.
+    * Improved Service Master, it will now empty buffer after trying to connect.
+    * Removed manual inqury blinking.
+    
+
+Version 0.5:
+    * New Leds Schema: We moved from a two leds schema (Serial OS) to a 1 led
+	schema (The rest of our devices).
+    * New Security Framework realted to Obex/ObexFTP: Now there is a setting
+	for directly turning OFF Obex/ObexFTP not just making it invisible,
+	the user can turn on/off from the command line, and can also select
+	the other old two modes Visible Always, Visible only at boot up.
+    * Obex/ObexFTP Timing: Now the timing has been extended from a couple of
+	seconds to 2 minutes, so when the device is first booted up, the user
+	has up to 2 minutes to see the Obex/ObexFTP layer (only when the user
+	has not choosen to turn it off)
+	There is an extra feauture this timing is personalizable, so users can
+	make the device fit they're solution.
+    * Code Reorganization, some pieces of code had been moved arround using the
+	new tool that can be found on the svn under the Tools TAG
+    * Cable modes will boot up into unpaired mode in case it has timed out 
+	before.
+    * Added two different modes for Relay, Service and Cable, while one Service
+	the device is always discoverable, on Cable mode the device is visible
+	only for two minutes after each boot up.
+
