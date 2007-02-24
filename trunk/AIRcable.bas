@@ -94,7 +94,7 @@
 9 000
 
 0 REM $10 stores our friendly name
-10 AIRcable
+10 AIRcableSMD
 
 0 REM $11 stores our PIN
 11 1234
@@ -152,7 +152,7 @@
 0 REM [0] = "0" don't add nothing
 0 REM [0] = "1" add unique name
 0 REM [0] = "2" add unique name, generate pin
-23 0
+23 1
 
 0 REM $39 RESERVED
 39 RESERVED
@@ -1467,7 +1467,9 @@
 950 PRINTV $10;
 951 IF $23[0] = 48 THEN 955
 952 PRINTV " ";
-953 A = getuniq $39;
+0 REM this line is used by all the other devices.
+0 REM REMEMBER TO UPDATE NUMBER, last was 953
+953 GOSUB 976
 954 PRINTV $39;
 955 A = name $0;
 956 RETURN
@@ -1493,4 +1495,8 @@
 
 974 Z = $9[0]-48
 975 GOTO 584
+
+976 PRINTV"_v"
+978 $39 = $1
+979 GOTO 954
 

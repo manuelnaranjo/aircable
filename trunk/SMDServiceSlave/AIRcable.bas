@@ -84,7 +84,7 @@
 9 000
 
 0 REM $10 stores our friendly name
-10 AIRcable
+10 AIRcableSMD
 
 0 REM $11 stores our PIN
 11 1234
@@ -129,4 +129,11 @@
 
 0 REM $21 PIO_IRQ for off mode, only Power Switch measurment.
 21 0
+
+0 REM 23 unique settings
+0 REM [0] = "0" don't add nothing
+0 REM [0] = "1" add unique name
+0 REM [0] = "2" add unique name, generate pin
+23 1
+
 
