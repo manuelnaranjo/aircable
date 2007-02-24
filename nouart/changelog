@@ -1,5 +1,21 @@
 Changelog:
-
+Version 0.2:
+    * Taken code from UART version 0.6.
+    * Changed UART reading for INPUTS.
+    * Removed one line char reading.
+    * Changed PRINTU for PRINTS.
+    * Removed calls to uartint.
+    * Add Security pin detection.
+    * When the Command line is accessible then the device will get into a sort of
+    	service slave mode, it will be discoverable, and will blink the leds only
+	once with a longer period than the other modes.
+    * Removed shell from the debug options, it's not needed any more, we can 
+    	access to it from the command line instead.
+    * Removed BT status from listing option.
+    * Removed manual slave, doesn't make any sense.
+    * Removed unnecesary sensors reading.
+    
+Previous versions:
 Version 0.1:
     * Moved from INPUTU and PRINTU to INPUTS and PRINTS
     * Removed Manual Modes
@@ -9,11 +25,11 @@ Version 0.1:
     * Added PIO_IRQ again, Command Line Switch ON must ensure that the command line is available, this also means getting the module into service slave mode.
 
 Version 0.0:
-    * Forked from Command Line Version 0.6
+    * Forked from Command Line Version 0.6a
 
 From Command Line:
 
-Version 0.6:
+Version 0.6a:
     * Added support for Power Switch.
     * Added battery measurment support.
 
