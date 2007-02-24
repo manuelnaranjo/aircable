@@ -1,5 +1,5 @@
 Changelog:
-Version 0.2:
+Version 0.6:
     * Taken code from UART version 0.6.
     * Changed UART reading for INPUTS.
     * Removed one line char reading.
@@ -12,8 +12,18 @@ Version 0.2:
     * Removed shell from the debug options, it's not needed any more, we can 
     	access to it from the command line instead.
     * Removed BT status from listing option.
-    * Removed manual slave, doesn't make any sense.
     * Removed unnecesary sensors reading.
+    * Made a function for the name part, to supress duplicated code.
+    * Improved sensors code.
+    * Added Power Switch.
+    * Added Battery Measurment.
+    * Removed LEDs from manual modes. Where making more problems than solutions.
+    * Added command q for PIO settings.
+    * PIO_IRQ strings are generated automatically based on PIO settings.
+    * Manual Master now does LINK 3 instead of LINK 1.
+    * Added Timeout with a little error checking to INPUTS. (This needs to be improved)
+    * Moved SPP to main trunk.
+    
     
 Previous versions:
 Version 0.1:
