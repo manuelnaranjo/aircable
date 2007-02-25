@@ -356,7 +356,7 @@
 166 IF C < 1020 THEN 180;
 167 IF C < 1090 THEN 182;
 168 I = 321;
-169 GOTO 159;
+169 GOTO 198;
 
 170 I = 8;
 171 GOTO 225;
@@ -1083,8 +1083,8 @@
 650 PRINTS"\n\r"
 651 PRINTS"Parity settings:\n
 652 PRINTS"\r0 for none\n\r
-653 PRINTS"\r1 for even\n\r
-654 PRINTS"\r2 for odd: "
+653 PRINTS"1 for even\n\r
+654 PRINTS"2 for odd: "
 655 GOSUB 565
 656 A = $564[0]
 657 $22[0] = A
@@ -1477,7 +1477,7 @@
 960 PRINTS"Please Input PIO set"
 961 PRINTS"tings\n\r.Please che"
 962 PRINTS"ck DOCs for More Inf"
-963 PRINTS"ormation: "
+963 PRINTS"ormation: "                  
 964 GOSUB 565
 965 A = strlen $564
 966 IF A < 10 THEN  970
