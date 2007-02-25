@@ -1338,7 +1338,7 @@
 846 PRINTS"Inquirying for "
 847 PRINTS"16s. Please wait.
 848 B = inquiry 10
-849 $3[5] = $3[0];
+849 $3[5] = $3[3];
 850 $3[3] = 51;
 851 ALARM 16
 852 RETURN
@@ -1374,7 +1374,7 @@
 874 PRINTS"\n\rNot valid peer
 875 GOTO 584
 876 PRINTS"\n\rTrying to pair
-877 $3[5] = $3[0];
+877 $3[5] = $3[3];
 878 $3[3] = 48;
 879 $20 = $564
 880 A = master $20
