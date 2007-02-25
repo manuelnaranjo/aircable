@@ -110,7 +110,7 @@
 0 REM POWER SWITCH
 0 REM COMMAND LINE PIN
 0 REM BATERY MEASURMENT ENABLED
-12 K000000005
+12 K000000000
 
 0 REM PIO_IRQ SETTINGS
 0 REM $13 Button + Power Switch + Command Line. For no connections
@@ -316,7 +316,7 @@
 140 GOTO 359
 
 @SENSOR 141
-141 IF $22[2] = 49 THEN 154
+141 IF $22[2] > 48 THEN 154
 142 IF $8[9] = 48 THEN 153
 143 A = sensor $0
 144 V = atoi $0[5]
@@ -338,7 +338,7 @@
 0 REM voltages: 160, 450, 650, 810, 930, 1020, 1090, >
 0 REM switch    111, 110, 101, 100, 011,  010,  001, 000
 0 REM baud:    1152,  96, 384, 000, 576,   48,  192, 321
-154 $22[2] = 48
+154 $22[2] = $22[2] -1
 155 IF $15[0] = 48 THEN 160;
 0 REM we need to convert from string to integer, because we are on internal
 0 REM baud rate, if an error ocurs while converting, then we switch
@@ -547,7 +547,7 @@
 0 REM IF M = 1 THEN we are turning off
 304 RETURN
 
-305 IF $3[3] <> 48 THEN 865;
+305 IF $3[3] <> 48 THEN 304;
 306 IF $3[0] > 52 THEN 314;
 307 IF W <> 0 THEN 492;
 308 IF K = 1 THEN 311;
@@ -562,7 +562,7 @@
 
 314 IF $3[0] = 53 THEN 326
 315 IF $3[0] = 54 THEN 320
-316 IF $3[0] = 55 THEN 2005
+316 IF $3[0] = 55 THEN 327
 317 A = disconnect 1
 318 $3[0] = 54
 319 B = status
@@ -609,12 +609,8 @@
 348 A = pioget($8[8]-48);
 349 IF A = 1 THEN 355
 
-0 REM to show the user the command line can be accessed, we do a long blink
-350 A = pioset($8[1]-48);
-351 A = pioset($8[0]-48)
-352 A = pioclr($8[0]-48);
-353 A = slave 5
-354 RETURN
+0 REM Command Line is accessible.
+350 GOTO 980
 
 0 REM handle button press first of all.
 355 IF W = 1 THEN 391
@@ -795,7 +791,7 @@
 0 REM green and blue LEDS on
 0 REM read sensors
 456 A = nextsns 1
-457 $22[2] = 49
+457 $22[2] = 50
 458 B = pioset ($8[1]-48)
 459 B = pioset ($8[0]-48)
 0 REM set RS232 power to on
@@ -853,7 +849,7 @@
 
 0 REM read sensors
 493 A = nextsns 1
-494 $22[2] = 49
+494 $22[2] = 50
 495 A = pioset ($8[4]-48);
 0 REM DTR set on
 496 A = pioclr ($8[5]-48);
@@ -1499,4 +1495,16 @@
 976 PRINTV"_v"
 978 $39 = $1
 979 GOTO 954
+
+980 B = status
+981 IF B > 0 THEN 987
+0 REM to show the user the command line can be accessed, we do a long blink
+982 A = pioset($8[1]-48);
+983 A = pioset($8[0]-48)
+984 A = pioclr($8[0]-48);
+985 A = slave 5
+986 RETURN
+
+987 ALARM 5
+988 RETURN
 
