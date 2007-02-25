@@ -1475,7 +1475,7 @@
 959 RETURN
 
 960 PRINTS"Please Input PIO set"
-961 PRINTS"tings\n\r.Please che"
+961 PRINTS"tings.\n\rPlease che"
 962 PRINTS"ck DOCs for More Inf"
 963 PRINTS"ormation: "                  
 964 GOSUB 565
