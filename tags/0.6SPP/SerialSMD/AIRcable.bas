@@ -10,7 +10,7 @@
 0 REM idle 0010
 
 0 REM $5 stores the name of the devices we only want during inquiry
-5 AIRmini
+5 AIRcable
 
 0 REM $6 stores the filter address we filter on during inquiry
 6 00A8FFFFFF
@@ -58,5 +58,5 @@
 14 0
 15 0
 21 0
-953 A = getuniq $39;
+955 A = getuniq $39;
 
