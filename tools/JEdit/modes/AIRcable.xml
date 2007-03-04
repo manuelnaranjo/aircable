@@ -1,0 +1,200 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE MODE SYSTEM "xmode.dtd">
+
+<!-- AIRcable BASIC mode by Manuel Naranjo -->
+<!-- Based on VBScript mode by Andre Kaplan -->
+<MODE>
+	<PROPS>
+		<PROPERTY NAME="lineComment" VALUE="0 REM " />
+	</PROPS>
+
+	<RULES IGNORE_CASE="FALSE" HIGHLIGHT_DIGITS="TRUE">
+
+		<SPAN TYPE="LITERAL1" NO_LINE_BREAK="TRUE">
+			<BEGIN>"</BEGIN>
+			<END>"</END>
+		</SPAN>
+
+		<EOL_SPAN TYPE="COMMENT1">0 REM </EOL_SPAN>
+		
+		<!-- operators -->
+		<SEQ TYPE="OPERATOR">=</SEQ>
+		<SEQ TYPE="OPERATOR">+</SEQ>
+		<SEQ TYPE="OPERATOR">-</SEQ>
+		<SEQ TYPE="OPERATOR">*</SEQ>		
+		<SEQ TYPE="OPERATOR">/</SEQ>
+		<SEQ TYPE="OPERATOR">;</SEQ>
+		
+		<SEQ TYPE="NULL">$</SEQ>
+		<SEQ TYPE="NULL">[</SEQ>
+		<SEQ TYPE="NULL">]</SEQ>		
+		<SEQ TYPE="NULL">(</SEQ>
+		<SEQ TYPE="NULL">)</SEQ>
+		
+		<!-- Instruction separator -->
+		<MARK_PREVIOUS TYPE="LABEL" EXCLUDE_MATCH="TRUE"
+			AT_LINE_START="TRUE"> </MARK_PREVIOUS>
+
+		<KEYWORDS>
+			<!-- INTERRUPTS -->
+			<KEYWORD1>@INIT</KEYWORD1>
+			<KEYWORD1>@IDLE</KEYWORD1>
+			<KEYWORD1>@SLAVE</KEYWORD1>
+			<KEYWORD1>@MASTER</KEYWORD1>
+			<KEYWORD1>@ALARM</KEYWORD1>
+			<KEYWORD1>@SENSOR</KEYWORD1>
+			<KEYWORD1>@PIN_CODE</KEYWORD1>
+			<KEYWORD1>@PIO_IRQ</KEYWORD1>
+			<KEYWORD1>@CONTROL</KEYWORD1>
+			<KEYWORD1>@MESSAGE</KEYWORD1>
+			<KEYWORD1>@INQUIRY</KEYWORD1>
+			<KEYWORD1>@UART</KEYWORD1>
+
+			
+			<!-- Conditional Statements -->
+			<KEYWORD1>IF</KEYWORD1>
+			<KEYWORD1>THEN</KEYWORD1>
+			
+			<!-- Loop Statements -->
+			<!-- For..Next -->
+			<KEYWORD1>FOR</KEYWORD1>
+			<KEYWORD1>TO</KEYWORD1>
+			<KEYWORD1>NEXT</KEYWORD1>
+			
+			<!-- Closing, Exit Statements -->
+			<KEYWORD1>RETURN</KEYWORD1>
+			
+			<!-- Comments -->
+			<KEYWORD1>0 REM </KEYWORD1>
+
+			<!-- Function Call - Dynamic Evaluation -->
+			<KEYWORD1>GOTO</KEYWORD1>
+			<KEYWORD1>GOSUB</KEYWORD1>
+			
+			
+			<!-- Variables -->			
+			<KEYWORD2>A</KEYWORD2>
+			<KEYWORD2>B</KEYWORD2>
+			<KEYWORD2>C</KEYWORD2>
+			<KEYWORD2>D</KEYWORD2>
+			<KEYWORD2>E</KEYWORD2>
+			<KEYWORD2>F</KEYWORD2>
+			<KEYWORD2>G</KEYWORD2>
+			<KEYWORD2>H</KEYWORD2>
+			<KEYWORD2>I</KEYWORD2>
+			<KEYWORD2>J</KEYWORD2>
+			<KEYWORD2>K</KEYWORD2>
+			<KEYWORD2>L</KEYWORD2>
+			<KEYWORD2>M</KEYWORD2>
+			<KEYWORD2>N</KEYWORD2>
+			<KEYWORD2>O</KEYWORD2>
+			<KEYWORD2>P</KEYWORD2>
+			<KEYWORD2>Q</KEYWORD2>
+			<KEYWORD2>R</KEYWORD2>
+			<KEYWORD2>S</KEYWORD2>
+			<KEYWORD2>T</KEYWORD2>
+			<KEYWORD2>U</KEYWORD2>
+			<KEYWORD2>V</KEYWORD2>
+			<KEYWORD2>W</KEYWORD2>
+			<KEYWORD2>X</KEYWORD2>
+			<KEYWORD2>Y</KEYWORD2>
+			<KEYWORD4>Z</KEYWORD4>
+			
+			<!-- Language Functions -->
+			<!-- Slave Channel -->
+			<KEYWORD3>INPUTS</KEYWORD3>
+			<KEYWORD3>PRINTS</KEYWORD3>
+			<KEYWORD3>TIMEOUTS</KEYWORD3>
+			<KEYWORD3>STTYS</KEYWORD3>
+			
+			<!-- Master Channel -->
+			<KEYWORD3>INPUTM</KEYWORD3>
+			<KEYWORD3>PRINTM</KEYWORD3>
+			<KEYWORD3>TIMEOUTM</KEYWORD3>
+			<KEYWORD3>STTYM</KEYWORD3>
+
+			<!-- UART -->
+			<KEYWORD3>INPUTU</KEYWORD3>
+			<KEYWORD3>PRINTU</KEYWORD3>
+			<KEYWORD3>TIMEOUTU</KEYWORD3>
+			<KEYWORD3>STTYU</KEYWORD3>
+			<KEYWORD3>UART</KEYWORD3>			
+			
+			<!-- Built-in Functions -->
+			<!-- General-purpose - Input and Output -->
+			<KEYWORD3>pioin</KEYWORD3>
+			<KEYWORD3>pioout</KEYWORD3>
+			<KEYWORD3>pioget</KEYWORD3>
+			<KEYWORD3>pioset</KEYWORD3>
+			<KEYWORD3>pioclr</KEYWORD3>
+			<KEYWORD3>pioirq</KEYWORD3>
+			<KEYWORD3>psget</KEYWORD3>
+			<KEYWORD3>psset</KEYWORD3>
+			<KEYWORD3>baud</KEYWORD3>
+			<KEYWORD3>uarton</KEYWORD3>
+			<KEYWORD3>uartcfg</KEYWORD3>
+			<KEYWORD3>uartoff</KEYWORD3>
+			<KEYWORD3>date</KEYWORD3>
+			<KEYWORD3>reboot</KEYWORD3>
+			<KEYWORD3>nextsns</KEYWORD3>
+			<KEYWORD3>sensor</KEYWORD3>
+			<KEYWORD3>setdate</KEYWORD3>
+			<KEYWORD3>zerocnt</KEYWORD3>
+			<KEYWORD3>readcnt</KEYWORD3>
+			<KEYWORD3>uartint</KEYWORD3>
+			
+			<!-- File System Functions -->
+			<KEYWORD3>open</KEYWORD3>
+			<KEYWORD3>append</KEYWORD3>
+			<KEYWORD3>close</KEYWORD3>
+			<KEYWORD3>read</KEYWORD3>
+			<KEYWORD3>write</KEYWORD3>
+			<KEYWORD3>unlink</KEYWORD3>
+			<KEYWORD3>size</KEYWORD3>
+			<KEYWORD3>exist</KEYWORD3>
+			
+			<!-- Bluetooth Functions -->
+			<KEYWORD3>slave</KEYWORD3>
+			<KEYWORD3>master</KEYWORD3>
+			<KEYWORD3>inquiry</KEYWORD3>
+			<KEYWORD3>cancel</KEYWORD3>
+			<KEYWORD3>link</KEYWORD3>
+			<KEYWORD3>delete</KEYWORD3>
+			<KEYWORD3>disconnect</KEYWORD3>
+			<KEYWORD3>name</KEYWORD3>
+			<KEYWORD3>seek</KEYWORD3>
+			<KEYWORD3>info</KEYWORD3>
+			<KEYWORD3>rename</KEYWORD3>
+			<KEYWORD3>erasefs</KEYWORD3>
+			<KEYWORD3>load</KEYWORD3>
+			<KEYWORD3>message</KEYWORD3>
+			<KEYWORD3>ftp</KEYWORD3>
+			<KEYWORD3>modemctl</KEYWORD3>
+			<KEYWORD3>getaddr</KEYWORD3>
+			<KEYWORD3>getuniq</KEYWORD3>
+			<KEYWORD3>status</KEYWORD3>
+			<KEYWORD3>success</KEYWORD3>
+			<KEYWORD3>getname</KEYWORD3>
+			<KEYWORD3>maxpower</KEYWORD3>
+			<KEYWORD3>bizcard</KEYWORD3>
+			<KEYWORD3>enable</KEYWORD3>
+			<KEYWORD3>disable</KEYWORD3>
+			<KEYWORD3>dfumode</KEYWORD3>
+			<KEYWORD3>getconn</KEYWORD3>
+			<KEYWORD3>shell</KEYWORD3>
+			<KEYWORD3>unpair</KEYWORD3>
+
+			<!-- String Functions -->
+			<KEYWORD3>atoi</KEYWORD3>
+			<KEYWORD3>a2toi</KEYWORD3>
+			<KEYWORD3>xtoi</KEYWORD3>
+			<KEYWORD3>x8toi</KEYWORD3>
+			<KEYWORD3>hex8</KEYWORD3>
+			<KEYWORD3>hex36</KEYWORD3>
+			<KEYWORD3>strcmp</KEYWORD3>
+			<KEYWORD3>strlen</KEYWORD3>
+		</KEYWORDS>
+	</RULES>
+</MODE>
+
