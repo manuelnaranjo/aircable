@@ -1,0 +1,67 @@
+/*
+ * Find_Call.bsh - a BeanShell macro script for the jEdit text editor 
+ * This file will find all calls that the selected line has. If more than one
+ * line is selected it will be called once for each line.
+ *
+ * Copyright (C) 2007 Naranjo Manuel Francisco
+ * email: manuel@aircable.net
+ * http://code.google.com/p/aircable/
+ * Copyright (C) 2007 Wireless Cables Inc.
+ * http://www.aircable.net *
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *	http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+ 
+ void findCalls(int index)
+ {
+	 String line = textArea.getLineText(index);
+	 
+	 if (line.trim().length() == 0)
+		 return;
+	 
+	 if (line.contains("0 REM"))
+		 return;
+	 
+	 String number = line.substring(0, line.indexOf(" ")).trim();
+	 
+	 String out = "Calls:\n";
+	 
+	 for (int i = 0 ; i < textArea.getLineCount() ; i++)
+	 {
+		 if (textArea.getLineText(i).contains(number)){
+			 out += "*   " + textArea.getLineText(i)
+			 	+"\n";
+		 }
+	 }
+	 
+	 Macros.message(view, out);
+ }
+
+
+ if (!buffer.toString().contains(".bas")){
+	 Macros.error(view, "I can't work on none BASIC files");
+	 return;
+ }
+ 
+ if (textArea.getSelectedLines().length == 0){
+	 Macros.error(view, "No line has been selected");
+	 return;
+ }
+ 
+ 
+ 
+ int[] lin = textArea.getSelectedLines();
+ for (int i = 0 ; i < lin.length ; i++)
+	 findCalls(lin[i]);
+ 

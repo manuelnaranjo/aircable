@@ -941,7 +941,7 @@
 554 TIMEOUTU 5
 555 INPUTU $0;
 556 A = strlen $0;
-557 IF $0[A-3] <> 43 THEN 551
+557 IF $0[A-3] <> 43 THEN 559
 0 REM command line interface active
 558 IF $0[A-1] = 43 THEN 560
 

@@ -1,0 +1,263 @@
+/*
+ * Find_Empty_Lines.bsh - a BeanShell macro script for the jEdit text editor 
+ * This file will find empty lines in a AIRcable BASIC file.
+ *
+ * Copyright (C) 2007 Naranjo Manuel Francisco
+ * email: manuel@aircable.net
+ * http://code.google.com/p/aircable/
+ * Copyright (C) 2007 Wireless Cables Inc.
+ * http://www.aircable.net *
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *	http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+ int oldMin =-1, oldMax=-1, amount =-1;
+ int newMin =-1;
+ 
+ class Line{
+	 static HashMap diff = new HashMap();
+	 String current; //The text
+	 String future; //The text after the replace
+	 int textPosition; //The position in the text file
+	 
+	 public Line(){}
+	 
+	 public Line(String a, int i){
+		 current = a;
+		 textPosition = i;
+		 if (diff.get(new Integer(i)) == null){
+			diff.put(new Integer(i), this);
+		 }
+	 }
+	 
+	 public String toString(){
+		 return "-  " + current + "\n+  " + future;
+	 }
+	 
+	 public static HashMap getHash(){
+		 return diff;
+	 }
+	 
+	 public boolean equals(Object o){
+		 if (!o instanceof Line)
+			 return false;
+		 
+		 return ((Line)o.textPosition) == textPosition;
+	 }
+ 
+ }
+ 
+ class Highlight extends TextAreaExtension {
+	 HashMap diff;
+	 
+	 public Highlight(java.util.HashMap dd){
+		 diff = dd;
+	 }
+	 
+	 public void paintValidLine(java.awt.Graphics2D gfx,
+                           int screenLine,
+                           int physicalLine,
+                           int start,
+                           int end,
+                           int y){
+
+		if (diff.get(new Integer(physicalLine))!=null)
+		{			
+			TextAreaPainter painter = this.textArea.getPainter();
+			FontMetrics fm = painter.getFontMetrics();
+			gfx.setColor(new Color(255,255,0));
+			gfx.fillRect(0, y, painter.getWidth(), fm.getHeight());
+		}
+	 }
+ }
+ 
+ Object[] findCalls(int line) {
+	 Vector out = new Vector();
+	 String lineNum = textArea.getLineText(line);
+	 lineNum = lineNum.substring(0, lineNum.indexOf(" "));
+	 
+	 for (int i = 0 ; i < textArea.getLineCount() ; i++)
+	 {
+	 	import java.util.regex.*;
+		 
+		 String t =textArea.getLineText(i);
+		 
+		 if (!t.startsWith("0 REM") && t.trim().length() > 0){
+			Pattern pattern = Pattern.compile(
+				"(?:(?:.*(?:THEN|GOTO|GOSUB))|@\\D*)(?:\\s*)("+
+					lineNum+")\\D*");
+			Matcher matcher = pattern.matcher(t);
+			if (matcher.matches())
+				 out.add(new Line(t, i));
+			else if (i == line)
+				new Line(t,i); //I do this to get this line added to the buffer
+		 }
+	 }
+ 	 
+	 Log.log(Log.DEBUG, BeanShell.class, "Line " + lineNum + " called " +
+		 out.size() + " times");
+	 
+	 return out.toArray();
+ }
+ 
+ boolean count(){
+
+ 	 Log.log(Log.DEBUG, BeanShell.class, "count()");	 
+
+	 oldMax = -1;
+	 newMin = -1;
+	 oldMin = -1;
+	 amount = 0;
+	 
+	 int[] lines = textArea.getSelectedLines();
+	 for (int i = 0 ; i < lines.length; i++){
+		 String line = textArea.getLineText(lines[i]);
+		 
+		 if (validLine(line)){
+			int k = Integer.parseInt(line.substring(0, line.indexOf(" ")));
+			if (oldMin == -1)
+				oldMin = k;
+			
+			oldMax = k;
+			amount++;
+		 }
+	 }
+	 
+	 Log.log(Log.DEBUG, BeanShell.class,
+		 "oldMax = " + oldMax +", oldMin = " +oldMin + ", amount = " + amount);	 
+	 
+	 return amount == (oldMax-oldMin+1);
+ }
+ 
+ View showDialog()
+ {	 
+	 View v = jEdit.newView(view, buffer, true);
+	 
+	 v.getEditPanes()[0].getTextArea().getPainter().addExtension(
+		 new Highlight(Line.getHash()));
+ 
+	 return v;
+ }
+ 
+ boolean  validLine(String line){
+	 return (line.trim().length() > 0 && !line.startsWith("@") && !line.startsWith("0 REM"));
+ }
+ 
+ void updateDialog(View v, int[] lines)
+ {
+	 Log.log(Log.DEBUG, BeanShell.class, "updateDialog()");
+	 int k = 0;
+	 String orig = v.getEditPanes()[0].getTextArea().getText();
+	 String newString = orig;
+	 
+	 for (int i = 0 ; i < lines.length; i++){
+		String origLine = v.getEditPanes()[0].
+		 	getTextArea().getLineText(lines[i]);
+		
+		if (validLine(origLine)){
+			
+			String origNum = origLine.substring(0, origLine.indexOf(" ")).trim();
+			
+			String newNum = "" + (k + newMin);
+			
+			Log.log(Log.DEBUG, BeanShell.class,
+				"origNum = " + origNum +", newNum = " + newNum);
+			
+			String newLine = origLine.replace(origNum, newNum);
+			
+			Log.log(Log.DEBUG, BeanShell.class,
+				"origLine = " + origLine);
+			Log.log(Log.DEBUG, BeanShell.class, 
+				"newLine = " + newLine);
+			
+			newString = newString.replace(origLine, newLine);
+			
+			Object[] calls = findCalls(lines[i]);
+				
+			for (int j = 0 ; j < calls.length ; j++){
+				String origCall = v.getEditPanes()[0].
+					getTextArea().getLineText(
+						((Line)calls[j]).textPosition);	
+				
+				String newCall = "";
+				Log.log(Log.DEBUG, BeanShell.class,
+					"origLine = " + origCall);
+					
+				if (origCall.startsWith("@")){
+					newCall = origCall.replace(origNum, newNum);
+				} else {
+					origCall = origCall.substring(origCall.indexOf(" ")).trim();
+					int in = origCall.indexOf("THEN") + 4;
+					
+					if (in < 4)
+						in = origCall.indexOf("GOTO") + 4;
+						if (in < 4)
+							in = origCall.indexOf("GOSUB")+5;
+									
+					String temp = origCall.substring(in);
+					newCall = temp.replace(origNum, newNum);
+					
+					newCall = origCall.replace(temp, newCall);
+				}
+				
+
+				Log.log(Log.DEBUG, BeanShell.class, 
+					"newLine = " + newCall);
+				
+				newString = newString.replace(origCall, newCall);
+			}
+			
+			k++;
+		}
+	 }
+	 
+	 if (!orig.equals(newString)){
+		 int carPos = v.getEditPanes()[0].getTextArea().getCaretPosition();
+		 Log.log(Log.DEBUG, BeanShell.class, "There is a DIFF");
+		 v.getEditPanes()[0].getTextArea().setText(newString);
+		 v.getEditPanes()[0].getTextArea().moveCaretPosition(carPos, true);
+	 }
+ }
+
+
+
+ if (!buffer.toString().contains(".bas")){
+	 Macros.error(view, "I can't work on none BASIC files");
+	 return;
+ }
+ 
+ boolean a = count();
+ if (!a){
+	 Macros.error(view, "There is a gap in the selected code, I can't go on");
+	 return;
+ }
+
+ try {
+	 String n = Macros.input(view, 
+		 "Please input the new start. WARNING: I will not check" +
+		 " if the new start is valid, please not override another line: ");
+	 newMin = Integer.parseInt(n);
+ } 
+ catch (java.lang.NumberFormatException e) {
+	 Macros.error(view, "I can't go on, please input an integer");
+	 return;
+ }
+ 
+ int[] selectedLines = textArea.getSelectedLines();
+ JEditTextArea text = textArea;
+ int u = text.getCaretPosition();
+ View v = showDialog();
+ 
+ updateDialog(v, selectedLines);
+ text.moveCaretPosition(u);
+

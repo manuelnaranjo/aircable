@@ -1,0 +1,65 @@
+/*
+ * Find_Empty_Lines.bsh - a BeanShell macro script for the jEdit text editor 
+ * This file will find empty lines in a AIRcable BASIC file.
+ *
+ * Copyright (C) 2007 Naranjo Manuel Francisco
+ * email: manuel@aircable.net
+ * http://code.google.com/p/aircable/
+ * Copyright (C) 2007 Wireless Cables Inc.
+ * http://www.aircable.net *
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *	http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+ 
+ static int LINES = 1024;
+ void findEmpty()
+ {
+	 boolean[] lines = new boolean[LINES];
+	 
+	 String out = "Empty:\n";
+	 
+	 for (int i = 0 ; i < textArea.getLineCount() ; i++)
+	 {
+		 line = textArea.getLineText(i);
+		 int lin_number = 0;
+		 if (line.trim().length() != 0)
+			 if (!line.contains("0 REM")) 
+			 if (!line.startsWith("@")){
+				 lin_number = Integer.parseInt(line.substring(0, line.indexOf(" ")).trim());
+				 lines[lin_number] = true;
+			 }
+	}
+	
+	int k = 0;
+	
+	for (int i = 1 ; i < LINES; i++){
+		if (!lines[i]){
+			out+="   " + i;
+			k++;
+			if (k % 5 == 0)
+				out+="\n";
+		}
+	}
+	
+	out+= k + " of " + LINES + " available lines are free";
+	
+	Macros.message(view, out);
+ }
+
+ if (!buffer.toString().contains(".bas"))
+	 Macros.error(view, "I can't work on none BASIC files");
+ else
+	 findEmpty();
+ 
+ 
