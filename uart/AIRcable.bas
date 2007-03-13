@@ -328,8 +328,11 @@
 
 0 REM button no pressed, button not released
 0 REM when DSR on the RS232 changes
-148 IF $0[$8[6]-48]=48THEN151;
-149 IF $0[$8[6]-48]=49THEN153;
+0 REM Horrible HACK, this piece of code, must come back once the renumbering 
+0 REM tool is corrected
+0 REM 148 IF $0[$8[6]-48]=48THEN151;
+0 REM 149 IF $0[$8[6]-48]=49THEN153;
+148 GOTO 950
 150 RETURN
 0 REM modem control to the other side
 151 A = modemctl 0;
@@ -757,7 +760,7 @@
 413 A = pioclr ($8[1]-48);
 414 RETURN
 415 A = pioclr ($8[0]-48);
-416 A = pioset ($8[0]-48);
+416 A = pioset ($8[1]-48);
 417 J = 0;
 418 RETURN;
 
@@ -766,10 +769,10 @@
 419 IF $0[0] < 128 THEN 422
 420 A = uartcfg$0[0]
 421 RETURN
-422 IF $0[0] = 49 THEN 424;
-423 A=pioset ($8[5]-48);
+422 IF $0[0] = 49 THEN 425;
+423 A=pioclr ($8[5]-48);
 424 RETURN;
-425 A=pioclr ($8[5]-48);
+425 A=pioset ($8[5]-48);
 426 RETURN
 
 @UART 427
@@ -1432,4 +1435,14 @@
 936 $39[5] = 0;
 937 RETURN
 
+950 IF $3[3] <> 48 THEN 960
+951 IF $0[$8[6]-48]=48THEN151;
+952 IF $0[$8[6]-48]=49THEN153;
+953 RETURN
+
+960 A = disconnect 0
+961 A = disconnect 1
+962 $3[3] = 49
+963 ALARM 1
+964 RETURN
 
