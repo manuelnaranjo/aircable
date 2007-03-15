@@ -3,6 +3,8 @@ Version 0.6a:
     * Added Filtering Addr to Master.
     * Improved slave calls.
     * Improved command line even dispatcher.
+    * Improved command line mode changer
+    * Removed TIMEOUTS from command line. 
     
 Version 0.6:
     * Taken code from UART version 0.6.
