@@ -1,4 +1,9 @@
 Changelog:
+Version 0.6a:
+    * Added Filtering Addr to Master.
+    * Improved slave calls.
+    * Improved command line even dispatcher.
+    
 Version 0.6:
     * Taken code from UART version 0.6.
     * Changed UART reading for INPUTS.
