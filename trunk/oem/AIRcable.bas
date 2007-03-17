@@ -17,7 +17,7 @@
 5 AIRcable
 
 0 REM $6 stores the filter address we filter on during inquiry
-6 00A8FFFFFF
+6 0050C2
 
 0 REM Debug settings
 0 REM first char is for Z enabled/disabled
