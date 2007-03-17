@@ -4,7 +4,10 @@ Version 0.6a:
     * Improved slave calls.
     * Improved command line even dispatcher.
     * Improved command line mode changer
-    * Removed TIMEOUTS from command line. 
+    * Removed TIMEOUTS from command line.
+    * Removed lots of BUGS $[SOMETHING] = $[SOMETHING'] doesn't assign chars
+    		it assings substrings.
+    
     
 Version 0.6:
     * Taken code from UART version 0.6.
