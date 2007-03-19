@@ -1102,7 +1102,6 @@
 788 RETURN
 
 0 REM ---------------------- Manual Modes code --------------------------------
-
 789 PRINTU "\n\rThere is BT
 790 PRINTU "activity, please
 791 PRINTU "wait and try agai

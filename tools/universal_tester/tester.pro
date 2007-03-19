@@ -3,9 +3,9 @@ LANGUAGE	= C++
 
 CONFIG	+= qt warn_on debug
 
-LIBS	+= -lbluetooth -lkdeui -lserial -L/opt/kde/lib
+LIBS	+= -lbluetooth -lkdeui -lserial -l log4cxx -L./bin/lib
 
-INCLUDEPATH	+= /opt/kde/include
+INCLUDEPATH	+= ./bin/include
 
 TARGET = aircable_tester
 

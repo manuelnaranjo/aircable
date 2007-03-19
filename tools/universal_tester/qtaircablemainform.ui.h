@@ -19,11 +19,18 @@
 #include <qfiledialog.h>
 #include <qprocess.h>
 
+#include <string>
+
 #include <iostream>
 
 #include <time.h>
 
 #include <kled.h>
+
+//Log4cxx stuff
+#include <log4cxx/logger.h>
+#include <log4cxx/propertyconfigurator.h>
+#include <log4cxx/helpers/exception.h>
 
 #include "aircableOS.h"
 #include "aircableUSB.h"
@@ -44,6 +51,15 @@ int		state_usb;
 int		addr_count;
 int 		start_count;
 
+QString		loggerFile;
+
+using namespace log4cxx;
+using namespace log4cxx::helpers;
+
+// Define a static logger variable so that it references the
+// Logger instance named "universal_tester".
+LoggerPtr logger(Logger::getLogger("universal_tester"));
+
 /**
  * States descriptor.
  */
@@ -62,6 +78,7 @@ enum STATE {
 
 	OS_DETECTING,
 	OS_FOUND,
+	OS_BT_ADDR,
 	OS_SCRIPT_RUN,
 	OS_SCRIPT_DONE,
 	OS_SCRIPT_FAILURE,
@@ -82,56 +99,72 @@ STATE state;
 
 void qtAIRcableMainForm::clrWorking()
 {
+	LOG4CXX_DEBUG(logger, "clrWorking()");
 	Working->setColor(QColor(125,125,0));
 }
 
 void qtAIRcableMainForm::setWorking()
 {
+	LOG4CXX_DEBUG(logger, "setWorking()");
 	Working->setColor(QColor(255,255,0));
 }
 
 void qtAIRcableMainForm::setDone()
 {
+	LOG4CXX_DEBUG(logger, "setDone()");
 	Done->setColor(QColor(0,255,0));
 }
 
 void qtAIRcableMainForm::clrFailure()
 {
+	LOG4CXX_DEBUG(logger, "clrFailure()");
 	Failure->setColor(QColor(125,0,0));
 }
 
 
 void qtAIRcableMainForm::setFailure()
 {
+	LOG4CXX_DEBUG(logger, "setFailure()");
 	Failure->setColor(QColor(255,0,0));
 }
 
 
 void qtAIRcableMainForm::init()
 {
-	clrDone();
+	settings = new QSettings();	
+	
+	loggerFile = settings->readEntry( "/AIRcableUniversalTester/ logger", "/usr/share/aircable/logger");
+	
+	PropertyConfigurator::configure( string( loggerFile.ascii() ));
+	
+	LOG4CXX_DEBUG(logger, "init()");
+
+      	clrDone();
 	clrWorking();
 	clrFailure();
+	
 	Progress->clear();
 	AddProgress("Please select the kind of device");
 	AddProgress("Change the script file if you want");
 	AddProgress("Then Press Start to Begin");
 
-	settings = new QSettings();
-	
 	scriptOS = settings->readEntry( "/AIRcableUniversalTester/ scriptOS", "/usr/share/aircable/script/os" );
 	scriptUSB = settings->readEntry( "/AIRcableUniversalTester/ scriptUSB" ,"/usr/share/aircable/script/usb");
 	scriptSerial = settings->readEntry( "/AIRcableUniversalTester/ scriptSerial" ,"/usr/share/aircable/script/serial");
 	
 	updateImage();
+	
+	LOG4CXX_DEBUG(logger, "Ready to go.");
 }
 
 
 void qtAIRcableMainForm::updateImage()
 {
+	LOG4CXX_DEBUG(logger, "updateImage()");
 	int k = Device->currentItem();
 	switch (k){
 		case 0:
+			LOG4CXX_DEBUG(logger, "USB Selected");
 			//Selected USB	
 			Image->setPixmap( QPixmap::fromMimeSource( "usb.jpg" ) );
 			if (scriptUSB == NULL)
@@ -139,6 +172,7 @@ void qtAIRcableMainForm::updateImage()
 			Script->setText( scriptUSB );
 			return;
 		case 1:
+			LOG4CXX_DEBUG(logger, "Serial OS Selected");
 			//Selected Serial OS
 			Image->setPixmap( QPixmap::fromMimeSource( "serial-os.jpg" ) );
 			if (scriptOS == NULL)
@@ -146,6 +180,7 @@ void qtAIRcableMainForm::updateImage()
 			Script->setText( scriptOS );
 			return;
 		case 2: 
+			LOG4CXX_DEBUG(logger, "Serial Selected");
 			//Seleceted Serial
 			Image->setPixmap( QPixmap::fromMimeSource( "serial.jpg" ) );
 			if (scriptSerial == NULL)
@@ -160,16 +195,19 @@ void qtAIRcableMainForm::updateImage()
 
 void qtAIRcableMainForm::clrDone()
 {
+	LOG4CXX_DEBUG(logger, "clrDone()");
 	Done->setColor(QColor(0,125,0));
 }
 
 void qtAIRcableMainForm::deviceChanged( int )
 {
+	LOG4CXX_DEBUG(logger, "deviceChanged()");
 	updateImage();
 }
 
 void qtAIRcableMainForm::Browse_clicked()
 {
+	LOG4CXX_DEBUG(logger, "Browse_clicked()");
 	QString new_script = QFileDialog::getOpenFileName(
 	    "/usr/share/aircable/script",
 	    "Script Files (*)",
@@ -177,12 +215,15 @@ void qtAIRcableMainForm::Browse_clicked()
 	    "script chooser",
 	    "Choose a file" );
 	    
-	if (new_script!=NULL && !new_script.isNull() && !new_script.isEmpty())
+	if (new_script!=NULL && !new_script.isNull() && !new_script.isEmpty()){
+	    LOG4CXX_DEBUG(logger, "New Script: " + new_script);	    
 	    Script->setText(new_script);
+	} else LOG4CXX_DEBUG(logger, "New Script: NULL");
 }
 
 void qtAIRcableMainForm::Start_clicked()
 {
+	LOG4CXX_DEBUG(logger, "Start_clicked()");
 	AddProgress("Starting....");
 	timer = new QTimer(this);
 	connect( timer, SIGNAL(timeout()), this, SLOT(TimerEvent()) );
@@ -192,6 +233,7 @@ void qtAIRcableMainForm::Start_clicked()
 
 void qtAIRcableMainForm::Stop_clicked()
 {
+	LOG4CXX_DEBUG(logger, "Stop_clicked()");
 	AddProgress("Stop...");
 	state = STOP;
 	timer->start(100,TRUE);
@@ -199,33 +241,37 @@ void qtAIRcableMainForm::Stop_clicked()
 
 void qtAIRcableMainForm::AddProgress( QString arg)
 {
+	LOG4CXX_DEBUG(logger, "AddProgress( " + arg + " )");
 	if (Progress->count() > 200)
-		Progress->clear();
+		Progress->clear();	
 	Progress->insertItem(arg);
 	Progress->setBottomItem(Progress->count()-1);
 }
 
 void qtAIRcableMainForm::TimerEvent()
 {
+	LOG4CXX_DEBUG(logger, "TimerEvent()");
 	int new_time = 100;
 	int k;
 	timer->stop();
 	switch (state){
 		case  START:{
-
+			LOG4CXX_DEBUG(logger, "case: START");
 			QString path;
 			path = Script->text();
 	
 			if (! (path != NULL && !path.isNull() && !path.isEmpty())) {
+				LOG4CXX_DEBUG(logger, "Script = NULL, can't go");
 				AddProgress("Script path can't be empty");
 				AddProgress("I can't continue");
 				state = STOP;
-				break;
+				break;				
 			}
 	
 			file = new QFile(path);
 	
 			if (!file->exists()){
+				LOG4CXX_DEBUG(logger, "Script file doesn't exit, can't go on.");
 				AddProgress("The script file doesn't exist.");
 				AddProgress("I can't continue");
 				state = STOP;
@@ -233,6 +279,7 @@ void qtAIRcableMainForm::TimerEvent()
 			}
 
 			if (!file->open( IO_ReadOnly )) {
+				LOG4CXX_DEBUG(logger, "Script file couldn't be opened for reading.");
 				AddProgress("I wasn't able to open the script for Read");
 				AddProgress("Check Permissions");
 				AddProgress("I can't continue");
@@ -243,17 +290,20 @@ void qtAIRcableMainForm::TimerEvent()
 			k = Device->currentItem();
 	
 			if (k== 0){
+				LOG4CXX_INFO(logger, "Waiting for AIRcableUSB");
 				state = USB_DETECTING;
 				aircableUSB = new AIRcableUSB("/dev/ttyUSB0");
 				AddProgress("Waiting for an AIRcableUSB");
 			}
 			else if (k==1){
+				LOG4CXX_INFO(logger, "Waiting for SerialOS");
 				state = OS_DETECTING;
 				aircableOS = new AIRcableOS("/dev/ttyS0");
 				aircableOS->Open();
 				AddProgress("Detecting AIRcableOS device...");
 			}
 			else if (k==2){
+				LOG4CXX_INFO(logger, "Waiting for Serial");
 				state = SERIAL_DETECTING;
 				aircableSerial = new AIRcableSerial("/dev/ttyS0");
 				aircableSerial->Open();
@@ -271,9 +321,11 @@ void qtAIRcableMainForm::TimerEvent()
 		}
 
 		case USB_DETECTING:{
+			LOG4CXX_DEBUG(logger, "case: USB_DETECTING");
 			if (aircableUSB->checkConnected()){
 				AddProgress("Found an AIRcableUSB");
 				AddProgress("Starting test");
+				LOG4CXX_INFO(logger, "Found a AIRcableUSB");
 				state = USB_FOUND;				
 				new_time=500;
 			}
@@ -282,6 +334,7 @@ void qtAIRcableMainForm::TimerEvent()
 		}
 
 		case USB_FOUND:{
+			LOG4CXX_DEBUG(logger, "case: USB_FOUND");
 			setWorking();
 			aircableUSB->Open();
 			new_time=2000;				
@@ -293,7 +346,7 @@ void qtAIRcableMainForm::TimerEvent()
 
 		case USB_TESTING:{
 			switch (state_usb){
-				case 0: {
+				case 0: {					
 					AddProgress("Send: ^A A0");	
 					aircableUSB->sendCommand("A0");
 					new_time = 4000;
@@ -319,11 +372,14 @@ void qtAIRcableMainForm::TimerEvent()
 				}
 
 				case 3: {
+					
 					AddProgress("Opening SPP");
 					QString tmp;
 					tmp = aircableUSB->getBTAddress(aircableUSB->readBuffer());
+					
 					if (tmp == NULL || tmp.isNull() || tmp.isEmpty()) {
 					    if (addr_count > 3) {
+						LOG4CXX_INFO(logger, "USB didn't replied BT ADDR");
 						state = USB_SCRIPT_FAILURE;
 						clrDone();
 						clrWorking();
@@ -337,7 +393,7 @@ void qtAIRcableMainForm::TimerEvent()
 					    }					    
 					    break;					    
 					}
-					
+					LOG4CXX_INFO(logger, "BT ADDR: " + tmp);
 					AddProgress("ADDR: " + tmp);
 					rfcomm = new RfComm();
 					rfcomm->setAddress(tmp);
@@ -347,7 +403,7 @@ void qtAIRcableMainForm::TimerEvent()
 					break;
 				}
 				
-				case 4: {
+				case 4: {					
 					AddProgress("Connecting");
 					rfcomm->Open();
 					new_time=1000;
@@ -361,6 +417,8 @@ void qtAIRcableMainForm::TimerEvent()
 					if (resp >=0) {
 						QString rssi;
 						rssi = rssi.setNum(irssi);
+						LOG4CXX_INFO(logger, "RSSI: " + rssi);
+						LOG4CXX_INFO(logger, "DONE");
 						AddProgress("RSSI: " + rssi);
 						AddProgress("Testing OK");
 						setWorking();
@@ -369,6 +427,7 @@ void qtAIRcableMainForm::TimerEvent()
 						state = USB_TESTING_DONE;
 					}
 					else{
+						LOG4CXX_INFO(logger, "RSSI FAILED, FAILED TESTING");
 						clrWorking();
 						clrDone();
 						setFailure();
@@ -388,12 +447,14 @@ void qtAIRcableMainForm::TimerEvent()
 		}
 
 		case USB_TESTING_DONE:{
+			LOG4CXX_DEBUG(logger, "case: USB_TESTING_DONE");
 			file->reset();
 			state = USB_SCRIPT_RUN;
 			break;
 		}
 
 		case USB_SCRIPT_RUN:{
+			LOG4CXX_DEBUG(logger, "case: USB_SCRIPT_RUN");
 			aircableUSB->readBuffer();
 			if (!file->atEnd()){
 				QString line;
@@ -431,6 +492,7 @@ void qtAIRcableMainForm::TimerEvent()
 		case USB_TESTING_FAILURE:
 		case USB_SCRIPT_FAILURE:
 		case USB_SCRIPT_DONE: {
+			LOG4CXX_DEBUG(logger, "case: USB_TESTING_FAILURE, USB_SCRIPT_FAILURE or USB_SCRIPT_DONE");
 			aircableUSB->Close();
 			if (!aircableUSB->checkConnected()){
 				clrWorking();
@@ -443,9 +505,11 @@ void qtAIRcableMainForm::TimerEvent()
 		}
 
 		case OS_DETECTING: {
+			LOG4CXX_DEBUG(logger, "case: OS_DETECTING");
 			if (aircableOS->checkConnected()){
 				state = OS_FOUND;
 				AddProgress("Found a device");
+				LOG4CXX_INFO(logger, "New AIRcable OS Detected");
 				file->reset();
 				setWorking();
 				clrDone();
@@ -459,6 +523,7 @@ void qtAIRcableMainForm::TimerEvent()
 		}
 		
 		case OS_FOUND:{
+			LOG4CXX_DEBUG(logger, "case: OS_FOUND");
 			QString temp;
 			state = OS_SCRIPT_RUN;
 			
@@ -466,6 +531,7 @@ void qtAIRcableMainForm::TimerEvent()
 			
 			if ( temp.find("AIRcable>") == -1){
 			    if (start_count > 4){
+				LOG4CXX_INFO(logger, "Device Failed");
 				AddProgress("Sorry this device is not working");
 				clrDone();
 				clrWorking();
@@ -485,6 +551,7 @@ void qtAIRcableMainForm::TimerEvent()
 		}
 	
 		case OS_SCRIPT_RUN:{
+			LOG4CXX_DEBUG(logger, "OS_SCRIPT_RUN");
 			if (!file->atEnd()){
 				QString line;
 				time_t ptime;
@@ -525,6 +592,7 @@ void qtAIRcableMainForm::TimerEvent()
 								state = OS_SCRIPT_FAILURE;	
 								AddProgress("Couldn't Send Command");
 								AddProgress("Testing Failed");
+								LOG4CXX_INFO(logger, "Device Failed");
 								setFailure();
 								clrDone();
 								clrWorking();
@@ -539,6 +607,7 @@ void qtAIRcableMainForm::TimerEvent()
 				clrWorking();
 				clrFailure();
 				aircableOS->sendCommand("e");
+				LOG4CXX_INFO(logger, "Device testing sucessfull.");
 				AddProgress("Test Ended. Results were OK");
 				AddProgress("Please Disconnect the device");
 				AddProgress("So I can test another one");
@@ -548,6 +617,7 @@ void qtAIRcableMainForm::TimerEvent()
 
 		case OS_SCRIPT_DONE:
 		case OS_SCRIPT_FAILURE:{
+	    		LOG4CXX_DEBUG(logger, "case: OS_SCRIPT_DONE|OS_SCRIPT_FAILURE");
 			if (!aircableOS->checkConnected()){
 				state = OS_DETECTING;
 				clrDone();
@@ -561,6 +631,7 @@ void qtAIRcableMainForm::TimerEvent()
 		}
 
 		case SERIAL_DETECTING:{
+			LOG4CXX_DEBUG(logger, "case: SERIAL_DETECTING");
 			if (aircableSerial->checkConnected()){
 				AddProgress("Found an AIRcable Serial");
 				AddProgress("Starting test");
@@ -570,6 +641,7 @@ void qtAIRcableMainForm::TimerEvent()
 		}
 
 		case SERIAL_FOUND:{
+			LOG4CXX_DEBUG(logger, "case: SERIAL_FOUND");
 			setWorking();
 			state = SERIAL_TESTING;
 			AddProgress("Sending testing settings");
@@ -578,6 +650,7 @@ void qtAIRcableMainForm::TimerEvent()
 		}
 
 		case SERIAL_TESTING:{
+			LOG4CXX_DEBUG(logger, "case: SERIAL_TESTING");
 			switch (state_usb){
 				case 0: {
 					AddProgress("Send: ^A A0");	
@@ -614,6 +687,7 @@ void qtAIRcableMainForm::TimerEvent()
 						clrDone();
 						clrWorking();
 						setFailure();
+						LOG4CXX_INFO(logger, "Device didn't replied BT ADDR");
 						AddProgress("Couldn't Get Bluetooth Address");
 						AddProgress("Testing was not passed");
 					    } else {
@@ -622,7 +696,8 @@ void qtAIRcableMainForm::TimerEvent()
 						new_time=500;
 					    }					    
 					    break;					    
-					}					
+					}
+					LOG4CXX_INFO(logger, "BT ADDR: " + tmp);					
 					rfcomm = new RfComm();
 					rfcomm->setAddress(tmp);
 					aircableSerial->sendCommand("S11");
@@ -645,6 +720,8 @@ void qtAIRcableMainForm::TimerEvent()
 					if (resp >=0) {
 						QString rssi;
 						rssi = rssi.setNum(irssi);
+						LOG4CXX_INFO(logger, "RSSI: " + rssi);
+						LOG4CXX_INFO(logger, "testing OK");
 						AddProgress("RSSI: " + rssi);
 						AddProgress("Testing OK");
 						setWorking();
@@ -656,6 +733,8 @@ void qtAIRcableMainForm::TimerEvent()
 						clrWorking();
 						clrDone();
 						setFailure();
+						LOG4CXX_INFO(logger, "RSSI: failed");
+						LOG4CXX_INFO(logger, "Device, failed");
 						AddProgress("Couldn't Measure RSSI");
 						AddProgress("Testing Failed");
 						state = SERIAL_TESTING_FAILURE;
@@ -672,12 +751,14 @@ void qtAIRcableMainForm::TimerEvent()
 		}
 
 		case SERIAL_TESTING_DONE:{
+			LOG4CXX_DEBUG(logger, "case: SERIAL_TESTING_DONE");
 			file->reset();
 			state = SERIAL_SCRIPT_RUN;
 			break;
 		}
 
 		case SERIAL_SCRIPT_RUN:{
+			LOG4CXX_DEBUG(logger, "case: SERIAL_SCRIPT_RUN");
 			aircableSerial->readBuffer();
 			if (!file->atEnd()){
 				QString line;
@@ -704,6 +785,7 @@ void qtAIRcableMainForm::TimerEvent()
 				setDone();
 				clrWorking();
 				clrFailure();
+				LOG4CXX_INFO(logger, "Device, configured sucesfully");
 				AddProgress("Test Ended. Results were OK");
 				AddProgress("Please Disconnect the device");
 				AddProgress("So I can test another one");
@@ -714,6 +796,7 @@ void qtAIRcableMainForm::TimerEvent()
 		case SERIAL_TESTING_FAILURE:
 		case SERIAL_SCRIPT_FAILURE:
 		case SERIAL_SCRIPT_DONE:{
+			LOG4CXX_DEBUG(logger, "case: SERIAL_TESTING_FAILURE|SERIAL_SCRIPT_FAILURE|SERIAL_SCRIPT_DONE");
 			if (!aircableSerial->checkConnected()){
 				clrWorking();
 				clrDone();
@@ -726,6 +809,7 @@ void qtAIRcableMainForm::TimerEvent()
 
 
 		case    STOP:{
+			LOG4CXX_INFO(logger, "Stopped testing.");
 			if (aircableOS != NULL){
 				if (aircableOS->IsOpen())
 					aircableOS->Close();
@@ -767,6 +851,7 @@ void qtAIRcableMainForm::TimerEvent()
 
 void qtAIRcableMainForm::destroy()
 {
+	settings->writeEntry("/AIRcableUniversalTester/ logger", loggerFile);
 	settings->writeEntry("/AIRcableUniversalTester/ scriptOS", scriptOS);
 	settings->writeEntry("/AIRcableUniversalTester/ scriptUSB", scriptUSB);
 	settings->writeEntry("/AIRcableUniversalTester/ scriptSerial", scriptSerial);
@@ -782,6 +867,7 @@ void qtAIRcableMainForm::destroy()
 
 void qtAIRcableMainForm::ScriptChanged( const QString & newText)
 {
+	LOG4CXX_DEBUG(logger, "ScriptChanged ( " + newText + " ) ");
 	int k = Device->currentItem();
 	switch (k){
 		case 0:
@@ -799,12 +885,14 @@ void qtAIRcableMainForm::ScriptChanged( const QString & newText)
 
 void qtAIRcableMainForm::fileExitAction_activated()
 {
+	LOG4CXX_DEBUG(logger, "fileExitAction_activated()");
 	QApplication::exit();
 }
 
 
 void qtAIRcableMainForm::fileDefault_SettingsAction_activated()
 {
+    LOG4CXX_DEBUG(logger, "fileDefault_SettingsAction_activated()");
     scriptUSB = "/usr/share/aircable/script/usb";
     scriptOS = "/usr/share/aircable/script/os";
     scriptSerial = "/usr/share/aircable/script/serial";
@@ -814,6 +902,7 @@ void qtAIRcableMainForm::fileDefault_SettingsAction_activated()
 
 void qtAIRcableMainForm::helpAboutAction_activated()
 {
+    LOG4CXX_DEBUG(logger, "helpAboutAction_activated()");
     qtAbout* form;
     form = new qtAbout();    
     form->exec();   
@@ -822,6 +911,7 @@ void qtAIRcableMainForm::helpAboutAction_activated()
 
 void qtAIRcableMainForm::Edit_clicked()
 {
+    LOG4CXX_DEBUG(logger, "Edit_clicked()");
     QProcess* kwrite;
     kwrite = new QProcess(this);
     kwrite->addArgument( "kwrite" );

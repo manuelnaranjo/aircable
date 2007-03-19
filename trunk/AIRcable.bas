@@ -8,7 +8,7 @@
 0 REM let's reserve the first 30 lines for internal stuff
 
 0 REM $1 is the version of the command line
-1 0.6a
+1 0.7SPP
 
 0 REM defaults setting for mode
 0 REM uncomment the one you want to use as default

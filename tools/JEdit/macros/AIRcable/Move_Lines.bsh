@@ -35,6 +35,7 @@
 	 public Line(String a, int i){
 		 current = a;
 		 textPosition = i;
+		 future = a;
 		 if (diff.get(new Integer(i)) == null){
 			diff.put(new Integer(i), this);
 		 }
@@ -94,8 +95,7 @@
 		 
 		 if (!t.startsWith("0 REM") && t.trim().length() > 0){
 			Pattern pattern = Pattern.compile(
-				"(?:(?:.*(?:THEN|GOTO|GOSUB))|@\\D*)(?:\\s*)("+
-					lineNum+")\\D*");
+				"((.*(THEN|GOTO|GOSUB|\\$))|@\\D*)(\\s*)"+lineNum+"(\\D+.*|$)");
 			Matcher matcher = pattern.matcher(t);
 			if (matcher.matches())
 				 out.add(new Line(t, i));
@@ -157,14 +157,14 @@
  {
 	 Log.log(Log.DEBUG, BeanShell.class, "updateDialog()");
 	 int k = 0;
-	 String orig = v.getEditPanes()[0].getTextArea().getText();
-	 String newString = orig;
 	 
 	 for (int i = 0 ; i < lines.length; i++){
 		String origLine = v.getEditPanes()[0].
 		 	getTextArea().getLineText(lines[i]);
 		
 		if (validLine(origLine)){
+			String orig = v.getEditPanes()[0].getTextArea().getText();
+			String newString = orig;
 			
 			String origNum = origLine.substring(0, origLine.indexOf(" ")).trim();
 			
@@ -185,9 +185,7 @@
 			Object[] calls = findCalls(lines[i]);
 				
 			for (int j = 0 ; j < calls.length ; j++){
-				String origCall = v.getEditPanes()[0].
-					getTextArea().getLineText(
-						((Line)calls[j]).textPosition);	
+				String origCall = ((Line)calls[j]).current;
 				
 				String newCall = "";
 				Log.log(Log.DEBUG, BeanShell.class,
@@ -197,36 +195,45 @@
 					newCall = origCall.replace(origNum, newNum);
 				} else {
 					origCall = origCall.substring(origCall.indexOf(" ")).trim();
-					int in = origCall.indexOf("THEN") + 4;
-					
+					int in = origCall.indexOf("THEN") + 4;					
 					if (in < 4)
 						in = origCall.indexOf("GOTO") + 4;
 						if (in < 4)
 							in = origCall.indexOf("GOSUB")+5;
+							if (in < 5)
+								in = origCall.indexOf("$") +1;
 									
 					String temp = origCall.substring(in);
 					newCall = temp.replace(origNum, newNum);
 					
-					newCall = origCall.replace(temp, newCall);
+					newCall = ((Line)calls[j]).future.replace(temp, newCall);
 				}
 				
 
 				Log.log(Log.DEBUG, BeanShell.class, 
 					"newLine = " + newCall);
 				
-				newString = newString.replace(origCall, newCall);
+				((Line)calls[j]).future = newCall;
+			}
+			
+			for (int i = 0 ; i < calls.length; i++)	{
+				newString = newString.replace(
+					((Line)calls[i]).current,
+					((Line)calls[i]).future);
 			}
 			
 			k++;
+			
+			if (!orig.equals(newString)){
+				int carPos = v.getEditPanes()[0].getTextArea().getCaretPosition();
+				Log.log(Log.DEBUG, BeanShell.class, "There is a DIFF");
+				v.getEditPanes()[0].getTextArea().setText(newString);
+				v.getEditPanes()[0].getTextArea().moveCaretPosition(carPos, true);
+			}
 		}
 	 }
 	 
-	 if (!orig.equals(newString)){
-		 int carPos = v.getEditPanes()[0].getTextArea().getCaretPosition();
-		 Log.log(Log.DEBUG, BeanShell.class, "There is a DIFF");
-		 v.getEditPanes()[0].getTextArea().setText(newString);
-		 v.getEditPanes()[0].getTextArea().moveCaretPosition(carPos, true);
-	 }
+	 
  }
 
 

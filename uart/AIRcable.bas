@@ -1127,7 +1127,7 @@
 689 PRINTU"isabled\n\rChoose "
 690 PRINTU"Option: "
 691 GOSUB 704
-692 $9[3] = $443[0]
+692 $9[3] = ($443[0]+0)
 693 IF $443[0] = 50 THEN 699
 694 $0[0] = 0
 695 A = psget 6

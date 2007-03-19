@@ -1,0 +1,5 @@
+Alpha 2:
+* Corrected a bug when moving lines that are strings were not correctly beeing moved. 
+
+Alpha 1:
+First release 
