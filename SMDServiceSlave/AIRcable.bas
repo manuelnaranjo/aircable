@@ -54,7 +54,7 @@
 5 AIRcable
 
 0 REM $6 stores the filter address we filter on during inquiry
-6 00A8FFFFFF
+6 0050C2
 
 0 REM $7 for paired master addresses
 7 0
@@ -100,7 +100,7 @@
 0 REM POWER SWITCH
 0 REM COMMAND LINE PIN
 0 REM BATERY MEASURMENT ENABLED
-12 K000000005
+12 K000000000
 
 0 REM PIO_IRQ SETTINGS
 0 REM $13 Button + Power Switch + Command Line. For no connections
