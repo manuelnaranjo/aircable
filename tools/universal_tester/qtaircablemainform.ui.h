@@ -18,6 +18,7 @@
 #include <qapplication.h>
 #include <qfiledialog.h>
 #include <qprocess.h>
+#include <qmessagebox.h>
 
 #include <string>
 
@@ -918,4 +919,34 @@ void qtAIRcableMainForm::Edit_clicked()
     kwrite->addArgument( Script->text() );
     kwrite->start();
     delete(kwrite);
+}
+
+
+void qtAIRcableMainForm::slaveLog_clicked()
+{
+    QString target = QFileDialog::getSaveFileName(
+        NULL,
+        "Script Files (*)",
+	this,
+	"Save Log",
+	"Save As" );
+    
+    if (target != NULL){
+        QProcess* mv;
+	mv = new QProcess(this);
+        mv->addArgument( "mv" );
+	mv->addArgument( "universal_tester.log"  );
+	mv->addArgument( target );
+	mv->addArgument( "-f"  );
+        mv->start();
+	
+	while (mv->isRunning())
+	    usleep(100*1000);
+	
+	QMessageBox :: information ( this , "Log saved sucessfully", 
+		    "Log Saved Sucessfully.\nI have to exit",
+		    QMessageBox::Ok);
+	
+	QApplication::exit();
+    }
 }

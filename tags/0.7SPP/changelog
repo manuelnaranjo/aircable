@@ -1,0 +1,76 @@
+Changelog:
+Version 0.6a:
+    * Added Filtering Addr to Master.
+    * Improved slave calls.
+    * Improved command line even dispatcher.
+    * Improved command line mode changer
+    * Removed TIMEOUTS from command line.
+    * Removed lots of BUGS $[SOMETHING] = $[SOMETHING'] doesn't assign chars
+    		it assings substrings.
+    
+    
+Version 0.6:
+    * Taken code from UART version 0.6.
+    * Changed UART reading for INPUTS.
+    * Removed one line char reading.
+    * Changed PRINTU for PRINTS.
+    * Removed calls to uartint.
+    * Add Security pin detection.
+    * When the Command line is accessible then the device will get into a sort of
+    	service slave mode, it will be discoverable, and will blink the leds only
+	once with a longer period than the other modes.
+    * Removed shell from the debug options, it's not needed any more, we can 
+    	access to it from the command line instead.
+    * Removed BT status from listing option.
+    * Removed unnecesary sensors reading.
+    * Made a function for the name part, to supress duplicated code.
+    * Improved sensors code.
+    * Added Power Switch.
+    * Added Battery Measurment.
+    * Removed LEDs from manual modes. Where making more problems than solutions.
+    * Added command q for PIO settings.
+    * PIO_IRQ strings are generated automatically based on PIO settings.
+    * Manual Master now does LINK 3 instead of LINK 1.
+    * Added Timeout with a little error checking to INPUTS. (This needs to be improved)
+    * Moved SPP to main trunk.
+    
+    
+Previous versions:
+Version 0.1:
+    * Moved from INPUTU and PRINTU to INPUTS and PRINTS
+    * Removed Manual Modes
+    * Removed PIO_IRQ
+    * Removed DIP Switches measurment
+    * Improved Service Master, now it really does: Inquiry, Connect, Inquiry,.. instead of Inqury, Connect, Connect,...
+    * Added PIO_IRQ again, Command Line Switch ON must ensure that the command line is available, this also means getting the module into service slave mode.
+
+Version 0.0:
+    * Forked from Command Line Version 0.6a
+
+From Command Line:
+
+Version 0.6a:
+    * Added support for Power Switch.
+    * Added battery measurment support.
+
+Version 0.5:
+    * New Leds Schema: We moved from a two leds schema (Serial OS) to a 1 led
+	schema (The rest of our devices).
+    * New Security Framework realted to Obex/ObexFTP: Now there is a setting
+	for directly turning OFF Obex/ObexFTP not just making it invisible,
+	the user can turn on/off from the command line, and can also select
+	the other old two modes Visible Always, Visible only at boot up.
+    * Obex/ObexFTP Timing: Now the timing has been extended from a couple of
+	seconds to 2 minutes, so when the device is first booted up, the user
+	has up to 2 minutes to see the Obex/ObexFTP layer (only when the user
+	has not choosen to turn it off)
+	There is an extra feauture this timing is personalizable, so users can
+	make the device fit they're solution.
+    * Code Reorganization, some pieces of code had been moved arround using the
+	new tool that can be found on the svn under the Tools TAG
+    * Cable modes will boot up into unpaired mode in case it has timed out 
+	before.
+    * Added two different modes for Relay, Service and Cable, while one Service
+	the device is always discoverable, on Cable mode the device is visible
+	only for two minutes after each boot up.
+

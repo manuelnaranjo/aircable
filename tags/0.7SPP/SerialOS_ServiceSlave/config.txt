@@ -1,0 +1,19 @@
+// BT Class of device & version
+@0000 = 00c2 0104 001A
+// Name of device: AIRcable
+@0001 = 0041 0049 0052 0063 0061 0062 006c 0065
+// sniff max, min intv, attempt, timeout
+@0002 = 012c 00c8 0002 0014 
+// pg scan intv, wind, inq scan intv, wind
+@0003 = 0800 0012 1000 0012 
+// default and max RF output power
+@0004 = 0006 0006 
+// default PIN code
+@0005 = 0031 0032 0033 0034
+// config sec
+@0006 = 0000 0001 0001
+// baud rate, stop bits, parity
+@0007 = 01d8 0000 0000
+// analog correction
+@0008 = 03e8 09d5
+
