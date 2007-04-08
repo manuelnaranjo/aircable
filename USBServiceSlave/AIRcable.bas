@@ -64,7 +64,7 @@
 9 00000
 
 0 REM $10 stores our own friendly name
-10 AIRmini
+10 AIRcableUSB
 
 0 REM $11 stores our PIN
 11 1234
@@ -78,21 +78,21 @@
 0 REM DTR
 0 REM DSR
 0 REM Power Switch
-12 A94B3520
+12 10000DD0
 
 0 REM PIO_IRQ SETTINGS
 0 REM 13 only buttons pio, used for starting interrupts when there is
 0 REM no connection going on
-13 P00010000000
+13 P0000000000001
 
 0 REM 14 button + DSR interrupt, interrupts that must be listened while
 0 REM there is a connection going on
-14 P01010000000
+14 P0000000000001
 
 0 REM 15 is the settings for the uart when a connection is made
 0 REM 0 means read from dip swithces
 0 REM any other number is converted to an int.
 15 1152
 
-21 P000000000000
+21 P0000000000000
 
