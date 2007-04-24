@@ -95,3 +95,7 @@
 
 21 P000000000000
 
+516 PRINTU"\n\rDate: ";
+517 A = date $0;
+518 PRINTU $0;
+
