@@ -94,7 +94,7 @@
 0 REM 15 is the settings for the uart when a connection is made
 0 REM 0 means read from dip swithces
 0 REM any other number is converted to an int.
-15 0
+15 1152
 
 21 P000001000000
 

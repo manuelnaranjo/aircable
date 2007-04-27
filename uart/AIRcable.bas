@@ -6,7 +6,7 @@
 0 REM let's reserve the first 30 lines for internal stuff
 
 0 REM $1 is the version of the command line
-1 0.7
+1 0.8UART
 
 0 REM defaults setting for mode
 0 REM uncomment the one you want to use as default
@@ -715,20 +715,19 @@
 383 IF $3[3] <> 51 THEN 388
 384 PRINTU"\n\rFound device: "
 385 PRINTU $379
-386 ALARM 4
-387 RETURN
+386 RETURN
 
 388 $4 = $379;
 389 $379 = $0[13];
-390 IF $3[0] <> 51 THEN 393;
+390 IF $3[0] <> 51 THEN 392;
 0 REM inquiry filter active
-391 IF $3[2] = 48 THEN 393;
-392 IF $3[2] = 49 THEN 394;
-393 RETURN
+391 IF $3[2] = 49 THEN 393;
+392 RETURN
 
-394 IF $9[2] = 48 THEN 397;
-395 PRINTU "found "
-396 PRINTU $4
+393 IF $9[2] = 48 THEN 396;
+394 PRINTU "found "
+395 PRINTU $4
+396 IF $5[0]=0 THEN 401;
 0 REM check name of device
 397 $0[0]=0;
 398 PRINTV $379;
@@ -1200,7 +1199,7 @@
 750 A = pioset ($8[1]-48)
 751 A = pioclr ($8[0]-48);
 752 A = pioclr ($8[1]-48);
-753 ALARM 20
+753 ALARM 18
 754 GOTO 795
 
 
@@ -1218,9 +1217,9 @@
 761 GOSUB 919;
 762 IF $39[0] = 49 THEN 730
 763 PRINTU"Inquirying for
-764 PRINTU" 16s. Please wait.
-765 A = nextsns 30
-767 B = inquiry 10
+764 PRINTU" 18s. Please wait.
+765 A = nextsns 60
+767 B = inquiry 6
 768 $3[3] = 51;
 769 GOSUB 919;
 770 A = zerocnt

@@ -1,4 +1,7 @@
 Changelog:
+Version 0.8:
+    * Corrected bugs in manual inquiry (timing things mostly).
+    * Corrected Service Master bug from 0.7
 
 Version 0.7:
      * Corrected Mode Changer.
