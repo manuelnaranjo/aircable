@@ -38,6 +38,7 @@ Relay Mode Pair
 Edit Settings
 Security
 Debug
+Revert to Default Settings
 Exit and Reboot
 
 #Display Settings X = 1
@@ -166,16 +167,16 @@ Please input Name Filter:
 Plase input Address Filter:
 
 #Trace X = 72
-Do you want to enable Trace?
+Enable Trace (Z=1) [y/n]: 
 
 #Shell X = 71
 Shell not available on UART
 
 #Print Line X = 73
+#Edit Line X = 74 part 1
 Line Number:
 
-#Edit Line X = 74
-Line Number:
+#Edit Line X = 74 part 2
 New Code:
 
 #Relay mode settings
