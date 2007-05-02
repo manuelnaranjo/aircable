@@ -1,0 +1,185 @@
+#Welcome
+Cable Replacement Code
+Version
+
+#Common
+Back
+Next
+Option:
+Input:
+CONNECTED
+DISCONNECTED
+Paired
+Unpaired
+bps
+None
+Odd
+Even
+Always Visible
+Partially Visible
+Unavailable
+Uniq
+User
+UART
+SPP
+seconds
+Inquiring for 
+Slave channel open for 
+Connecting
+Pairing
+Invalid Option
+
+#Main X = 0
+Main
+Display Settings
+Cable Replacement
+Manual Mode
+Relay Mode Pair
+Edit Settings
+Security
+Debug
+Exit and Reboot
+
+#Display Settings X = 1
+Firmware Version:
+BT ADDR:
+UNIQ:
+Class:
+Name:
+PIN:
+Baud Rate:
+Parity:
+Stop Bits:
+Mode:
+Name Filter:
+ADDR Filter:
+Obex/ObexFTP:
+Name:
+PIN:
+Interface:
+Press a Key
+
+#Cable Replacement X = 2
+Cable Replacement
+Manual
+Cable Slave
+Cable Master
+Service Slave
+Service Master
+
+#Manual Mode X = 3
+Manual Mode
+Open Slave Channel
+Start Inquiry
+Connect Master
+
+#Relay Pair X = 4
+Relay Mode Pair
+Inquiry
+Pair
+Settings
+
+#Edit Settings X = 5
+Edit Settings
+Name
+PIN
+Interface
+Baud Rate
+Parity
+Stop Bits
+PIO
+Class of Device
+Date
+
+#Security X = 6
+Security
+Obex/ObexFTP
+Name/PIN
+Name Filter
+Address Filter
+
+#Debug X = 7
+Debug
+Shell
+Trace
+Print Line
+Edit Line
+List Code
+
+#Master Connect/Relay Pair X = 34 && X = 43
+Last Discovered: 
+Target (Blank for last): 
+
+#Name change X = 51
+Please input new Name:
+
+#Pin Change X = 52
+Please input new Pin:
+
+#Interface X = 53
+Please Choose interface:
+UART
+SPP
+
+#UART X = 54
+Please input new baud rate.
+Divided by 100, 0 for external:
+
+#Parity X = 55
+Please choose Parity:
+None
+Even
+Odd
+
+#Stop Bits X = 56
+Number of Stop Bits:
+One
+Two
+
+#PIO X = 57
+Please Input PIO List:
+
+#Class X = 58
+Please Input class of device.
+Format xxxx xxxx:
+
+#Date X = 59
+Please Input new date.
+Format YYYYMMDDTHHMMSSZ:
+
+#Obex/ObexFTP X = 61
+Obex/ObexFTP:
+Always Visible
+Partially Visible
+Unavailable
+
+#Name/PIN X = 62
+Name/PIN:
+Non Modified
+Name + Uniq
+Name + Uniq, PIN = Uniq
+
+#Name Filter X = 63
+Please input Name Filter:
+
+#ADDR Filter X = 64
+Plase input Address Filter:
+
+#Trace X = 72
+Do you want to enable Trace?
+
+#Shell X = 71
+Shell not available on UART
+
+#Print Line X = 73
+Line Number:
+
+#Edit Line X = 74
+Line Number:
+New Code:
+
+#Relay mode settings
+Please choose behaviour:
+Service Mode
+Cable Mode
+

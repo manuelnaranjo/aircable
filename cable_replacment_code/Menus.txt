@@ -1,0 +1,96 @@
+Menu "Main"
+AIRcable
+Cable Replacment Code
+Version 1.0
+
+1 - Display Settings
+2 - Cable Replacment
+3 - Manual Mode
+4 - Relay Mode
+5 - Edit Settings
+6 - Security
+7 - Speciall
+0 - Exit and Reboot
+
+Option: 
+
+Menu "Display Settings"
+Code Version: 1.0
+Firmware Version: R28
+BT Address: 0050C258512E
+Unique: 6131
+Class: 0104 001A
+
+Name: AIRcable
+Pin: 1234
+Baud Rate: 115200 bps
+Parity: None
+Stop Bits: 1
+PIO List: K10DFGH0000
+
+Mode: Cable Master
+Peer: 0050C2585122F AIRcable 00123
+Name Filter: AIRcable
+Address Filter: 0050C2
+
+Obex - ObexFTP: Always Visible
+Name: Add Unique
+PIN: User
+Interface: UART
+
+Press a Key
+
+Menu "Cable Replacment"
+Cable Replacment:
+1 - Manual
+2 - Cable Slave
+3 - Cable Master
+4 - Service Slave
+5 - Service Master
+0 - Cancel
+Option: 
+
+Menu "Manual Mode"
+Manual Mode:
+1 - Open Slave Channel
+2 - Start Inquiry
+3 - Connect Master
+0 - Cancel
+Option: 
+
+Menu "Relay Mode"
+1 - Inquiry
+2 - Pair
+0 - Cancel
+Option: 
+
+Menu "Connect Master / Pair Relay Mode"
+Last Discovered: 001122334455 AIRcable 1234
+Target (Blank for last found): 
+
+Menu "Edit Settings"
+Edit Settings
+1 - Name
+2 - PIN
+3 - Interface
+4 - Baud Rate
+5 - Parity
+6 - Stop Bits
+7 - PIO List 
+8 - Class Of Device
+9 - Date
+0 - Cancel
+Option: 
+
+Menu "Security"
+1 - Obex ObexFTP
+2 - Name Pin
+3 - Name Filter
+4 - Addr Filter
+0 - Back
+
+Menu "Speciall"
+1 - Shell
+2 - Debug
+0 - Back
+
