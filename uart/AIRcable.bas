@@ -332,7 +332,7 @@
 0 REM tool is corrected
 0 REM 148 IF $0[$8[6]-48]=48THEN151;
 0 REM 149 IF $0[$8[6]-48]=49THEN153;
-148 GOTO 950
+148 GOTO 940
 150 RETURN
 0 REM modem control to the other side
 151 A = modemctl 0;
@@ -1425,14 +1425,14 @@
 936 $39[5] = 0;
 937 RETURN
 
-950 IF $3[3] <> 48 THEN 960
-951 IF $0[$8[6]-48]=48THEN151;
-952 IF $0[$8[6]-48]=49THEN153;
-953 RETURN
+940 IF $3[3] <> 48 THEN 944
+941 IF $0[$8[6]-48]=48THEN151;
+942 IF $0[$8[6]-48]=49THEN153;
+943 RETURN
 
-960 A = disconnect 0
-961 A = disconnect 1
-962 $3[3] = 49
-963 ALARM 1
-964 RETURN
+944 A = disconnect 0
+945 A = disconnect 1
+946 $3[3] = 49
+947 ALARM 1
+948 RETURN
 
