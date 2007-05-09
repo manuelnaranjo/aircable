@@ -78,7 +78,7 @@
 0 REM DTR
 0 REM DSR
 0 REM Power Switch
-12 A94B3520
+12 A943B0000
 
 0 REM PIO_IRQ SETTINGS
 0 REM 13 only buttons pio, used for starting interrupts when there is
