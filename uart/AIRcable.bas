@@ -421,7 +421,7 @@
 
 201 IF $3[0] = 53 THEN 214
 202 IF $3[0] = 54 THEN 206
-203 IF $3[0] = 55 THEN 755
+203 IF $3[0] = 55 THEN 753
 204 A = disconnect 1
 205 $3[0] = 54
 206 A = uartint
@@ -826,17 +826,18 @@
 458 A = pioclr ($8[0]-48);
 459 A = pioclr ($8[1]-48);
 460 $3[3] = 49
+461 H = 0
 0 REM enable FTP again
-461 A = enable 3
-462 PRINTU "\r\nAIRcable OS "
-463 PRINTU "command line v
-464 PRINTU $1
-465 PRINTU "\r\nType h to "
-466 PRINTU "see the list of "
-467 PRINTU "commands";
-468 PRINTU "\n\rAIRcable> "
-469 GOSUB 704;
-470 PRINTU"\n\r
+462 A = enable 3
+463 PRINTU "\r\nAIRcable OS "
+464 PRINTU "command line v
+465 PRINTU $1
+466 PRINTU "\r\nType h to "
+467 PRINTU "see the list of "
+468 PRINTU "commands";
+469 PRINTU "\n\rAIRcable> "
+470 GOSUB 704;
+471 PRINTU"\n\r
 
 0 REM h: help, l: list,
 0 REM n: name, p: pin, b: name filter, g: address filter
@@ -846,55 +847,54 @@
 0 REM e: exit
 
 0 REM help
-471 IF $443[0] = 104 THEN 619;
+472 IF $443[0] = 104 THEN 619;
 0 REM info
-472 IF $443[0] = 108 THEN 505;
+473 IF $443[0] = 108 THEN 505;
 0 REM name
-473 IF $443[0] = 110 THEN 634;
+474 IF $443[0] = 110 THEN 634;
 0 REM pin
-474 IF $443[0] = 112 THEN 644;
+475 IF $443[0] = 112 THEN 644;
 0 REM class
-475 IF $443[0] = 99 THEN 648;
+476 IF $443[0] = 99 THEN 648;
 0 REM uart
-476 IF $443[0] = 117 THEN 531;
+477 IF $443[0] = 117 THEN 531;
 0 REM date
-477 IF $443[0] = 100 THEN 674;
+478 IF $443[0] = 100 THEN 674;
 0 REM inquiry
-478 IF $443[0] = 105 THEN 761;
+479 IF $443[0] = 105 THEN 761;
 0 REM slave
-479 IF $443[0] = 115 THEN 786;
+480 IF $443[0] = 115 THEN 785;
 0 REM master
-480 IF $443[0] = 109 THEN 771;
+481 IF $443[0] = 109 THEN 770;
 0 REM obex
-481 IF $443[0] = 111 THEN 684;
+482 IF $443[0] = 111 THEN 684;
 0 REM modes
-482 IF $443[0] = 97 THEN 557;
+483 IF $443[0] = 97 THEN 557;
 0 REM exit
-483 IF $443[0] = 101 THEN 496;
+484 IF $443[0] = 101 THEN 495;
 0 REM name filter
-484 IF $443[0] = 98 THEN 664;
+485 IF $443[0] = 98 THEN 664;
 0 REM hidden debug settings
-485 IF $443[0] = 122 THEN 492;
+486 IF $443[0] = 122 THEN 491;
 0 REM reboot
-486 IF $443[0] = 114 THEN 710;
-0 REM relay mode pair
-0 REM 487 IF $443[0] = 106 THEN 807;
+487 IF $443[0] = 114 THEN 710;
 0 REM name/pin settings
 488 IF $443[0] = 107 THEN 717
 489 PRINTU"Command not found
-490 GOTO 468;
+490 GOTO 469;
 
-492 PRINTU"Input settings: "
-493 GOSUB 444
-494 $9 = $443
-495 GOTO 468
+491 PRINTU"Input settings: "
+492 GOSUB 444
+493 $9 = $443
+494 GOTO 469
 
 0 REM exit code, we end with slave-1 to ensure
 0 REM that @SLAVE starts all again, and that
 0 REM we start unvisible
-496 PRINTU "Bye!!\n\r
-497 GOSUB 107;
-498 $3[3] = 48;
+495 PRINTU "Bye!!\n\r
+496 GOSUB 107;
+497 $3[3] = 48;
+498 H = 1
 499 A = slave -1;
 500 A = uartint
 501 A = zerocnt
@@ -926,7 +926,7 @@
 525 PRINTU"\n\rName Filter:
 526 PRINTU $5;
 527 GOSUB 598
-528 GOTO 468;
+528 GOTO 469;
 
 531 PRINTU"Enter new Baud Ra
 532 PRINTU"te divide by 100,
@@ -947,7 +947,7 @@
 547 PRINTU" bit\n\r1 for 2 stop
 548 PRINTU" bits:
 549 GOSUB 704
-550 GOTO 468
+550 GOTO 469
 
 551 IF $15[0] = 48 THEN 555
 552 PRINTU $15
@@ -980,20 +980,20 @@
 570 IF $443[0] = 51 THEN 582;
 571 IF $443[0] = 52 THEN 584;
 573 PRINTU"\n\rInvalid Option
-574 GOTO 468;
+574 GOTO 469;
 
 575 $3 = "0010";
-576 GOTO 468;
+576 GOTO 469;
 577 $3 = "1110";
-578 GOTO 468;
+578 GOTO 469;
 579 $3 = "3110";
 580 $7 = "0"
-581 GOTO 468;
+581 GOTO 469;
 582 $3 = "1010";
-583 GOTO 468;
+583 GOTO 469;
 584 $3 = "3010";
 585 $7 = "0";
-586 GOTO 468;
+586 GOTO 469;
 
 588 A = $433[0];
 589 $9[3] = A
@@ -1041,7 +1041,7 @@
 627 PRINTU"er, a: mode,\n\ro: "
 628 PRINTU"obex, f: obexftp\n"
 629 PRINTU"\re: exit, r: reboot"
-630 GOTO 468;
+630 GOTO 469;
 
 0 REM Name Function
 634 PRINTU"New Name: "
@@ -1053,13 +1053,13 @@
 640 A = getuniq $39;
 641 PRINTV $39;
 642 A = name $0;
-643 GOTO 468
+643 GOTO 469
 
 0 REM Pin Function
 644 PRINTU"New PIN: ";
 645 GOSUB 444;
 646 $11 = $443;
-647 GOTO 468
+647 GOTO 469
 
 648 PRINTU"Type the class of "
 649 PRINTU"device as xxxx xxx"
@@ -1076,21 +1076,21 @@
 660 $443 = $442[17]
 661 PRINTV $443;
 662 A = psset 3
-663 GOTO 468
+663 GOTO 469
 
 0 REM friendly name filter code
 664 PRINTU"Enter the new name"
 665 PRINTU" filter: "
 666 GOSUB 444
 667 $5 = $443
-668 GOTO 468;
+668 GOTO 469;
 
 0 REM addr filter code
 669 PRINTU"Enter the new addr"
 670 PRINTU"ess filter: "
 671 GOSUB 444
 672 $6 = $443
-673 GOTO 468
+673 GOTO 469
 
 0 REM date changing methods
 674 PRINTU"Insert new dat
@@ -1100,9 +1100,9 @@
 678 A = strlen $443
 679 IF A <> 16 THEN 682
 680 A = setdate $443
-681 GOTO 468
+681 GOTO 469
 682 PRINTU"\n\rInvalid format
-683 GOTO 468
+683 GOTO 469
 
 0 REM activate Obex/ObexFTP
 0 REM 0 Enabled only on command line
@@ -1122,12 +1122,12 @@
 695 A = psget 6
 696 $0[11] = 48
 697 A = psset 3
-698 GOTO 468
+698 GOTO 469
 699 $0[0] = 0
 700 A = psget 6
 701 $0[11] = 54
 702 A = psset 3
-703 GOTO 468
+703 GOTO 469
 
 0 REM one char read function
 704 A = 1
@@ -1160,7 +1160,7 @@
 724 IF $443[0] < 48 THEN 728
 725 IF $443[0] > 50 THEN 728
 726 $23 = $443
-727 GOTO 468
+727 GOTO 469
 
 728 PRINTU"Invalid Option\n\r"
 729 GOTO 717
@@ -1171,12 +1171,12 @@
 731 PRINTU "activity, please
 732 PRINTU "wait and try agai
 733 PRINTU "n
-734 GOTO 468;
+734 GOTO 469;
 
 0 REM Led STUFF for manual 
 735 IF $3[3] = 50 THEN 744
-736 IF $3[3] = 51 THEN 749
-737 IF $3[3] = 52 THEN 756
+736 IF $3[3] = 51 THEN 748
+737 IF $3[3] = 52 THEN 754
 0 REM command line has just started?
 738 IF $3[3] = 49 THEN 456
 739 IF $3[3] = 54 THEN 741
@@ -1184,32 +1184,30 @@
 
 741 A = pioclr ($8[0]-48);
 742 A = pioclr ($8[1]-48);
-743 GOTO 468
+743 GOTO 469
 
 0 REM slave connecting leds
 744 A = pioset ($8[1]-48);
 745 A = pioset ($8[0]-48)
 746 A = pioclr ($8[0]-48)
-747 ALARM 18
-748 GOTO 794
+747 GOTO 794
 
 0 REM inq leds
-749 A = pioset ($8[0]-48);
-750 A = pioset ($8[1]-48)
-751 A = pioclr ($8[0]-48);
-752 A = pioclr ($8[1]-48);
-753 ALARM 18
-754 GOTO 794
+748 A = pioset ($8[0]-48);
+749 A = pioset ($8[1]-48)
+750 A = pioclr ($8[0]-48);
+751 A = pioclr ($8[1]-48);
+752 GOTO 794
 
 
 0 REM this line is part of the relay mode
-755 A = zerocnt
+753 A = zerocnt
 0 REM master connecting leds
-756 A = pioset ($8[0]-48);
-757 A = pioset ($8[1]-48)
-758 A = pioclr ($8[1]-48);
-759 ALARM 18
-760 GOTO 794
+754 A = pioset ($8[0]-48);
+755 A = pioset ($8[1]-48)
+756 A = pioclr ($8[1]-48);
+757 ALARM 18
+758 GOTO 794
 
 0 REM inquiry code
 0 REM by default we inquiry for 10 seconds
@@ -1217,60 +1215,60 @@
 762 IF $39[0] = 49 THEN 730
 763 PRINTU"Inquirying for
 764 PRINTU" 18s. Please wait.
-766 B = inquiry 6
-767 $3[3] = 51;
-768 GOSUB 919;
-769 A = zerocnt
-770 GOTO 749;
+765 B = inquiry 6
+766 $3[3] = 51;
+767 GOSUB 919;
+768 A = zerocnt
+769 GOTO 748;
 
 0 REM master code
-771 GOSUB 919;
-772 IF $39[3] = 49 THEN 730
-773 PRINTU"Please input "
-774 PRINTU"the addr of your "
-775 PRINTU"peer:
-776 GOSUB 444
-777 B = strlen$443
-778 IF B<>12 THEN 783
-779 $3[3] = 52;
-780 B = master $443
-781 B = zerocnt
-782 GOTO 756
+770 GOSUB 919;
+771 IF $39[3] = 49 THEN 730
+772 PRINTU"Please input "
+773 PRINTU"the addr of your "
+774 PRINTU"peer:
+775 GOSUB 444
+776 B = strlen$443
+777 IF B<>12 THEN 782
+778 $3[3] = 52;
+779 B = master $443
+780 B = zerocnt
+781 GOTO 754
 
-783 PRINTU"Invalid add
-784 PRINTU"r, try again.
-785 GOTO 468;
+782 PRINTU"Invalid add
+783 PRINTU"r, try again.
+784 GOTO 469;
 
 0 REM slave code
 0 REM manual slave
 0 REM by default we open the slave channel for 60 seconds
-786 GOSUB 919;
-787 IF $39[4] = 49 THEN 730
-788 PRINTU"Slave Open for
-789 PRINTU" 16s. Please wait.
-790 $3[3] = 50
-791 A = slave 15
-792 A = zerocnt
-793 GOTO 744
+785 GOSUB 919;
+786 IF $39[4] = 49 THEN 730
+787 PRINTU"Slave Open for 16s
+788 $3[3] = 50
+789 A = nextsns 0
+790 A = slave 15
+791 A = zerocnt
+792 GOTO 744
 
 
 0 REM timeout for any manual mode, as this part of the code
 0 REM will be called as soon as the slave channel is opened
 0 REM we check for activity firstly
 794 B = readcnt
-795 A = nextsns 0
-796 IF B < 16 THEN 806
-797 $3[3] = 49
-798 ALARM 0
-799 A = cancel
-800 A = disconnect 0
-801 A = disconnect 1
-802 A = pioclr ($8[0]-48)
-803 A = pioclr ($8[1]-48)
-804 A = nextsns 4
-805 GOTO 468
+795 IF B < 16 THEN 804
+796 $3[3] = 49
+0 REM 797 ALARM 0
+798 A = cancel
+799 A = disconnect 0
+800 A = disconnect 1
+801 A = pioclr ($8[0]-48)
+802 A = pioclr ($8[1]-48)
+0 REM 804 A = nextsns 4
+803 GOTO 469
 
-806 RETURN
+804 ALARM 18 
+805 RETURN
 
 0 REM ---------------------------- RELAY CODE ----------------------------------
 
@@ -1282,20 +1280,20 @@
 810 A = strlen $443;
 811 IF A = 12 THEN 814;
 812 PRINTU"\n\rNot valid peer
-813 GOTO 468
+813 GOTO 469
 814 PRINTU"\n\rTrying to pair
 815 $3[0] = 53;
 816 $3[3] = 48;
 817 $20 = $443
 818 A = zerocnt
 819 A = master $20
-820 GOTO 756
+820 GOTO 754
 
 0 REM relay mode alarm handler
 0 REM first check for command line
 821 IF $3[3] <> 48 THEN 456
 822 ALARM 5
-823 IF $3[0] = 53 THEN 756
+823 IF $3[0] = 53 THEN 754
 824 B = status
 825 IF $3[0] = 54 THEN 208
 826 IF B < 1 THEN 206
@@ -1330,7 +1328,7 @@
 854 A = $443[0];
 855 $3[4] = A;
 856 $3[0] = 54;
-857 GOTO 468
+857 GOTO 469
 
 858 $3[0] = 55
 859 GOTO 214

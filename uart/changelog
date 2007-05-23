@@ -5,6 +5,8 @@ Version 0.9:
     * Cosmetic bugs corrected.
     * Removed Relay mode.
     * Added Serial3 and USB3 overlays
+    * Improved the manual modes a bit, pairing fails after calling any of the 
+	manual modes.
 
 Version 0.8:
     * Corrected bugs in manual inquiry (timing things mostly).
