@@ -406,7 +406,7 @@
 0 REM handle the slave mode stuff
 0 REM idle used for slave connections, pairing or paired
 @IDLE 192
-192 IF $3[3] <> 48 THEN 795;
+192 IF $3[3] <> 48 THEN 794;
 193 IF $3[0] > 52 THEN 201;
 194 IF W <> 0 THEN 366;
 195 IF K = 1 THEN 198;
@@ -862,9 +862,9 @@
 0 REM inquiry
 478 IF $443[0] = 105 THEN 761;
 0 REM slave
-479 IF $443[0] = 115 THEN 787;
+479 IF $443[0] = 115 THEN 786;
 0 REM master
-480 IF $443[0] = 109 THEN 772;
+480 IF $443[0] = 109 THEN 771;
 0 REM obex
 481 IF $443[0] = 111 THEN 684;
 0 REM modes
@@ -1191,7 +1191,7 @@
 745 A = pioset ($8[0]-48)
 746 A = pioclr ($8[0]-48)
 747 ALARM 18
-748 GOTO 795
+748 GOTO 794
 
 0 REM inq leds
 749 A = pioset ($8[0]-48);
@@ -1199,7 +1199,7 @@
 751 A = pioclr ($8[0]-48);
 752 A = pioclr ($8[1]-48);
 753 ALARM 18
-754 GOTO 795
+754 GOTO 794
 
 
 0 REM this line is part of the relay mode
@@ -1209,7 +1209,7 @@
 757 A = pioset ($8[1]-48)
 758 A = pioclr ($8[1]-48);
 759 ALARM 18
-760 GOTO 795
+760 GOTO 794
 
 0 REM inquiry code
 0 REM by default we inquiry for 10 seconds
@@ -1217,48 +1217,48 @@
 762 IF $39[0] = 49 THEN 730
 763 PRINTU"Inquirying for
 764 PRINTU" 18s. Please wait.
-765 A = nextsns 60
-767 B = inquiry 6
-768 $3[3] = 51;
-769 GOSUB 919;
-770 A = zerocnt
-771 GOTO 749;
+766 B = inquiry 6
+767 $3[3] = 51;
+768 GOSUB 919;
+769 A = zerocnt
+770 GOTO 749;
 
 0 REM master code
-772 GOSUB 919;
-773 IF $39[3] = 49 THEN 730
-774 PRINTU"Please input "
-775 PRINTU"the addr of your "
-776 PRINTU"peer:
-777 GOSUB 444
-778 B = strlen$443
-779 IF B<>12 THEN 784
-780 $3[3] = 52;
-781 B = master $443
-782 B = zerocnt
-783 GOTO 756
+771 GOSUB 919;
+772 IF $39[3] = 49 THEN 730
+773 PRINTU"Please input "
+774 PRINTU"the addr of your "
+775 PRINTU"peer:
+776 GOSUB 444
+777 B = strlen$443
+778 IF B<>12 THEN 783
+779 $3[3] = 52;
+780 B = master $443
+781 B = zerocnt
+782 GOTO 756
 
-784 PRINTU"Invalid add
-785 PRINTU"r, try again.
-786 GOTO 468;
+783 PRINTU"Invalid add
+784 PRINTU"r, try again.
+785 GOTO 468;
 
 0 REM slave code
 0 REM manual slave
 0 REM by default we open the slave channel for 60 seconds
-787 GOSUB 919;
-788 IF $39[4] = 49 THEN 730
-789 PRINTU"Slave Open for
-790 PRINTU" 16s. Please wait.
-791 $3[3] = 50
-792 A = slave 15
-793 A = zerocnt
-794 GOTO 744
+786 GOSUB 919;
+787 IF $39[4] = 49 THEN 730
+788 PRINTU"Slave Open for
+789 PRINTU" 16s. Please wait.
+790 $3[3] = 50
+791 A = slave 15
+792 A = zerocnt
+793 GOTO 744
 
 
 0 REM timeout for any manual mode, as this part of the code
 0 REM will be called as soon as the slave channel is opened
 0 REM we check for activity firstly
-795 B = readcnt
+794 B = readcnt
+795 A = nextsns 0
 796 IF B < 16 THEN 806
 797 $3[3] = 49
 798 ALARM 0
