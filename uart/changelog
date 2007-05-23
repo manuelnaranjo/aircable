@@ -1,4 +1,11 @@
 Changelog:
+Version 0.9:
+    * Improved Service Master, now it will try to reconnect the last discovered 
+    	peer before connecting to another device.
+    * Cosmetic bugs corrected.
+    * Removed Relay mode.
+    * Added Serial3 and USB3 overlays
+
 Version 0.8:
     * Corrected bugs in manual inquiry (timing things mostly).
     * Corrected Service Master bug from 0.7

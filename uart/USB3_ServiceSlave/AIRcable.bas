@@ -64,7 +64,7 @@
 9 00000
 
 0 REM $10 stores our own friendly name
-10 AIRcableUSB
+10 AIRusb3
 
 0 REM $11 stores our PIN
 11 1234
@@ -78,16 +78,16 @@
 0 REM DTR
 0 REM DSR
 0 REM Power Switch
-12 10000DD0
+12 K0000540
 
 0 REM PIO_IRQ SETTINGS
 0 REM 13 only buttons pio, used for starting interrupts when there is
 0 REM no connection going on
-13 P0000000000001
+13 P00000000000
 
 0 REM 14 button + DSR interrupt, interrupts that must be listened while
 0 REM there is a connection going on
-14 P0000000000001
+14 P00010000000
 
 0 REM 15 is the settings for the uart when a connection is made
 0 REM 0 means read from dip swithces
@@ -95,4 +95,34 @@
 15 1152
 
 21 P0000000000000
+
+0 REM 16 this is the time that the Obex/ObexFTP will be available after
+0 REM boot up
+16 120
+
+0 REM on variable I we store the baud rate setting.
+0 REM this variable is initializated by @SENSOR
+0 REM and is not setted until a connection is stablished
+
+
+0 REM $20 is used for relay mode, it stores the master address
+20 000000000000
+
+0 REM $21 PIO_IRQ while off mode
+21 P000000000000
+
+0 REM 22 Parity Settings
+0 REM [0] = "0" = none
+0 REM "1" = even
+0 REM "2" = odd
+0 REM [1] = "0" 1 stop bit
+0 REM "1" 2 stop bits
+22 00
+
+0 REM 23 unique settings
+0 REM [0] = "0" don't add nothing
+0 REM [0] = "1" add unique name
+0 REM [0] = "2" add unique name, generate pin
+23 1
+
 

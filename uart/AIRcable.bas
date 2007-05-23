@@ -6,7 +6,7 @@
 0 REM let's reserve the first 30 lines for internal stuff
 
 0 REM $1 is the version of the command line
-1 0.8UART
+1 0.9UART
 
 0 REM defaults setting for mode
 0 REM uncomment the one you want to use as default
@@ -49,9 +49,7 @@
 
 0 REM if var K = 1 then we must do a slave-1
 
-0 REM $3[4] is the amount of time we trigger alarms while on manual
-0 REM need service-master mode, does not store pairing information starts 
-0 REM with pairing
+0 REM $3[5] service master counter
 3 Z
 
 0 REM $4 IS RESERVED FOR PAIRED ADDR
@@ -146,7 +144,14 @@
 0 REM [0] = "0" don't add nothing
 0 REM [0] = "1" add unique name
 0 REM [0] = "2" add unique name, generate pin
-23 0
+23 1
+
+0 REM 24 service master counter
+24 0
+
+0 REM part of @MASTER
+37 $24="5"
+38 RETURN
 
 0 REM $39 RESERVED
 39 RESERVED
@@ -247,8 +252,8 @@
 93 A = uartint
 94 H = 1
 0 REM for Unisex V2 switch detector
-95 A = pioset $8[7]-48
-96 A = pioin $8[7]-48
+95 A = pioset ($8[7]-48)
+96 A = pioin ($8[7]-48)
 97 M = 0
 98 IF H = 0 THEN 100
 99 RESERVED
@@ -435,7 +440,7 @@
 218 B = status
 219 IF B > 1 THEN 221
 220 A = master $20
-221 ALARM 4
+221 ALARM 10
 222 RETURN
 
 @PIN_CODE 223
@@ -509,7 +514,7 @@
 0 REM we are on master modes
 257 FOR B = 0 TO 2
 258 A = pioset ($8[0]-48)
-259 A = pioclr ($8[0]-48
+259 A = pioclr ($8[0]-48)
 260 NEXT B
 261 IF $3[1] = 48 THEN 310;
 262 A = pioset ($8[0]-48)
@@ -520,9 +525,6 @@
 0 REM manual idle code, this is the only mode that ends here.
 265 B = pioset ($8[1]-48);
 266 B = pioclr ($8[0]-48);
-0 REM little hidden feauture on $3[5], it is somesort of flag
-0 REM that tell us if this is the first time that @IDLE is called
-0 REM or the second, while we are on automatic-manual
 267 A = slave-1;
 268 K = 2
 269 RETURN
@@ -574,15 +576,16 @@
 298 RETURN
 
 0 REM service - master
-299 A = strlen $7;
-300 IF A > 1 THEN 304
+299 B = $24[0] 
+300 IF B > 48 THEN 304
+0 REM 300 IF A > 1 THEN 304
 301 A = inquiry 6
 302 ALARM 8
 303 RETURN
 
 304 A = master $7
 305 IF $3[1] = 48 THEN 307
-306 $7 = "0"
+306 $24[0] = B-1
 0 REM master returns 0 if the connection was succesfull
 0 REM or if we are still trying to connect.
 307 IF A = 0 THEN 242
@@ -696,7 +699,7 @@
 371 ALARM 5
 0 REM allow DSR interrupts
 372 A = pioirq $14
-373 RETURN
+373 GOTO 37
 
 374 PRINTU"\n\rCONNECTED\n\r
 375 $3[4] = 54
@@ -712,40 +715,43 @@
 380 $379 = $0
 381 IF $9[2] = 48 THEN 383
 382 PRINTU "@INQUIRY\n\r";
-383 IF $3[3] <> 51 THEN 388
+383 IF $3[3] <> 51 THEN 387
 384 PRINTU"\n\rFound device: "
 385 PRINTU $379
 386 RETURN
 
-388 $4 = $379;
-389 $379 = $0[13];
-390 IF $3[0] <> 51 THEN 392;
+387 $4 = $379;
+388 $379 = $0[13];
+389 IF $3[0] <> 51 THEN 391;
 0 REM inquiry filter active
-391 IF $3[2] = 49 THEN 393;
-392 RETURN
+390 IF $3[2] = 49 THEN 392;
+391 RETURN
 
-393 IF $9[2] = 48 THEN 396;
-394 PRINTU "found "
-395 PRINTU $4
-396 IF $5[0]=0 THEN 401;
+392 IF $9[2] = 48 THEN 395;
+393 PRINTU "found "
+394 PRINTU $4
+395 IF $5[0]=0 THEN 400;
 0 REM check name of device
-397 $0[0]=0;
-398 PRINTV $379;
-399 B = strcmp $5;
-400 IF B <> 0 THEN 407;
+396 $0[0]=0;
+397 PRINTV $379;
+398 B = strcmp $5;
+399 IF B <> 0 THEN 407;
 
 0 REM found one, try to connect, inquiry canceled automaticall
 0 REM 447 GOSUB 485;
-401 B = master $4;
+400 B = master $4;
 0 REM if master busy keep stored address in $4, get next
-402 IF B = 0 THEN 408;
+401 IF B = 0 THEN 408;
 0 REM master accepted, store address, restart alarms, give it 8 seconds to connect
 0 REM corrected by mn
-403 $7 = $4;
-404 ALARM 8;
+402 $7 = $4;
+403 ALARM 8;
 0 REM all on to indicate we have one
-405 A = pioset ($8[1]-48);
-406 A = pioset ($8[0]-48);
+404 A = pioset ($8[1]-48);
+405 A = pioset ($8[0]-48);
+0 REM set the counter to 5, when counter reaches
+0 REM 0 we inqury again
+406 $24="5"
 407 RETURN
 
 0 REM get next result, give the inq result at least 2 sec time
@@ -867,18 +873,16 @@
 483 IF $443[0] = 101 THEN 496;
 0 REM name filter
 484 IF $443[0] = 98 THEN 664;
-0 REM addr filter
-485 IF $443[0] = 103 THEN 669;
 0 REM hidden debug settings
-486 IF $443[0] = 122 THEN 492;
+485 IF $443[0] = 122 THEN 492;
 0 REM reboot
-487 IF $443[0] = 114 THEN 710;
+486 IF $443[0] = 114 THEN 710;
 0 REM relay mode pair
-488 IF $443[0] = 106 THEN 807;
+0 REM 487 IF $443[0] = 106 THEN 807;
 0 REM name/pin settings
-489 IF $443[0] = 107 THEN 717
-490 PRINTU"Command not found
-491 GOTO 468;
+488 IF $443[0] = 107 THEN 717
+489 PRINTU"Command not found
+490 GOTO 468;
 
 492 PRINTU"Input settings: "
 493 GOSUB 444
@@ -908,7 +912,7 @@
 511 A = psget 0;
 512 PRINTU"\n\rClass: ";
 513 PRINTU $0;
-514 PRINTU"Baud Rate: "
+514 PRINTU"Baud: "
 515 GOSUB 551
 0 REM 516 PRINTU"\n\rDate: ";
 0 REM 517 A = date $0;
@@ -921,10 +925,8 @@
 524 PRINTU $39;
 525 PRINTU"\n\rName Filter:
 526 PRINTU $5;
-527 PRINTU"\n\rAddr Filter:
-528 PRINTU $6;
-529 GOSUB 598
-530 GOTO 468;
+527 GOSUB 598
+528 GOTO 468;
 
 531 PRINTU"Enter new Baud Ra
 532 PRINTU"te divide by 100,
@@ -1032,17 +1034,14 @@
 620 PRINTU"\rn: name, p: pin, "
 621 PRINTU"k: name/pin setting"
 622 PRINTU"s,\n\rb: name filte"
-623 PRINTU"r, g: address filte"
-624 PRINTU"r,\n\rc: class of d"
-625 PRINTU"evice, u: uart, d: "
-626 PRINTU"date,\n\rs: slave, "
-627 PRINTU"i: inquiry, m: mast"
-628 PRINTU"er, a: mode,\n\ro: "
-629 PRINTU"obex, f: obexftp, j"
-630 PRINTU": relay mode pair,"
-631 PRINTU"\n\re: exit, "
-632 PRINTU"r: reboot"
-633 GOTO 468;
+623 PRINTU"r\n\rc: class of d"
+624 PRINTU"evice, u: uart, d: "
+625 PRINTU"date,\n\rs: slave, "
+626 PRINTU"i: inquiry, m: mast"
+627 PRINTU"er, a: mode,\n\ro: "
+628 PRINTU"obex, f: obexftp\n"
+629 PRINTU"\re: exit, r: reboot"
+630 GOTO 468;
 
 0 REM Name Function
 634 PRINTU"New Name: "
@@ -1191,7 +1190,7 @@
 744 A = pioset ($8[1]-48);
 745 A = pioset ($8[0]-48)
 746 A = pioclr ($8[0]-48)
-747 ALARM 4
+747 ALARM 18
 748 GOTO 795
 
 0 REM inq leds
@@ -1209,7 +1208,7 @@
 756 A = pioset ($8[0]-48);
 757 A = pioset ($8[1]-48)
 758 A = pioclr ($8[1]-48);
-759 ALARM 4
+759 ALARM 18
 760 GOTO 795
 
 0 REM inquiry code
