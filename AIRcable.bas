@@ -642,11 +642,11 @@
 390 PRINTU "@MASTER\n\r";
 391 IF $3[0] > 52 THEN 30
 0 REM if we are on manual master, then we have some requests
-392 IF $3[3] = 52 THEN 402
+392 IF $3[3] <> 52 THEN 397
 393 $3[3] = 54
 394 A = pioset ($8[1]-48);
 395 A = pioset ($8[0]-48);
-396 GOTO 407
+396 GOTO 414
 0 REM if we are not on master modes, then we must avoid this connection.
 397 IF $3[0] > 50 THEN 402;
 398 IF $3[0] > 48 THEN 417;
