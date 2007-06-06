@@ -112,19 +112,19 @@ Last Discovered:
 Target (Blank for last): 
 
 #Name change X = 51
-Please input new Name:
+Please input new Name: 
 
 #Pin Change X = 52
-Please input new Pin:
+Please input new Pin: 
 
 #Interface X = 53
-Please Choose interface:
+Please Choose interface: 
 UART
 SPP
 
 #UART X = 54
 Please input new baud rate.
-Divided by 100, 0 for external:
+Divided by 100, 0 for external: 
 
 #Parity X = 55
 Please choose Parity:
@@ -161,13 +161,13 @@ Name + Uniq
 Name + Uniq, PIN = Uniq
 
 #Name Filter X = 63
-Please input Name Filter:
+Please input Name Filter: 
 
 #ADDR Filter X = 64
-Plase input Address Filter:
+Plase input Address Filter: 
 
 #Trace X = 72
-Enable Trace (Z=1) [y/n]: 
+Enable Trace (Z=1) [y]: 
 
 #Shell X = 71
 Shell not available on UART

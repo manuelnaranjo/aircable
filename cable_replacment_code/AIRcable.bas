@@ -6,11 +6,42 @@
 0 REM temp
 2 TEMP
 
-0 REM default mode
+0 REM mode variable
 3 1110
 
-0 REM current mode
+0 REM $4 stores the status variable
+0 REM all values must be translated to ASCII
+0 REM $4[0] = 0 idle
+0 REM $4[0] = 1 manual
+0 REM $4[0] = 2 slave
+0 REM $4[0] = 3 master
+0 REM $4[0] = 4 relay
+
+0 REM $4[1] = 0 cable mode
+0 REM $4[1] = 1 service mode
+
+0 REM $4[2] = 0 pairing
+0 REM $4[2] = 1 paired
+
+0 REM $4[3] = 0 no relay
+0 REM $4[3] = 1 relay not connected
+0 REM $4[3] = 2 relay slave connected
+0 REM $4[3] = 3 relay connected
+
+0 REM $4[4] = 0 no manual
+0 REM $4[4] = 1 slave connecting
+0 REM $4[4] = 2 slave connected
+0 REM $4[4] = 3 master connecting
+0 REM $4[4] = 4 master connected
+0 REM $4[4] = 5 inquirying
+0 REM $4[4] = 6 relay pairing
+
+0 REM $4[5] connection counter - service master
+
+0 REM status variable - filled in first boot
 4 z
+
+
 
 0 REM last discovered device
 5 0
@@ -24,25 +55,79 @@
 0 REM baud rate 0 equal external
 8 1152
 
-0 REM PIO list
-9 000011000
+0 REM PIO List
+0 REM stored in config.txt, key 9 - HEX values
+0 REM $9[0] BLUE LED
+0 REM $9[1] GREEN LED
+0 REM $9[2] BUTTON
+0 REM $9[3] RS232 POWER OFF
+0 REM $9[4] RS232 POWER ON
+0 REM $9[5] DTR
+0 REM $9[6] DSR
+0 REM $9[7] POWER SWITCH
+9 z
+
 
 0 REM modes
 0 REM cable slave
-10 1010
+10 200000
 0 REM cable master
-11 3010
+11 300000
 0 REM service slave
-12 1110
+12 210000
 0 REM service master
-13 3110
+13 310000
+
+0 REM name filter
+20 AIRcable
+
+0 REM addr filter
+21 0050
+
+0 REM peer addr (slave, master, relay)
+22 
+
+0 REM $23[0] = 0 UART command line - Default.
+0 REM $23[0] = 1 SPP command line
+
+0 REM $23[1] = 0 default obex visibility
+0 REM $23[1] = 1 always visible
+0 REM $23[1] = 2 disabled
+
+0 REM $23[2] = 0 no debug
+0 REM $23[2] = 1 debug enabled
+
+0 REM $23[3] = 0 Non Modified Name / PIN
+0 REM $23[3] = 1 Name + Uniq
+0 REM $23[3] = 0 Name + Uniq, PIN = Uniq
+23 0000
+
+50 
 
 @INIT 100
-100 Z = 0
-101 A = baud 1152
-102 B = 0
-103 GOTO 197
-104 RETURN
+100 Z = $23[2]-48;
+0 REM 100 Z = 0
+0 REM 101 IF $4[0] = 122 THEN 50
+102 A = baud 1152
+103 B = 0
+104 A = uartint
+105 RETURN
+
+0 REM generic INPUT
+150 IF $23[0]=48 THEN 153;
+151 INPUTS$2;
+152 RETURN
+153 INPUTU$2;
+154 RETURN
+
+0 REM generic PRINT
+160 IF $23[0]=48 THEN 163;
+161 PRINTS$0;
+162 GOTO 164 
+163 PRINTU$0;
+0 REM flush buffer
+164 $0[0]=0
+165 RETURN
 
 0 REM seek 
 0 REM I number of bytes from beggining
@@ -58,60 +143,68 @@
 181 RETURN;
 
 0 REM Print \n\r
-185 PRINTU"\n\r";
-186 RETURN;
+185 PRINTV"\n\r";
+186 GOSUB 160
+187 RETURN;
 
 0 REM read line
-189 A = read 32;
-190 $2 = $0;
+188 A = read 32;
+189 $2 = $0;
+190 $0[0]=0
 191 RETURN
 
 0 REM read line + print function
-192 A = read 32;
-193 PRINTU $0
-194 RETURN;
+192 GOSUB 160
+193 A = read 32;
+194 GOSUB 160
+195 RETURN;
 
 
 @UART 196
-196 INPUTU $0
-197 PRINTU"\x1B[2J
-198 STTYU 7
-199 GOSUB 185;
-200 GOSUB 180;
-201 GOSUB 192;
+0 REM 195 GOSUB 150
+
+0 REM welcome message
+196 STTYU 7
+197 GOSUB 180;
+198 $4[0]=49
+199 $0="\x1B[2J"
+200 GOSUB 185;
+202 GOSUB 192;
 203 GOSUB 185;
 204 GOSUB 192;
-206 PRINTU " ";
-207 PRINTU $1;
+206 PRINTV" ";
+207 PRINTV $1;
 208 GOSUB 185;
-209 X = 0;
-210 GOTO 300;
-211 RETURN
+209 GOSUB 160
+210 X = 0;
+211 GOTO 300;
+
 
 0 REM Menu creator
 250 B = 1;
 251 GOSUB 192;
 253 GOSUB 185;
-254 GOSUB 189;
+254 GOSUB 188;
 255 A = strlen $2;
 256 IF A = 0 THEN 264;
-257 PRINTU B;
-258 PRINTU " - ";
-259 PRINTU $2;
+257 PRINTV B;
+258 PRINTV " - ";
+259 PRINTV $2;
 260 GOSUB 185;
 262 B = B+1;
 263 GOTO 254;
 264 IF X = 0 THEN 271
 265 I = 3 * 32;
-266 PRINTU"0 - ";
+266 PRINTV"0 - ";
 267 GOSUB 170;
 268 GOSUB 192;
 270 GOSUB 185;
 271 I = 5 * 32;
 272 GOSUB 170;
 273 GOSUB 192
-275 PRINTU " ";
-276 RETURN
+275 PRINTV " ";
+276 GOSUB 160
+277 RETURN
 
 300 IF X = 0 THEN 400;
 301 IF X = 1 THEN 400;
@@ -136,10 +229,11 @@
 319 IF B = 70 THEN 710;
 320 GOTO 450;
 
-350 INPUTU $0;
-351 X = X + $0[0]-48;
-352 PRINTU"\x1B[2J
-353 GOTO 300
+350 GOSUB 150;
+351 X = X + $2[0]-48;
+352 $0 = "\x1B[2J
+353 GOSUB 160
+354 GOTO 300
 
 399 X = 0
 0 REM main
@@ -154,19 +248,19 @@
 413 GOTO 401;
 
 0 REM manual mode
-414 I = (64*32);
+414 I = (65*32);
 415 GOTO 412;
 
 0 REM relay pair
-420 I = (69*32);
+420 I = (70*32);
 421 GOTO 412;
 
 0 REM edit settings
-425 I = (74*32);
+425 I = (75*32);
 426 GOTO 412;
 
 0 REM security
-430 I = (85*32);
+430 I = (86*32);
 431 GOTO 412;
 
 0 REM debug
@@ -202,7 +296,7 @@
 480 I = (23*32);
 481 GOSUB 170;
 482 GOSUB 192;
-484 PRINTU "18 ";
+484 PRINTV "18 ";
 485 I = (22*32);
 486 GOSUB 170;
 487 GOSUB 192;
@@ -213,7 +307,7 @@
 495 I = (24*32);
 496 GOSUB 170;
 497 GOSUB 192;
-499 PRINTU "18 ";
+499 PRINTV "18 ";
 500 I = (22*32);
 501 GOSUB 170;
 502 GOSUB 192;
@@ -222,10 +316,10 @@
 
 0 REM manual master
 0 REM relay mode pair
-510 I = (98*32);
+510 I = (99*32);
 511 GOSUB 170;
 512 GOSUB 192;
-514 PRINTU $5;
+514 PRINTV $5;
 515 GOSUB 185;
 516 GOSUB 192;
 518 GOTO 399;
@@ -239,13 +333,13 @@
 0 REM relay mode settings menu
 540 I = (152 * 32);
 541 GOSUB 545
-542 IF $0[0] < 49 THEN 450
-543 IF $0[0] > 50 THEN 450
-544 RETURN
+542 IF $2[0] < 49 THEN 450
+543 IF $2[0] > 50 THEN 450
+544 GOTO 399
 
 545 GOSUB 170;
 546 GOSUB 250;
-547 INPUTU $0
+547 GOSUB 150
 548 RETURN
 
 0 REM edit settings menu
@@ -261,75 +355,73 @@
 560 GOTO 450
 
 0 REM new name
-565 I = (101 * 32);
+565 I = (102 * 32);
 566 A = 6
 567 GOSUB 570
 568 GOTO 399
 
 570 GOSUB 170;
 571 GOSUB 610;
-572 INPUTU $A
+572 GOSUB 150;
 573 RETURN
 
 0 REM new pin
-575 I = (103 * 32);
-576 A = 7
-577 GOSUB 570
+575 I = (104 * 32);
+576 GOSUB 570
+577 $7=$2
 578 GOTO 399
 
 0 REM interface settings
-580 I = (105 * 32);
+580 I = (106 * 32);
 581 GOSUB 545
 582 IF $0[0] < 49 THEN 450
 583 IF $0[0] > 50 THEN 450
 584 GOTO 399
 
 0 REM baud rate
-590 I = (109*32);
-591 A = 2
-592 GOSUB 570
+590 I = (110*32);
+591 GOSUB 570
+592 $8=$2
 593 GOTO 399
 
 0 REM parity
-595 I = (112*32);
+595 I = (113*32);
 596 GOSUB 545
-597 IF $0[0] < 49 THEN 450
-598 IF $0[0] > 51 THEN 450
+597 IF $2[0] < 49 THEN 450
+598 IF $2[0] > 51 THEN 450
 599 GOTO 399
 
 0 REM string input.
-610 GOSUB 189;
+610 GOSUB 188;
 611 A = strlen $2;
 612 IF A = 0 THEN 616;
-613 PRINTU $2;
+613 PRINTV $2;
 614 GOSUB 185;
 615 GOTO 610
 616 RETURN;
 
 0 REM stop bits
-620 I = (118*32);
+620 I = (119*32);
 621 GOSUB 545
-622 IF $0[0] < 49 THEN 450
-623 IF $0[0] > 50 THEN 450
+622 IF $2[0] < 49 THEN 450
+623 IF $2[0] > 50 THEN 450
 624 GOTO 399
 
 0 REM pio list
-630 I = (121*32);
-631 A = 9;
-632 GOSUB 570
+630 I = (122*32);
+631 GOSUB 570
+632 $9=$2
 633 GOTO 399
 
 0 REM Class of Device
-640 I = (123*32);
-641 A = 2;
-642 GOSUB 570;
-643 GOTO 399;
+640 I = (124*32);
+641 GOSUB 570;
+642 GOTO 399;
 
 0 REM Date
-650 I = (126*32);
-651 A = 2;
-652 GOSUB 570;
-653 GOTO 399;
+650 I = (127*32);
+651 GOSUB 570;
+652 GOTO 399;
 
 0 REM security menu.
 660 IF Y = 1 THEN 670
@@ -339,79 +431,104 @@
 665 GOTO 450
 
 0 REM obex/obexftp settings
-670 I = (129*32);
+670 I = (130*32);
 671 GOSUB 545
-672 IF $0[0] < 49 THEN 450
-673 IF $0[0] > 52 THEN 450
-674 GOTO 399
+672 IF $2[0] < 49 THEN 675;
+673 IF $2[0] > 52 THEN 675;
+674 GOTO 399;
+675 C = $2[0];
+676 $23[1] = C-1;
+677 GOTO 450
 
 0 REM PIN/settings settings
-680 I = (134*32);
+680 I = (135*32);
 681 GOSUB 545
-682 IF $0[0] < 49 THEN 450
-683 IF $0[0] > 52 THEN 450
-684 GOTO 399
+682 IF $2[0] < 49 THEN 685;
+683 IF $2[0] > 52 THEN 685;
+684 GOTO 399;
+685 C = $2[0];
+686 $23[3] = C-1;
+686 GOTO 450;
 
 0 REM Name Filter
-690 I = (139*32);
-691 A = 2
-692 GOSUB 570;
+690 I = (140*32);
+691 GOSUB 570;
+692 $20=$2;
 693 GOTO 399;
 
 0 REM Addr Filter
-700 I = (141*32);
-701 A = 2
-702 GOSUB 570;
+700 I = (142*32);
+701 GOSUB 570;
+702 $21=$2;
 703 GOTO 399;
 
 0 REM debug menu
-710 IF Y = 1 THEN 720
+710 IF Y = 1 THEN 716
 711 IF Y = 2 THEN 730
-712 IF Y = 3 THEN 748
-713 IF Y = 4 THEN 750
-714 IF Y = 5 THEN 760
+712 IF Y = 3 THEN 755
+713 IF Y = 4 THEN 780
+714 IF Y = 5 THEN 800
 715 GOTO 450;
 
 0 REM shell
-720 GOTO 399
+716 IF $23[0] = 48 THEN 719
+717 A = shell
+718 RETURN
+
+719 I=(146*32);
+720 GOSUB 170;
+721 GOSUB 193;
+722 GOSUB 185;
+723 GOTO 399;
 
 0 REM enable trace
 730 I = (144*32);
-731 A = 2
-732 GOSUB 570;
-733 GOTO 399;
-
-0 REM read input / print line
-740 I = (149*32);
-741 A = 2;
-742 A = atoi($2);
-743 $0=$A;
-744 GOSUB 190;
-745 GOSUB 185;
-746 RETURN
+731 GOSUB 570;
+732 IF $2[0]=121 THEN 735;
+733 $23[2]=48;
+734 GOTO 399;
+735 $23[2]=49;
+736 Z=1
+737 GOTO 399
 
 0 REM print line
-748 GOSUB 740;
-749 GOTO 399;
-
-0 REM change line
-750 GOSUB 740;
-751 R = A;
-752 I = (150*32);
-753 A = 2;
-754 GOSUB 570;
-755 $R=$2;
+755 GOSUB 770;
 756 GOTO 399;
 
+0 REM read input / print line
+770 I = (148*32);
+771 GOSUB 170
+772 GOSUB 192
+773 GOSUB 150
+774 A = atoi$2;
+775 $0=$A;
+776 GOSUB 194;
+777 GOSUB 185;
+778 RETURN
+
+0 REM change line
+780 GOSUB 770;
+781 R = A;
+782 I = (150*32);
+783 GOSUB 170;
+784 GOSUB 192;
+785 A = 2;
+786 GOSUB 572;
+787 $R=$2;
+788 GOTO 399;
+
 0 REM list code
-760 Z = 1 
-761 FOR A = 0 TO 1024
-762 $0 = $A;
-763 GOSUB 193;
-764 GOSUB 185;
-765 NEXT A
-766 Z = 0
-767 GOTO 399
+800 FOR A = 0 TO 1024
+801 C = strlen $A
+802 IF C = 0 THEN 809
+803 $0[0] = 0
+804 PRINTV A
+805 PRINTV" "
+806 PRINTV $A
+807 PRINTV"\n\r
+808 GOSUB 160;
+809 NEXT A
+810 GOTO 399
 
 @IDLE 1000
 1000 A = slave 15

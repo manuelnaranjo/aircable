@@ -35,6 +35,9 @@
 0 REM $3[3] = 5 53 manual slave, connected
 0 REM $3[3] = 6 54 manual master, connected
 
+0 REM $3[4] = 0 48 means UART command line
+0 REM $3[4] = 1 49 means SPP command line
+
 
 0 REM if var K = 1 then we must do a slave-1
 
@@ -166,14 +169,14 @@
 
 @ALARM 989
 989 IF N = 1 THEN 991
-990 GOTO 230
+990 GOTO 220
 
 991 A = pioclr ($8[1]-48)
 992 A = pioset ($8[1]-48);
 993 ALARM 5
 994 IF $3[3] = 49 THEN 454
 995 IF $3[0] = 48 THEN 1000
-996 GOTO 230
+996 GOTO 220
 
 997 IF $3[3] <> 48 THEN 977;
 998 IF $3[0] = 48 THEN 1000;

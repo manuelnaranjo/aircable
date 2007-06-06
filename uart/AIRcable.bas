@@ -23,14 +23,9 @@
 0 REM $3[0] = 2 50 means paired as slave
 0 REM $3[0] = 3 51 means pairing as master
 0 REM $3[0] = 4 52 means paired as master
-0 REM $3[0] = 5 53 means relay pairing
-0 REM $3[0] = 6 54 means relay paired
-0 REM $3[0] = 7 55 means relay slave connected, master connecting
-0 REM $3[0] = 8 56 means relay connected
 
 0 REM $3[1] = 0 48 cable mode
 0 REM $3[1] = 1 49 service mode
-0 REM $3[1] = 2 50 relay mode
 
 0 REM $3[2] = 0 48 device found / module paired
 0 REM $3[2] = 1 49 inquiry needed
@@ -42,10 +37,6 @@
 0 REM $3[3] = 4 52 manual master, connecting
 0 REM $3[3] = 5 53 manual slave, connected
 0 REM $3[3] = 6 54 manual master, connected
-0 REM $3[3] = 7 55 relay pairing
-
-0 REM $3[4] = 1 49 means service relay mode
-0 REM $3[4] = 2 50 means cable relay mode
 
 0 REM if var K = 1 then we must do a slave-1
 
@@ -266,14 +257,14 @@
 103 IF B < C THEN 110
 104 GOSUB 108
 105 H = 0
-106 GOTO 236
+106 GOTO 226
 
 107 IF $9[3] = 49 THEN 109
 108 A = disable 3
 109 RETURN
 
 110 ALARM 30
-111 GOTO 236
+111 GOTO 226
 
 @SENSOR 112
 0 REM baud rate selector switch implementation
@@ -406,77 +397,53 @@
 0 REM handle the slave mode stuff
 0 REM idle used for slave connections, pairing or paired
 @IDLE 192
-192 IF $3[3] <> 48 THEN 794;
-193 IF $3[0] > 52 THEN 201;
+192 IF $3[3] <> 48 THEN 846;
 194 IF W <> 0 THEN 366;
-195 IF K = 1 THEN 198;
-196 IF K = 2 THEN 199;
-0 REM lets trigger the alarm manually
-197 GOTO 230;
+195 IF K = 1 THEN 200;
+196 IF K = 2 THEN 201;
+0 REM turn off DTR start alarm
+197 A = pioset($8[5]-48);
+198 GOTO 220;
 
 
-198 A = slave-1;
-199 K = 0;
-200 RETURN
+200 A = slave-1;
+201 K = 0;
+202 RETURN
 
-201 IF $3[0] = 53 THEN 214
-202 IF $3[0] = 54 THEN 206
-203 IF $3[0] = 55 THEN 753
-204 A = disconnect 1
-205 $3[0] = 54
-206 A = uartint
-207 B = status
-208 IF B > 0 THEN 210
-209 GOSUB 860
-210 A = pioset ($8[1]-48);
-211 A = pioset ($8[0]-48)
-212 A = pioclr ($8[0]-48)
-213 ALARM 9
+@PIN_CODE 210
+210 IF $9[2] = 48 THEN 212
+211 PRINTU "@PIN_CODE"
+212 IF $23[0] = 50 THEN 215
+213 $0=$11;
 214 RETURN
-
-215 A = pioset ($8[0]-48);
-216 A = pioset ($8[1]-48)
-217 A = pioclr ($8[1]-48);
-218 B = status
-219 IF B > 1 THEN 221
-220 A = master $20
-221 ALARM 10
-222 RETURN
-
-@PIN_CODE 223
-223 IF $9[2] = 48 THEN 225
-224 PRINTU "@PIN_CODE"
-225 IF $23[0] = 50 THEN 228
-226 $0=$11;
-227 RETURN
-228 A = getuniq $0
-229 RETURN
+215 A = getuniq $0
+216 RETURN
 
 0 REM ALARM code, handles modes stuff, LEDs and long button press 
-@ALARM 230
-230 IF $9[2] = 48 THEN 232
-231 PRINTU "@ALARM\n\r";
+@ALARM 220
+220 IF $9[2] = 48 THEN 222
+221 PRINTU "@ALARM\n\r";
 
 
 0 REM handle button press first of all.
-232 IF W = 1 THEN 270
+222 IF W = 1 THEN 270
 
 
 0 REM should go to mode dumping
-233 IF $9[2] = 48 THEN 235
-234 GOSUB 598
+223 IF $9[2] = 48 THEN 225
+224 GOSUB 598
 
-235 IF H = 1 THEN 101
-
-236 IF $3[0] > 52 THEN 821
+225 IF H = 1 THEN 101
 
 0 REM now the led stuff, and finally we handle the state.
 0 REM firstly see if we are connected, then do what you need
-237 B = status;
-238 IF B < 10000 THEN 240;
-239 B = B - 10000;
-240 IF B > 0 THEN 242;
-241 GOTO 246
+226 B = status;
+227 IF B < 10000 THEN 229;
+228 B = B - 10000;
+229 IF B > 0 THEN 242;
+0 REM turn off DTR
+230 A = pioset($8[5]-48);
+231 GOTO 246
 0 REM ensure the leds are on
 242 A = pioset ($8[0]-48);
 243 A = pioset ($8[1]-48);
@@ -608,9 +575,9 @@
 0 REM this interrupt is launched when there is an incomming
 0 REM slave connection
 @SLAVE 318
-318 IF $9[2] = 48 THEN 320;
+318 IF $9[2] = 48 THEN 321;
 319 PRINTU "@SLAVE\n\r";
-320 IF $3[0] = 54 THEN 858;
+0 REM 320 IF $3[0] = 54 THEN 858;
 0 REM if we are not on slave mode, then we must ignore slave connections :D
 321 IF $3[3] = 50 THEN 344;
 322 IF $3[0] > 50 THEN 347;
@@ -667,9 +634,9 @@
 
 @MASTER 351
 0 REM successful master connection
-351 IF $9[2] = 48 THEN 353
+351 IF $9[2] = 48 THEN 354
 352 PRINTU "@MASTER\n\r";
-353 IF $3[0] > 52 THEN 833
+0 REM 353 IF $3[0] > 52 THEN 833
 0 REM if we are on manual master, then we have some requests
 354 IF $3[3] <> 52 THEN 359
 355 $3[3] = 54
@@ -863,9 +830,9 @@
 0 REM inquiry
 479 IF $443[0] = 105 THEN 761;
 0 REM slave
-480 IF $443[0] = 115 THEN 785;
+480 IF $443[0] = 115 THEN 833;
 0 REM master
-481 IF $443[0] = 109 THEN 770;
+481 IF $443[0] = 109 THEN 800;
 0 REM obex
 482 IF $443[0] = 111 THEN 684;
 0 REM modes
@@ -1190,14 +1157,14 @@
 744 A = pioset ($8[1]-48);
 745 A = pioset ($8[0]-48)
 746 A = pioclr ($8[0]-48)
-747 GOTO 794
+747 GOTO 846
 
 0 REM inq leds
 748 A = pioset ($8[0]-48);
 749 A = pioset ($8[1]-48)
 750 A = pioclr ($8[0]-48);
 751 A = pioclr ($8[1]-48);
-752 GOTO 794
+752 GOTO 846
 
 
 0 REM this line is part of the relay mode
@@ -1207,7 +1174,7 @@
 755 A = pioset ($8[1]-48)
 756 A = pioclr ($8[1]-48);
 757 ALARM 18
-758 GOTO 794
+758 GOTO 846
 
 0 REM inquiry code
 0 REM by default we inquiry for 10 seconds
@@ -1215,132 +1182,70 @@
 762 IF $39[0] = 49 THEN 730
 763 PRINTU"Inquirying for
 764 PRINTU" 18s. Please wait.
-765 B = inquiry 6
-766 $3[3] = 51;
-767 GOSUB 919;
-768 A = zerocnt
-769 GOTO 748;
+765 A = nextsns 20
+766 B = inquiry 6
+767 $3[3] = 51;
+768 GOSUB 919;
+769 A = zerocnt
+770 GOTO 748;
 
 0 REM master code
-770 GOSUB 919;
-771 IF $39[3] = 49 THEN 730
-772 PRINTU"Please input "
-773 PRINTU"the addr of your "
-774 PRINTU"peer:
-775 GOSUB 444
-776 B = strlen$443
-777 IF B<>12 THEN 782
-778 $3[3] = 52;
-779 B = master $443
-780 B = zerocnt
-781 GOTO 754
+800 GOSUB 919;
+801 IF $39[3] = 49 THEN 730
+802 PRINTU"Please input "
+803 PRINTU"the addr of your "
+804 PRINTU"peer:
+805 GOSUB 444
+806 B = strlen$443
+807 IF B<>12 THEN 830
+808 $3[3] = 52;
+809 A = nextsns 20
+810 B = master $443
+811 B = zerocnt
+812 GOTO 754
 
-782 PRINTU"Invalid add
-783 PRINTU"r, try again.
-784 GOTO 469;
+830 PRINTU"Invalid add
+831 PRINTU"r, try again.
+832 GOTO 469;
 
 0 REM slave code
 0 REM manual slave
 0 REM by default we open the slave channel for 60 seconds
-785 GOSUB 919;
-786 IF $39[4] = 49 THEN 730
-787 PRINTU"Slave Open for 16s
-788 $3[3] = 50
-789 A = nextsns 0
-790 A = slave 15
-791 A = zerocnt
-792 GOTO 744
+833 GOSUB 919;
+834 IF $39[4] = 49 THEN 730
+835 PRINTU"Slave Open for 16s
+836 $3[3] = 50
+837 A = nextsns 20
+838 A = slave 15
+839 A = zerocnt
+840 GOTO 744
 
 
 0 REM timeout for any manual mode, as this part of the code
 0 REM will be called as soon as the slave channel is opened
 0 REM we check for activity firstly
-794 B = readcnt
-795 IF B < 16 THEN 804
-796 $3[3] = 49
+846 B = readcnt
+847 IF B < 16 THEN 854
+848 $3[3] = 49
 0 REM 797 ALARM 0
-798 A = cancel
-799 A = disconnect 0
-800 A = disconnect 1
-801 A = pioclr ($8[0]-48)
-802 A = pioclr ($8[1]-48)
+849 A = cancel
+0 REM 799 A = disconnect 0
+850 A = disconnect 1
+851 A = pioclr ($8[0]-48)
+852 A = pioclr ($8[1]-48)
 0 REM 804 A = nextsns 4
-803 GOTO 469
+853 GOTO 469
 
-804 ALARM 18 
-805 RETURN
+854 ALARM 18 
+855 RETURN
 
-0 REM ---------------------------- RELAY CODE ----------------------------------
+860 IF $3[3] > 48 THEN 862
+861 A = baud I
+862 RETURN
 
-0 REM relay mode pair
-0 REM Enter the address of your peer: 
-807 PRINTU"Enter the address "
-808 PRINTU"of your peer: "
-809 GOSUB 444;
-810 A = strlen $443;
-811 IF A = 12 THEN 814;
-812 PRINTU"\n\rNot valid peer
-813 GOTO 469
-814 PRINTU"\n\rTrying to pair
-815 $3[0] = 53;
-816 $3[3] = 48;
-817 $20 = $443
-818 A = zerocnt
-819 A = master $20
-820 GOTO 754
-
-0 REM relay mode alarm handler
-0 REM first check for command line
-821 IF $3[3] <> 48 THEN 456
-822 ALARM 5
-823 IF $3[0] = 53 THEN 754
-824 B = status
-825 IF $3[0] = 54 THEN 208
-826 IF B < 1 THEN 206
-827 IF $3[0] = 55 THEN 215
-828 IF B > 10 THEN 245
-829 A = disconnect 0
-830 A = disconnect 1
-831 $3[0] = 54
-832 GOTO 429
-
-833 IF $3[0] = 53 THEN 840
-834 A = pioset ($8[1]-48);
-835 A = pioset ($8[0]-48);
-836 $3[0] = 56
-837 A = link 3;
-838 ALARM 4
-839 RETURN
-840 $3[0]=54
-841 A = disconnect 1
-842 PRINTU"\n\rPair successfull"
-843 PRINTU"\n\rPlease choose "
-844 PRINTU"which kind of relay "
-845 PRINTU"you want:\n\r1: Serv"
-846 PRINTU"ice Relay\n\r2: Cabl"
-847 PRINTU"e Relay\n\rMode: "
-848 ALARM 0
-849 GOSUB 704
-850 IF $443[0] = 49 THEN 854
-851 IF $443[0] = 50 THEN 854
-852 PRINTU"\n\rInvalid Option
-853 GOTO 843
-854 A = $443[0];
-855 $3[4] = A;
-856 $3[0] = 54;
-857 GOTO 469
-
-858 $3[0] = 55
-859 GOTO 214
-
-860 B = readcnt;
-861 IF $3[4] = 50 THEN 864
-862 A = slave 8;
-863 RETURN
-864 IF B < 120 THEN 862
-865 A = slave -8;
-866 RETURN
-
+863 IF $3[3] > 48 THEN 865
+864 A = uartcfg I
+865 RETURN
 
 867 IF I = 12 THEN 882
 868 IF I = 24 THEN 884
@@ -1357,8 +1262,7 @@
 879 IF I = 13824 THEN 906
 0 REM wrong settings for baud rate, we don't have a fixed value, we can't do
 0 REM parity and stop bits
-880 A = baud I
-881 RETURN
+880 GOTO 860
 
 882 I = 0
 883 GOTO 907
@@ -1395,10 +1299,7 @@
 914 GOTO 916
 915 I = I + 16
 916 I = I + 128
-917 A = uartcfg I
-918 RETURN
-
-0 REM -------------------------- END RELAY CODE --------------------------------
+917 GOTO 863
 
 0 REM convert status to a string
 0 REM store the result on $44
@@ -1432,4 +1333,5 @@
 946 $3[3] = 49
 947 ALARM 1
 948 RETURN
+
 
