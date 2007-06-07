@@ -1,4 +1,4 @@
-#Pairing guide for a brand new AIRcableSMD
+Fast pairing guide for a brand new AIRcableSMD
 
 = Introduction =
 
@@ -12,13 +12,15 @@ From factory the device can only work in a slave mode, it will accept any connec
 
 So with your device powered on, make an SPP connection to the device, and type '+++' enter in the terminal emulator you are using (check [http://docs.google.com/View?docid=dcvjvpkp_56fp3wt6  here for more information] ). Once in there there are some tasks you have to do before having the device totally set up, there's no need to follow this steps in order except for the last one:
 
-1 - Set the name of the device with command *n*
-2 - Set the pin of the device with command *p*
-3 - Set name and pin settings with command *k*
-4 - Set the name filter with command *b* (only needed for master devices)
-5 - Set the address filter with command *g* (needed for ALL the devices), this field can't be empty, only those devices whose bluetooth address start with the given patter will be available to access to the device.
-6 - Set up the UART port with command *u*
-7 - Set the automatic mode with command *a*
-8 - Set the PIO list with command *q* (check the format for this string in the docs, it's very important to follow this step carefully, or you will not be able to get the device into an automatic mode)
+  # - Set the name of the device with command *n*
+  # - Set the pin of the device with command *p*
+  # - Set name and pin settings with command *k*
+  # - Set the name filter with command *b* (only needed for master devices)
+  # - Set the address filter with command *g* (needed for ALL the devices), this field can't be empty, only those devices whose bluetooth address start with the given patter will be available to access to the device.
+  # - Set up the UART port with command *u*
+  # - Set the automatic mode with command *a*
+  # - Set the PIO list with command *q* (check the format for this string in the docs, it's very important to follow this step carefully, or you will not be able to get the device into an automatic mode)
 
 You can get more information about each command [http://docs.google.com/View?docid=dcvjvpkp_56fp3wt6  in the SPP command line documentation ]
+
+
