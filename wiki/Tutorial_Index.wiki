@@ -23,7 +23,7 @@ All this examples are released under the [http://aircable.googlecode.com/svn/tru
  
 == Networking ==
   # *[http://code.google.com/p/aircable/wiki/Relay Relay Mode Code]*: This code will show you how easy is to create a network of AIRcable devices. For this example you will need at least 3 different bluetooth devices, and one of those 3 must be an AIRcable OS enabled device. In this mode the AIRcable OS device will be connected to two other devices and will make a bridge between them, this way you can make the range of your bluetooth devices much longer.
-  # *[http://code.google.com/p/aircable/wiki/DUN SPP]*: This example shows you how to switch between SPP and DUN profiles.
+  # *[http://code.google.com/p/aircable/wiki/DUN_SPP DUN SPP]*: This example shows you how to switch between SPP and DUN profiles.
 
 == Hardware Interfacing ==
   # *[http://code.google.com/p/aircable/wiki/GPS_Data_Logging GPS and Data Logging]*: In this example we will get connected to a Bluetooth Enabled GPS and will log all the data to a file.
