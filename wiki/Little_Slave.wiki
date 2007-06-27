@@ -89,3 +89,43 @@ Finally, the most interesting changes are inside of the *@SLAVE* interrupt:
 28 RETURN
 }}}
 Those lines starts by setting a timeout to the Slave Channel, this is important with out this timeout the BASIC parser will hang up until it receives an end of line over the slave channel. Then you have a line that reads from the slave channel and puts that input on the string $0. The next line compares the first character of the input to be equal '+', there is something very important here you can't compare against a character you need to compare against the ASCII value of the character. If the compare is true it goes to line 26 connects the shell to the slave channel and turns on the LED, if the compare is false it will go to the next line link the Slave channel with the UART channel and turn on the led.
+
+This is another version of a Mini slave program. This one switches off the FTP service after 20 seconds.
+
+= code =
+{{{
+@ERASE
+
+@INIT 10
+0 REM LED output and on
+10 A = pioset 20
+11 A = baud 384
+0 REM debug
+12 Z = 0
+13 A = zerocnt
+14 A = name "CAS"
+15 RETURN
+
+@IDLE 15
+15 A = slave 5
+0 REM blink LED
+16 A = pioset 20;
+17 A = pioclr 20;
+18 A = pioset 20;
+19 A = pioclr 20;
+0 REM slave for 5 seconds
+20 D = readcnt
+21 IF D < 20 THEN 23
+22 A = disable 3
+23 RETURN
+
+
+@SLAVE 30
+0 REM LED on
+31 B = pioset 20
+0 REM connect RS232
+32 C = link 1
+33 RETURN
+34
+
+}}}
