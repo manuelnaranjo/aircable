@@ -92,7 +92,7 @@ Those lines starts by setting a timeout to the Slave Channel, this is important 
 
 This is another version of a Mini slave program. This one switches off the FTP service after 20 seconds.
 
-= code =
+= Code =
 {{{
 @ERASE
 
@@ -103,22 +103,12 @@ This is another version of a Mini slave program. This one switches off the FTP s
 0 REM debug
 12 Z = 0
 13 A = zerocnt
-14 A = name "CAS"
-15 RETURN
-
-@IDLE 15
-15 A = slave 5
-0 REM blink LED
-16 A = pioset 20;
-17 A = pioclr 20;
-18 A = pioset 20;
-19 A = pioclr 20;
-0 REM slave for 5 seconds
-20 D = readcnt
-21 IF D < 20 THEN 23
-22 A = disable 3
-23 RETURN
-
+14 $0="CAS "
+15 A = getuniq $2
+16 PRINTV $2
+17 A = name $0
+18 G = 0
+19 RETURN
 
 @SLAVE 30
 0 REM LED on
@@ -126,6 +116,24 @@ This is another version of a Mini slave program. This one switches off the FTP s
 0 REM connect RS232
 32 C = link 1
 33 RETURN
-34
+
+
+@IDLE 55
+0 REM slave for 5 seconds
+55 A = slave 5
+0 REM blink LED
+56 A = pioset 20;
+57 A = pioclr 20;
+58 A = pioset 20;
+59 A = pioclr 20;
+
+60 IF G = 1 THEN 65
+61 D = readcnt
+62 IF D < 20 THEN 65
+63 A = disable 3
+64 G = 1
+65 RETURN
+66
+
 
 }}}
