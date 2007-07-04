@@ -201,7 +201,8 @@
 74 A=pioout ($8[5]-48)
 75 A=pioset ($8[5]-48)
 0 REM DSR input
-0 REM this line is changed by serial OS code, so update
+0 REM next two lines are changed by serialOS and
+0 REM AIRserial4 code, so update
 76 A=pioin ($8[6]-48)
 0 REM set DSR to IRQ so that PIO_IRQ is called
 0 REM just button interrupts here
@@ -331,9 +332,9 @@
 148 GOTO 940
 150 RETURN
 0 REM modem control to the other side
-151 A = modemctl 0;
+151 A = modemctl 1;
 152 RETURN
-153 A = modemctl 1;
+153 A = modemctl 0;
 154 RETURN
 
 0 REM released with W == 2, alarm already handled it, exit
@@ -742,9 +743,9 @@
 420 A = uartcfg$0[0]
 421 RETURN
 422 IF $0[0] = 49 THEN 425;
-423 A=pioclr ($8[5]-48);
+423 A=pioset ($8[5]-48);
 424 RETURN;
-425 A=pioset ($8[5]-48);
+425 A=pioclr ($8[5]-48);
 426 RETURN
 
 @UART 427
