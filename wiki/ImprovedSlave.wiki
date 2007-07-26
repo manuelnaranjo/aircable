@@ -1,5 +1,5 @@
 #labels Deprecated
-#Slave profile available 100% time.
+Slave profile available 100% time.
 
 = Introduction =
 
@@ -92,4 +92,3 @@ I don't bother anymore with comments, here's the code:
 213 G = 0
 214 GOTO 204
 }}}
-
