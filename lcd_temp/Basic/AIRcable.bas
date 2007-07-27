@@ -649,13 +649,8 @@
 705 $0=$(800+V)
 706 A = strlen $0
 707 PRINTV"          "
-708 IF A <= 8 THEN 713
-709 A = A - 8
-710 FOR B = 0 TO A
-711 C = lcd$0[B]
-712 NEXT B
-713 A = lcd $0
-714 RETURN
+708 A = lcd $0
+709 RETURN
 
 0 REM if line is empty then we show the
 0 REM exit option
@@ -688,7 +683,8 @@
 760 PRINTM"\x03"
 761 A = lcd"Finished"
 762 ALARM 3
-763 RETURN
+763 U = 0
+764 RETURN
 
 0 REM 800-899 RESERVED FOR MENU!!!!
 
