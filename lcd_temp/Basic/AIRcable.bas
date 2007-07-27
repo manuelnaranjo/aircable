@@ -640,15 +640,22 @@
 0 REM V is index
 0 REM K is amout of messages
 697 V = 0
-698 GOTO 710
+698 GOTO 705
 
 700 A = lcd"ERROR...    "
 701 RETURN
 
 0 REM clear lcd then display menu
-710 A = lcd
-711 A = lcd$(800+V)
-712 RETURN
+705 $0=$(800+V)
+706 A = strlen $0
+707 PRINTV"          "
+708 IF A <= 8 THEN 713
+709 A = A - 8
+710 FOR B = 0 TO A
+711 C = lcd$0[B]
+712 NEXT B
+713 A = lcd $0
+714 RETURN
 
 0 REM if line is empty then we show the
 0 REM exit option
@@ -659,16 +666,16 @@
 0 REM __right button pressed
 730 V = V + 1
 731 IF V = K THEN 720
-732 GOTO 710
+732 GOTO 705
 
 0 REM __left button pressed
 740 IF V =-1 THEN 745
 741 IF V = 0 THEN 720
 742 V = V-1
-743 GOTO 710
+743 GOTO 705
 
 745 V = K-1
-746 GOTO 710
+746 GOTO 705
 
 0 REM __middle button pressed
 750 IF V = -1 THEN 760
@@ -706,19 +713,21 @@
 0 REM then stop FTP too
 @IDLE 982
 982 A = pioclr 20
-983 REM IF Q = 1 THEN 991
-984 REM IF Q = 2 THEN 995
+983 REM IF Q = 1 THEN 992
+984 REM IF Q = 2 THEN 996
 985 A = slave 30
 986 Q = 1
 0 REM startup the automatic again
-987 U = 0
-988 W = 0
-989 ALARM 2
-990 RETURN
+987 IF U = 2 THEN 991
+988 U = 0
+989 W = 0
+990 ALARM 2
+991 RETURN
+
 0 REM after some time disable FTP
-991 A = disable 3
-992 WAIT 3
-993 A = slave -1
-994 Q = 2
-995 RETURN
+992 A = disable 3
+993 WAIT 3
+994 A = slave -1
+995 Q = 2
+996 RETURN
 
