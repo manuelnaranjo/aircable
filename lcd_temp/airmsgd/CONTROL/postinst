@@ -1,0 +1,4 @@
+#!/bin/sh
+
+ln -s /usr/share/aircable/airmsgd/server.sh /usr/bin/airmsgd
+update-rc.d $D -s airmsgd defaults 52 48

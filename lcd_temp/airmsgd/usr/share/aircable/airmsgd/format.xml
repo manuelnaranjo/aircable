@@ -1,0 +1,12 @@
+<records>
+    <gmt>GMT</gmt>
+    <record>
+	<nodeid>ID</nodeid>
+	<tempurature>
+	    <celsius>CELCIUS</celsius>
+	    <fahrenheit>FAHRENHEIT</fahrenheit>
+	</tempurature>
+	<datetime>DATETIME</datetime>
+	<type>TYPE</type>
+    </record>
+</records>

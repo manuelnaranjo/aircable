@@ -1,0 +1,70 @@
+#! /bin/sh
+# AIRmsgd service script
+# Copyright (C) 2007 Wireless Cables Inc.
+# Copyright (C) 2007 Naranjo, Manuel <manuel@aircable.net>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 		
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+DAEMON="/usr/bin/airmsgd"
+PIDDIR=/var/run/airmsgd
+PIDFILE=$PIDDIR/pid
+DESC="AIRmsgd server"
+
+start_it_up()
+{
+  if [ ! -d $PIDDIR ]; then
+    mkdir -p $PIDDIR    
+  fi
+  if [ -e $PIDFILE ]; then
+    PIDDIR=/proc/$(cat $PIDFILE)
+    if [ -d ${PIDDIR} -a  "$(readlink -f ${PIDDIR}/exe)" = "${DAEMON}" ]; then 
+      echo "$DESC already started; not starting."
+    else
+      echo "Removing stale PID file $PIDFILE."
+      rm -f $PIDFILE
+    fi
+  fi
+
+  echo -n "Starting $DESC: "
+  start-stop-daemon --background --start --exec $DAEMON &
+  #the daemon fills the pid file
+  echo "running..."
+}
+
+shut_it_down()
+{
+  echo -n "Stopping $DESC: "
+  start-stop-daemon --stop --pidfile $PIDFILE
+
+  echo "Stopped."
+  rm -f $PIDFILE
+}
+
+case "$1" in
+  start)
+    start_it_up
+  ;;
+  stop)
+    shut_it_down
+  ;;
+  restart|force-reload)
+    shut_it_down
+    sleep 1
+    start_it_up
+  ;;
+  *)
+    echo "Usage: /etc/init.d/$0 {start|stop|restart|force-reload}" >&2
+  ;;
+esac
+
+exit 0
