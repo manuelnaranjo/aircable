@@ -6,7 +6,7 @@
 0 REM let's reserve the first 30 lines for internal stuff
 
 0 REM $1 is the version of the command line
-1 0.9UART
+1 0.11UART
 
 0 REM defaults setting for mode
 0 REM uncomment the one you want to use as default
@@ -540,8 +540,8 @@
 
 0 REM automatic modes code.
 0 REM service - slave:
-297 A = slave 5;
-298 RETURN
+297 A = slave 20;
+298 GOTO 302
 
 0 REM service - master
 299 B = $24[0] 
@@ -569,8 +569,8 @@
 0 REM we are pairing as master,
 315 GOTO 301;
 
-316 A = slave -5;
-317 RETURN
+316 A = slave -20;
+317 GOTO 302
 
 
 0 REM this interrupt is launched when there is an incomming
