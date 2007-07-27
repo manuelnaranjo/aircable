@@ -1,0 +1,18 @@
+Building this project is quite simple.
+
+Debug release:
+    cd src/Debug/
+    make
+
+Non-Debug release
+    cd src/Release
+    make
+    
+We haven't make a configure file yet. 
+Dependencies: 
+libbluez (>=3.09): http://www.bluez.org/
+libmxml: http://mxml.sourceforge.net/
+libcurl: http://curl.haxx.se/download.html
+
+
+
