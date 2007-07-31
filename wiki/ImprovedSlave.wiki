@@ -1,4 +1,3 @@
-#labels Deprecated
 Slave profile available 100% time.
 
 = Introduction =
