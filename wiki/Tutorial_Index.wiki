@@ -10,6 +10,7 @@ All this examples are released under the [http://aircable.googlecode.com/svn/tru
   # *[http://code.google.com/p/aircable/wiki/Little_Slave Little Slave]*: Like the micro slave, but now it will open the shell if the user press "+" when the connection is firstly started. It will teach you how to handle input characters, how to open shell connections and finally will introduce Leds handling.
   # *[http://code.google.com/p/aircable/wiki/Filtered_Salve Filtered Service Slave]*: A more complex mode, it will open the port in discoverable mode, but will check that those who want to connect to this peer complies with an address pattern. It will teach you how to compare string, and reject incoming connections.
   # *[http://code.google.com/p/aircable/wiki/Restrictive_Slave Restrictive Slave]*: This is a piece of code taken from our command line, that will pair to a device, and then will apair invisible to all the other devices. It will teach you how to make an slave device discover and undiscoverable.
+  # *[http://code.google.com/p/aircable/wiki/ImprovedSlave Improved Slave]*: This is another slave example, it ensures slave profile availability almost 100% of the time.
 
 == Master Related Code ==
   # *[http://code.google.com/p/aircable/wiki/Mini_Master Mini Master]*: This code will make inquires, and once it found a device it will try to connect, once the connection is closed it will start the process again. This will teach you how to handle alarms, make inquires, handle inquires results, make master connection, and check master connections.
