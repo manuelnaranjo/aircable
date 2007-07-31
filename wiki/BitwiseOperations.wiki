@@ -39,6 +39,7 @@ Truth table:
 || 1 || 0 || 1 ||
 || 0 || 1 || 1 ||
 || 1 || 1 || 0 ||
+
 {{{
 0 REM bitwise XOR, Arguments in B and A
 0 REM result in A
@@ -68,5 +69,4 @@ Truth table:
 666 A=U;
 667 RETURN;
 }}}
-
 
