@@ -8,10 +8,18 @@
 0 REM $10 used for LCD contrast storage
 0 REM $11 used for type of sensor
 
+0 REM $15 - $19 types of sensor
+
 3 0050C258501B
 9 540
 10
 11 K
+
+15 K
+16 IR
+17 RESERVED
+18 RESERVED
+19 RESERVED
 
 @INIT 28
 28 A = baud 1152
@@ -22,7 +30,7 @@
 31 A = pioset 9
 
 0 REM LCD contrast between 100 and 200
-32 L = atoi $9[0]
+32 L = atoi $10
 33 IF L > 200 THEN 36
 34 IF L = 0 THEN 36
 35 GOTO 40
@@ -32,7 +40,6 @@
 39 $10 = $0
 0 REM LCD bias
 40 A = auxdac L
-
 
 41 A = lcd " Welcome"
 42 A = uartoff
@@ -54,11 +61,12 @@
 51 A = pioirq "P011000000001"
 
 0 REM
-53 $1="AIRCABLE THERMO TYPE K "
-54 A = lcd $1
+52 $0="AIRCABLE THERMO TYPE "
+53 PRINTV 11
+54 A = lcd $0
 55 WAIT 1
 56 FOR C = 1 TO 15
-57   A = lcd $1[C]
+57   A = lcd $0[C]
 58 NEXT C
 
 0 REM button state variable
@@ -69,10 +77,10 @@
 61 A = zerocnt
 
 0 REM strings with spaces
-63 $5="CALIBRAT"
-64 $6="DISCOVER"
-65 $7="SENDRATE"
-66 $8="CONTRAST"
+62 $5="CALIBRAT"
+63 $6="DISCOVER"
+64 $7="SENDRATE"
+65 $8="CONTRAST"
 
 0 REM ice water compensation
 67 X = atoi $9[0]
@@ -125,17 +133,17 @@
 
 
 @ALARM 100
-0 REM rate do their own buttons
-100 IF U = 8 THEN 357
-0 REM contrast do their own buttons
-101 IF U = 9 THEN 520
+0 REM contrast timeout, back to preset value.
+100 IF U = 8 THEN 550
+0 REM inquiry found none results.
+101 IF U = 9 THEN 370
 102 IF U <> 2 THEN 107
 
-0 REM streaming mode U=2
+0 REM interactive mode mode U=2
 103 C = status
-104 IF C < 10 THEN 116
-0 REM in streaming mode check very 5 seconds
-105 ALARM 5
+104 IF C < 10 THEN 107
+0 REM in interactive mode check very 10 seconds
+105 ALARM 10
 106 RETURN
 
 107 U = 0;
@@ -171,8 +179,8 @@
 137 PRINTV Y
 138 PRINTV"!"
 139 PRINTV X
-140 PRINTV"#K"
-141 REM PRINTV $11
+140 PRINTV"#"
+141 PRINTV $11
 
 142 A = message $3
 143 A = zerocnt
@@ -231,7 +239,7 @@
 0 REM state variable is U
 0 REM U = 0 for main menue
 0 REM left means make a streaming connection
-0 REM right means send a single message
+0 REM right means shows current temp
 0 REM middle means display menu entries
 
 0 REM U = 1 for menu select mode
@@ -244,7 +252,9 @@
 
 0 REM U=5, 6, 7, 8 menu entry start
 
-0 REM U = 9 discovered devices selection
+0 REM U = 10 discovered devices selection
+
+0 REM U = 11 type of sensor chooser
 
 0 REM handle BUTTON RELEASE
 0 REM after 30 seconds of no button presses, resume temp display
@@ -264,13 +274,12 @@
 0 REM message rate
 207 IF U = 7 THEN 310;
 0 REM LCD contrast
-208 IF U = 8 THEN 510;
-
-0 REM nothing found will restart
-209 IF U = 9 THEN 370;
+208 IF U = 8 THEN 520;
 0 REM show discovered results
-210 IF U = 10 THEN 340;
-210 RETURN
+209 IF U = 10 THEN 340;
+0 REM type of sensor chooser
+210 IF U = 11 THEN 565;
+211 RETURN
 
 0 REM state ________________________U = 0
 0 REM $MENU code: right, left, middle
@@ -285,19 +294,17 @@
 218 RETURN
 
 0 REM right
-220 A = lcd " MESSAGE"
-221 $0 = "$"
-222 A = readcnt
-223 PRINTV A;
-224 PRINTV ":"
-225 T = alink 0;
-226 PRINTV T;
-227 PRINTV "!"
-228 PRINTV X;
-229 A = message $3
-230 A = zerocnt
-231 ALARM 5
-232 RETURN
+0 REM show temperature
+220 GOSUB 600
+221 IF $11[0] <> 75 THEN 224
+222 Y = Y + X
+223 Y = Y / 20
+224 $0="T "
+225 PRINTV Y;
+226 PRINTV " %C    "
+227 A = lcd $0
+228 ALARM 20
+229 RETURN
 
 0 REM middle
 0 REM select function
@@ -320,7 +327,7 @@
 0 REM switch state
 249 U = J;
 0 REM cablibration 
-250 IF J = 5 THEN 449;
+250 IF J = 5 THEN 560;
 0 REM inquiries
 251 IF J = 6 THEN 290;
 0 REM send rate
@@ -533,8 +540,10 @@
 510 $0[0] = 0
 511 PRINTV L
 512 PRINTV " LCD"
-513 A = lcd $0
-514 RETURN
+0 REM show new contrast
+513 A = auxdac L
+514 A = lcd $0
+515 RETURN
 
 0 REM 
 0 REM right left middle
@@ -563,25 +572,71 @@
 545 ALARM 1
 546 RETURN
 
+0 REM contrast timeout, we go back to the value
+0 REM stored in $10
+550 L = atoi $10
+551 A = auxdac L
+552 GOTO 107
 
+0 REM type of sensor chooser
+560 V = 0
+561 GOTO 587
 
-0 REM I2C reading sensor routine for ThermoCouple on MCP3421
-600 R = 0
-601 T = 1
-602 $1[0] = 208
-603 $1[1] = 143
-604 A = i2c $1
-605 $0[0] = 0;
-606 $0[1] = 0;
-607 $0[2] = 0;
-608 $0[3] = 0;
-609 $1[0] = 208
-610 T = 0;
-611 R = 4;
-612 A = i2c $1
-613 Y = $1[1] * 256
-614 Y = B + $1[2]
-615 RETURN
+0 REM button handler
+0 REM rigth, left, middle
+565 IF $2[2] = 48 THEN 570;
+566 IF $2[3] = 48 THEN 572;
+567 IF $2[12] = 49 THEN 575;
+
+570 V = V-1
+571 GOTO 585
+
+572 V = V+2
+573 GOTO 585
+
+575 $11=$(15+V)
+576 IF V = 0 THEN 449
+577 A = lcd"DONE     "
+578 U = 0
+579 ALARM 2
+580 RETURN
+
+585 IF V < 0 THEN 593
+586 IF V > 1 THEN 594
+587 $0[0] = 0
+588 PRINTV$(15+V)
+589 PRINTV"              "
+590 A = lcd $0
+591 RETURN
+
+592 V = 1
+593 GOTO 587
+
+594 V = 0
+595 GOTO 587
+
+0 REM I2C sensor reading handler
+600 IF $11[0] = 75 THEN 610
+601 Y = 0
+602 RETURN
+
+0 REM sensor connected to MCP3421
+610 R = 0
+611 T = 1
+612 $1[0] = 208
+613 $1[1] = 143
+614 A = i2c $1
+615 $0[0] = 0;
+616 $0[1] = 0;
+617 $0[2] = 0;
+618 $0[3] = 0;
+619 $1[0] = 208
+620 T = 0;
+621 R = 4;
+622 A = i2c $1
+623 Y = $1[1] * 256
+624 Y = Y + $1[2]
+625 RETURN
 
 0 REM read IR Temp module
 0 REM ....
@@ -606,8 +661,8 @@
 669 RESERVED
 0 REM __send our current temp__
 670 PRINTM"!"
-671 A = alink 0
-672 PRINTM A
+671 GOSUB 600
+672 PRINTM Y
 673 PRINTM":"
 674 PRINTM X
 675 PRINTM"#"
