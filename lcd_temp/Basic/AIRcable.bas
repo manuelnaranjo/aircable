@@ -11,7 +11,11 @@
 0 REM $15 - $19 types of sensor
 
 3 0050C258501B
-9 540
+5 CALIBRAT
+6 DISCOVER
+7 SENDRATE
+8 CONTRAST
+9 540.
 10
 11 K
 
@@ -81,6 +85,7 @@
 63 $6="DISCOVER"
 64 $7="SENDRATE"
 65 $8="CONTRAST"
+66 A = lcd $8
 
 0 REM ice water compensation
 67 X = atoi $9[0]
@@ -346,9 +351,12 @@
 0 REM right
 260 IF J < 8 THEN 262;
 261 J = 4;
-262 J = J + 1 ;
-263 A = lcd $J
-264 RETURN
+262 J = J + 1;
+263 PRINTU J
+264 PRINTU $J
+265 PRINTU "\n\r"
+266 A = lcd $J
+267 RETURN
 
 
 0 REM ________________________U = 2, streaming state
@@ -548,9 +556,9 @@
 0 REM 
 0 REM right left middle
 520 IF $2[2] = 48 THEN 530;
-511 IF $2[3] = 48 THEN 535;
-512 IF $2[12] = 49 THEN 540;
-513 RETURN
+521 IF $2[3] = 48 THEN 535;
+522 IF $2[12] = 49 THEN 540;
+523 RETURN
 
 530 IF L >= 200 THEN 533;
 531 L = L + 10;
@@ -621,22 +629,31 @@
 602 RETURN
 
 0 REM sensor connected to MCP3421
-610 R = 0
-611 T = 1
-612 $1[0] = 208
-613 $1[1] = 143
-614 A = i2c $1
+610 R = 0;
+611 T = 1;
+612 $1[0] = 208;
+613 $1[1] = 143;
+614 A = i2c $1;
 615 $0[0] = 0;
 616 $0[1] = 0;
 617 $0[2] = 0;
 618 $0[3] = 0;
-619 $1[0] = 208
+619 $1[0] = 208;
 620 T = 0;
 621 R = 4;
-622 A = i2c $1
-623 Y = $1[1] * 256
-624 Y = Y + $1[2]
-625 RETURN
+622 A = i2c $1;
+623 Y = $0[1] * 256;
+624 Y = Y + $0[2];
+625 REM RETURN
+626 PRINTU "I2C: "
+627 A = $0[1]
+628 PRINTU A
+629 PRINTU " "
+630 A = $0[2]
+631 PRINTU A
+632 PRINTU "\r\n"
+633 RETURN
+
 
 0 REM read IR Temp module
 0 REM ....
@@ -766,7 +783,7 @@
 982 A = pioclr 20
 983 REM IF Q = 1 THEN 992
 984 REM IF Q = 2 THEN 996
-985 A = slave 30
+985 A = slave 3000
 986 Q = 1
 0 REM startup the automatic again
 987 IF U = 2 THEN 991
