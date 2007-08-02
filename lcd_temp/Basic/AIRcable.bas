@@ -546,7 +546,7 @@
 0 REM buttons right, left, middle
 510 $0[0] = 0
 511 PRINTV L
-512 PRINTV "  LCD"
+512 PRINTV"  LCD"
 0 REM show new contrast
 513 A = auxdac L
 514 A = lcd $0
@@ -559,7 +559,7 @@
 522 IF $2[12] = 49 THEN 540;
 523 RETURN
 
-530 IF L >= 250 THEN 534;
+530 IF L >= 200 THEN 534;
 531 L = L + 10;
 532 GOTO 510;
 533 L = 150
@@ -598,7 +598,7 @@
 570 V = V-1
 571 GOTO 585
 
-572 V = V+2
+572 V = V+1
 573 GOTO 585
 
 575 $11=$(15+V)
@@ -608,7 +608,7 @@
 579 ALARM 2
 580 RETURN
 
-585 IF V < 0 THEN 593
+585 IF V < 0 THEN 592
 586 IF V > 1 THEN 594
 587 $0[0] = 0
 588 PRINTV$(15+V)
