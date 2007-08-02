@@ -314,11 +314,9 @@
 0 REM middle
 0 REM select function
 235 J = 5;
-236 A = lcd $J
 0 REM switch state to menue state
-237 U = 1
-238 RETURN
-
+236 U = 1
+237 GOTO 263
 
 
 0 REM _____________________U = 1, function select mode
@@ -355,8 +353,9 @@
 263 PRINTU J
 264 PRINTU $J
 265 PRINTU "\n\r"
-266 A = lcd $J
-267 RETURN
+266 $0=$J
+267 A = lcd $0
+268 RETURN
 
 
 0 REM ________________________U = 2, streaming state
