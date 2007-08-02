@@ -156,7 +156,7 @@
 108 A = pioset 20;
 109 A = pioclr 20
 0 REM long press button
-110 IF W = 1 THEN 155
+110 IF W = 1 THEN 170
 0 REM here other alarm things
 111 GOTO 120
 
@@ -546,7 +546,7 @@
 0 REM buttons right, left, middle
 510 $0[0] = 0
 511 PRINTV L
-512 PRINTV " LCD"
+512 PRINTV "  LCD"
 0 REM show new contrast
 513 A = auxdac L
 514 A = lcd $0
@@ -559,19 +559,19 @@
 522 IF $2[12] = 49 THEN 540;
 523 RETURN
 
-530 IF L >= 200 THEN 533;
+530 IF L >= 250 THEN 534;
 531 L = L + 10;
 532 GOTO 510;
 533 L = 150
 534 GOTO 510
 
-535 IF L = 0 THEN 528;
+535 IF L <= 150 THEN 539;
 536 L = L - 10;
 537 GOTO 510;
-538 R = 200
+538 L = 200
 539 GOTO 510
 
-0 REM store R persistent
+0 REM store L persistent
 540 U = 0
 541 $0[0] = 0
 542 PRINTV L
