@@ -8,7 +8,7 @@
 0 REM let's reserve the first 30 lines for internal stuff
 
 0 REM $1 is the version of the command line
-1 0.7SPP
+1 0.8SPP
 
 0 REM defaults setting for mode
 0 REM uncomment the one you want to use as default
@@ -160,6 +160,14 @@
 0 REM $39 RESERVED
 39 RESERVED
 
+0 REM W = 0 no button press
+0 REM W = 1 short button press
+0 REM W = 2 long button press
+
+0 REM K = 0 nothing to do
+0 REM K = 1 need to do slave-1
+0 REM K = 2 slave-1 has been made
+
 0 REM THIS TURNS A CHAR AT $0[E] into
 0 REM and integer in F
 40 IF $0[E] > 57 THEN 43
@@ -174,8 +182,7 @@
 @INIT 45
 45 Z = $9[0] - 48;
 46 A = baud 1152
-47 IF $9[1] = 48 THEN 49
-48 PRINTS "@INIT\n\r";
+
 49 IF $8[0] <> 122 THEN 73
 
 0 REM first boot.
@@ -238,8 +245,6 @@
 0 REM 81 A = nextsns 6
 0 REM reset for pairing timeout
 89 A = zerocnt
-90 IF $9[1] = 48 THEN 92
-91 PRINTS "Command Line ready
 
 0 REM state initialize
 92 IF $3[0] <> 90 THEN 94
@@ -265,42 +270,8 @@
 101 K = 1
 102 H = 1
 103 M = 0
-104 IF H = 0 THEN 114
-105 IF $8[7] = 48 THEN 112
-0 REM power switch detecting.
-106 A = pioset ($8[7]-48)
-107 A = pioin ($8[7]-48)
-108 WAIT 1
-109 A = pioget ($8[7]-48);
-110 IF A = 0 THEN 116;
-111 H = 0;
-112 L = 1
-113 N = 0;
-0 REM set PIO_IRQ to not connected mode
-114 A=pioirq $13
-115 RETURN
-
-0 REM we just got back from a reboot, with the power switch off.
-0 REM then we turn off:
-0 REM 	alarms
-0 REM 	sensors
-0 REM 	uart interrupt
-0 REM 	and go invisible
-116 M = 1;
-117 ALARM 0;
-118 A = nextsns 0;
-119 A = pioclr ($8[0]-48);
-120 A = pioclr ($8[1]-48);
-121 A = pioclr ($8[2]-48);
-122 A = pioclr ($8[3]-48);
-123 A = pioclr ($8[4]-48);
-124 A = pioclr ($8[5]-48);
-125 A = pioclr ($8[6]-48);
-126 A = slave -1
-127 A = disable 3
-128 A = pioirq $21;
-129 RETURN
-
+104 A=pioirq $13
+105 RETURN
 
 0 REM Obex/ObexFTP timing handler
 0 REM this code is also called from the command line on exit
@@ -309,14 +280,14 @@
 132 IF B < C THEN 139
 133 GOSUB 137
 134 H = 0
-135 GOTO 363
+135 GOTO 339
 
 136 IF $9[2] = 49 THEN 138
 137 A = disable 3
 138 RETURN
 
 139 ALARM 30
-140 GOTO 363
+140 GOTO 339
 
 @SENSOR 141
 141 IF $22[2] > 48 THEN 154
@@ -438,28 +409,17 @@
 
 
 0 REM handle button press and DSR, status is $0
-@PIO_IRQ 238
-238 IF $9[1] = 48 THEN 253;
-239 PRINTS "PIO_IRQ\n\r"
-240 PRINTS $0
-
+@PIO_IRQ 241
 241 IF L = 1 THEN 252
 242 IF $8[7] = 48 THEN 253
 243 A = pioget ($8[7]-48)
-244 IF A = 1 THEN 248
+244 IF A = 1 THEN 253
 
-0 REM we were turned off reboot.
-0 REM when we boot up again, we turn off anything.
+0 REM turn off, we do a reboot, hardware will do the rest.
 245 A = reboot
-246 WAIT 3
+246 WAIT 10
 247 RETURN
 
-
-248 IF M = 0 THEN 253
-0 REM we were turn on, reboot and start up everything on again.
-249 A = reboot
-250 WAIT 3
-251 RETURN
 
 252 L = 0
 
@@ -502,8 +462,6 @@
 
 0 REM we were slave, now lets go to master.
 273 ALARM 0
-274 IF $9[1] = 48 THEN 276;
-275 PRINTS "-> pair as master";
 276 $3[0] = 51;
 277 W = 0;
 278 B = zerocnt;
@@ -512,8 +470,6 @@
 
 0 REM switch to pair as slave
 281 ALARM 0
-282 IF $9[1] = 48 THEN 284
-283 PRINTS "-> pair as slave\n"
 284 $3[0] = 49
 285 W = 0
 286 A = zerocnt;
@@ -522,23 +478,17 @@
 288 ALARM 1
 289 RETURN
 
-290 IF $9[1] = 48 THEN 292
-291 PRINTS"Handled, ignore\n\r"
-292 W = 0
-293 RETURN
+290 W = 0
+291 RETURN
 
 
 0 REM button press, recognize it and start ALARM for long press
-294 IF $9[1] = 48 THEN 296
-295 PRINTS "Button press\n\r"
-296 W = 1
-297 ALARM 3
-298 RETURN
+294 W = 1
+295 ALARM 3
+296 RETURN
 
-299 IF $9[1] = 48 THEN 301
-300 PRINTS "Short, Connected
-301 W = 0
-302 RETURN
+299 W = 0
+300 RETURN
 
 0 REM idle will be called, when the command line ends working
 0 REM when the slave connection is closed, and when slave calls
@@ -547,129 +497,110 @@
 0 REM idle used for slave connections, pairing or paired
 @IDLE 303
 303 L = 0;
-304 IF M = 0 THEN 306;
-0 REM IF M = 1 THEN we are turning off
-305 RETURN
 
-306 IF $3[3] <> 48 THEN 977;
-307 IF $3[0] > 52 THEN 326;
-308 IF W <> 0 THEN 491;
-309 IF K = 1 THEN 323;
-310 IF K = 2 THEN 324;
-0 REM check for command line 
-311 A = pioget($8[8]-48);
-312 IF A = 1 THEN 314
-313 GOTO 968
+304 IF $3[3] <> 48 THEN 977;
+305 IF K = 1 THEN 308;
+306 IF K = 2 THEN 309;
+0 REM start alarm
+307 GOTO 330
 
 0 REM slave mode? 
-314 IF $3[0] > 50 THEN 354
+0 REM 314 IF $3[0] > 50 THEN 354
 
-315 IF $3[1] = 49 THEN 319;
-316 IF $3[0] = 50 THEN 321;
-317 B = readcnt;
-318 IF B > 120 THEN 419;
-319 A = slave 5;
-320 GOTO 979;
-321 A = slave -5;
-322 GOTO 979
+0 REM 315 IF $3[1] = 49 THEN 319;
+0 REM 316 IF $3[0] = 50 THEN 321;
+0 REM 317 B = readcnt;
+0 REM 318 IF B > 120 THEN 419;
+0 REM 319 A = slave 5;
+0 REM 320 GOTO 979;
+0 REM 321 A = slave -5;
+0 REM 322 GOTO 979
 
-323 A = slave-1
-324 K = 0;
-325 GOTO 981
+308 A = slave-1
+309 K = 0;
+310 GOTO 981
 
-326 IF $3[0] = 53 THEN 338
-327 IF $3[0] = 54 THEN 331
-328 IF $3[0] = 55 THEN 339
-329 A = disconnect 1
-330 $3[0] = 54
-331 B = status
-332 IF B > 0 THEN 334
-333 GOSUB 913
-334 A = pioset ($8[1]-48);
-335 A = pioset ($8[0]-48)
-336 A = pioclr ($8[0]-48)
-337 ALARM 9
-338 RETURN
 
-339 A = pioset ($8[0]-48);
-340 A = pioset ($8[1]-48)
-341 A = pioclr ($8[1]-48);
-342 B = status
-343 IF B > 1 THEN 345
-344 A = master $20
-345 ALARM 4
-346 RETURN
 
-@PIN_CODE 347
-347 IF $9[1] = 48 THEN 349
-348 PRINTS "@PIN_CODE"
-349 IF $23[0] = 50 THEN 352
-350 $0=$11;
-351 RETURN
-352 A = getuniq $0
-353 RETURN
+@PIN_CODE 311
+311 IF $23[0] = 50 THEN 314
+312 $0=$11;
+313 RETURN
+314 A = getuniq $0
+315 RETURN
 
 0 REM ALARM code, handles modes stuff, LEDs and long button press 
-@ALARM 354
-354 IF N = 0 THEN 357
-355 A = pioclr ($8[1]-48)
-356 A = pioset ($8[1]-48);
-
-0 REM are we on automatic or manual?
-357 IF $3[3] <> 48 THEN 816;
+@ALARM 330
+330 IF N = 0 THEN 333
+331 A = pioclr ($8[1]-48)
+332 A = pioset ($8[1]-48);
 
 0 REM check if the command line is accesible or not.
-
-358 A = pioget($8[8]-48)
-359 IF A = 1 THEN 361
+333 A = pioget($8[8]-48)
+334 IF A = 1 THEN 336
 
 0 REM Command Line is accessible.
-360 GOTO 968
+335 GOTO 968
+
+0 REM are we on automatic or manual?
+336 IF $3[3] <> 48 THEN 816;
 
 0 REM handle button press first of all.
-361 IF W = 1 THEN 395
+337 IF W = 1 THEN 395
 
-362 IF H = 1 THEN 130
+338 IF H = 1 THEN 130
 
-363 IF $3[0] > 52 THEN 874
+339 IF $3[0] > 52 THEN 874
 
 0 REM now the led stuff, and finally we handle the state.
 0 REM firstly see if we are connected, then do what you need
-364 B = status
-365 IF B < 10000 THEN 367
-366 B = B - 10000
-367 IF B > 0 THEN 369
-368 GOTO 374
+340 B = status
+341 IF B < 10000 THEN 343
+342 B = B - 10000
+343 IF B > 0 THEN 345
+344 GOTO 350
 0 REM ensure the leds are on
-369 A = pioset ($8[0]-48)
-370 A = pioset ($8[1]-48)
-371 ALARM 5
-372 RETURN
+345 A = pioset ($8[0]-48)
+346 A = pioset ($8[1]-48)
+347 ALARM 5
+348 RETURN
 
 0 REM we are on automatic.
 0 REM are we on automatic - manual?
-373 IF $3[0] = 48 THEN 390
+349 IF $3[0] = 48 THEN 390
 
 0 REM LED SCHEMA:
 0 REM CABLE 	SLAVE 	1 fast blink
 0 REM SERVICE 	SLAVE 	2 fast blink
 0 REM CABLE	MASTER 	3 fast blink
 0 REM SERVICE	MASTER 	4 fast blink
-374 A = pioset ($8[1]-48);
-375 A = pioset ($8[0]-48)
-376 A = pioclr ($8[0]-48);
+350 A = pioset ($8[1]-48);
+351 A = pioset ($8[0]-48)
+352 A = pioclr ($8[0]-48);
 0 REM are we on master or slave?
-377 IF $3[0] > 50 THEN 382
+353 IF $3[0] > 50 THEN 382
 0 REM ok we are on slave
 0 REM CABLE 	SLAVE 1 fast BLINK
 0 REM SERVICE 	SLAVE 2 fast BLINK
 
+0 REM cable or service?
+354 IF $3[1] = 49 THEN 358;
+355 IF $3[0] = 50 THEN 360;
+356 B = readcnt;
+357 IF B > 120 THEN 419;
+358 A = slave 30;
+359 GOTO 361;
+360 A = slave -30;
+361 IF H = 0 THEN 363
+362 GOSUB 983
+363 ALARM 5
+
 0 REM now are we on cable or service?
-378 IF $3[1] = 48 THEN 381
+364 IF $3[1] = 48 THEN 367
 0 REM service slave
-379 A = pioset ($8[0]-48)
-380 A = pioclr ($8[0]-48);
-381 RETURN;
+365 A = pioset ($8[0]-48)
+366 A = pioclr ($8[0]-48);
+367 RETURN;
 
 0 REM we are on master modes
 382 FOR B = 0 TO 1
@@ -700,9 +631,7 @@
 0 REM reboot 
 399 $3[0] = 48
 400 $3[1] = 48
-401 IF $9[1] = 48 THEN 403
-402 PRINTS"->Reboot\n\r";
-403 A = pioclr($8[0]-48);
+401 A = pioclr($8[0]-48);
 404 A = pioclr($8[1]-48);
 405 W = 3
 406 A = reboot
@@ -711,8 +640,6 @@
 
 0 REM disconnects, disconnect restarts @IDLE
 409 ALARM 0
-410 IF $9[1] = 48 THEN 412
-411 PRINTS "-> Discconnect\n\r"
 0 REM if we were paired, then we must unpair.
 412 IF $3[0] = 50 THEN 415
 413 IF $3[0] = 52 THEN 415
@@ -726,10 +653,8 @@
 418 GOTO 401
 
 0 REM cable mode timeout
-419 IF $9[1] = 48 THEN 421
-420 PRINTS "Timeout\n\r";
-421 ALARM 0;
-422 GOTO 390;
+419 ALARM 0;
+420 GOTO 390;
 
 0 REM service - master
 423 A = strlen $7;
@@ -743,7 +668,7 @@
 430 $7 = "0"
 0 REM master returns 0 if the connection was succesfull
 0 REM or if we are still trying to connect.
-431 IF A = 0 THEN 369
+431 IF A = 0 THEN 345
 432 ALARM 8
 433 RETURN
 
@@ -759,9 +684,7 @@
 @SLAVE 438
 438 A = pioget($8[8]-48);
 439 IF A <> 1 THEN 467;
-440 IF $9[1] = 48 THEN 442;
-441 PRINTS "@SLAVE\n\r";
-442 IF $3[0] = 54 THEN 911;
+440 IF $3[0] = 54 THEN 911;
 0 REM if we are not on slave mode, then we must ignore slave connections :D
 
 443 IF $3[0] > 50 THEN 465;
@@ -820,9 +743,7 @@
 
 @MASTER 474
 0 REM successful master connection
-474 IF $9[1] = 48 THEN 476
-475 PRINTS "@MASTER\n\r";
-476 IF $3[0] > 52 THEN 886
+474 IF $3[0] > 52 THEN 886
 0 REM if we are on manual master, then we have some requests
 477 IF $3[3] <> 52 THEN 485
 
@@ -868,9 +789,7 @@
 0 REM inquiry code, only in mode pair_as_master
 @INQUIRY 503
 503 $502 = $0
-504 IF $9[1] = 48 THEN 506
-505 PRINTS "@INQUIRY\n\r";
-506 IF $3[3] <> 51 THEN 511
+504 IF $3[3] <> 51 THEN 511
 507 PRINTS"\n\rFound device: "
 508 PRINTS $502
 509 ALARM 4
@@ -1006,8 +925,6 @@
 589 IF C = 122 THEN 596;
 0 REM reboot
 590 IF C = 114 THEN 791;
-0 REM relay mode pair
-591 IF C = 106 THEN 858;
 0 REM name/pin settings
 592 IF C = 107 THEN 798;
 0 REM PIO settings
@@ -1049,11 +966,11 @@
 621 A = date $0;
 622 PRINTS $0;
 623 A = getaddr;
-624 PRINTS"\n\rBT Address:
+624 PRINTS"\n\rBT Address: 
 625 PRINTS $0
-626 PRINTS"\n\rName Filter:
+626 PRINTS"\n\rName Filter: 
 627 PRINTS $5;
-628 PRINTS"\n\rAddr Filter:
+628 PRINTS"\n\rAddr Filter: 
 629 PRINTS $6;
 630 GOSUB 690
 631 GOTO 570;
@@ -1161,7 +1078,7 @@
 0 REM b: name filter, g: address filter,
 0 REM c: class of device, u: uart, d: date,
 0 REM i: inquiry, m: master, a: mode,
-0 REM o: obex, f: obexftp, j: relay mode pair,
+0 REM o: obex, f: obexftp,
 0 REM e: exit, r: reboot, s: shell,
 0 REM q: PIO settings
 711 PRINTS"h: help, l: list,\n"
@@ -1173,12 +1090,11 @@
 717 PRINTS"evice, u: uart, d: "
 718 PRINTS"date,\n\ri: inquiry"
 719 PRINTS", m: master, a: mode"
-720 PRINTS",\n\ro: obex, "
-721 PRINTS"j: relay mode "
-722 PRINTS"pair,\n\re: exit, r:"
-723 PRINTS" reboot, s: shell,\n"
-724 PRINTS"\rq: PIO settings"
-725 GOTO 570;
+720 PRINTS",\n\ro: obex,"
+721 PRINTS"\n\re: exit, r:"
+722 PRINTS" reboot, s: shell,\n"
+723 PRINTS"\rq: PIO settings"
+724 GOTO 570;
 
 0 REM Name Function
 726 PRINTS"New Name: "
@@ -1253,12 +1169,12 @@
 781 $0[0] = 0
 782 A = psget 6
 783 $0[11] = 48
-784 A = psset 3
+784 A = psset 4
 785 GOTO 570
 786 $0[0] = 0
 787 A = psget 6
 788 $0[11] = 54
-789 A = psset 3
+789 A = psset 4
 790 GOTO 570
 
 0 REM reboot code
@@ -1348,81 +1264,6 @@
 856 PRINTS"r, try again.
 857 GOTO 570;
 
-0 REM ---------------------------- RELAY CODE ----------------------------------
-
-0 REM relay mode pair
-0 REM Enter the address of your peer: 
-858 PRINTS"Enter the address "
-859 PRINTS"of your peer: "
-860 GOSUB 554;
-861 A = strlen $553;
-862 IF A = 12 THEN 865;
-863 PRINTS"\n\rNot valid peer
-864 GOTO 570
-865 PRINTS"\n\rTrying to pair
-866 $39 = $3;
-868 $3[3] = 48;
-869 $20 = $553
-870 A = master $20
-871 $3[0] = 53
-872 ALARM 16
-873 RETURN
-
-0 REM relay mode alarm handler
-0 REM first check for command line
-874 IF $3[3] <> 48 THEN 558
-875 ALARM 5
-876 IF $3[0] = 53 THEN 816
-877 B = status
-878 IF $3[0] = 54 THEN 332
-879 IF B < 1 THEN 329
-880 IF $3[0] = 55 THEN 339
-881 IF B > 10 THEN 372
-882 A = disconnect 0
-883 A = disconnect 1
-884 $3[0] = 54
-885 RETURN
-
-886 IF $3[0] = 53 THEN 893
-887 A = pioset ($8[1]-48);
-888 A = pioset ($8[0]-48);
-889 $3[0] = 56
-890 A = link 3;
-891 ALARM 4
-892 RETURN
-893 $3[0]=54
-894 A = disconnect 1
-895 PRINTS"\n\rPair successfull"
-896 PRINTS"\n\rPlease choose "
-897 PRINTS"which kind of relay "
-898 PRINTS"you want:\n\r1: Serv"
-899 PRINTS"ice Relay\n\r2: Cabl"
-900 PRINTS"e Relay\n\rMode: "
-901 ALARM 0
-902 GOSUB 554
-903 IF C = 49 THEN 907
-904 IF C = 50 THEN 907
-905 PRINTS"\n\rInvalid Option
-906 GOTO 896
-907 A = $553[0];
-908 $3[4] = A;
-909 $3[0] = 54;
-910 GOTO 570
-
-911 $3[0] = 55
-912 GOTO 338
-
-913 B = readcnt;
-914 IF $3[4] = 50 THEN 917
-915 A = slave 8
-916 RETURN
-917 IF B < 120 THEN 915
-918 A = slave -8
-919 RETURN
-
-
-0 REM -------------------------- END RELAY CODE --------------------------------
-
 0 REM convert status to a string
 0 REM store the result on $44
 920 B = status
@@ -1465,7 +1306,7 @@
 952 PRINTS"ormation: "
 953 GOSUB 554
 954 A = strlen $553
-955 IF A < 10 THEN  959
+955 IF A <> 10 THEN  959
 956 $12 = $553
 957 $8[0] = 122
 958 GOTO 791
@@ -1487,18 +1328,17 @@
 970 A = pioset($8[1]-48);
 971 A = pioset($8[0]-48)
 972 A = pioclr($8[0]-48);
-973 A = slave 5
-974 RETURN
+973 A = slave 30
 
 975 ALARM 5
 976 RETURN
 
 977 $3[3] = 48
-978 GOTO 354
+978 GOTO 330
 
 0 REM this is part of the @IDLE
 979 IF H=1 THEN 130
-980 GOTO 373
+980 GOTO 349
 
 0 REM idle mode, can we shutdown the FTP
 981 IF H=1 THEN 983
@@ -1506,7 +1346,7 @@
 
 983 B = readcnt
 984 C = atoi $16
-985 IF B < C THEN 991
+985 IF B < C THEN 990
 986 IF $9[2] = 49 THEN 988
 987 A = disable 3
 988 H = 0

@@ -1,4 +1,15 @@
 Changelog:
+Version 0.8:    
+	* Removed state printing (debug feature)
+	* Removed turn off code, now it's handled by
+		hardware and OS.
+	* Removed relay mode, because it was a bit buggy.
+	* Fixed service register bug for old OS
+	* Fixed obex/obexftp thing (4 octets instead of 3)
+
+Version 0.7:
+	* Can't remember what I did for this release
+    
 Version 0.6a:
     * Added Filtering Addr to Master.
     * Improved slave calls.
@@ -6,7 +17,7 @@ Version 0.6a:
     * Improved command line mode changer
     * Removed TIMEOUTS from command line.
     * Removed lots of BUGS $[SOMETHING] = $[SOMETHING'] doesn't assign chars
-    		it assings substrings.
+    		it assigns substrings.
     
     
 Version 0.6:
