@@ -150,8 +150,7 @@
 
 0 REM 23 unique settings
 0 REM [0] = "0" don't add nothing
-0 REM [0] = "1" add unique name
-0 REM [0] = "2" add unique name, generate pin
+0 REM [0] = "1" add version
 23 1
 
 0 REM reserved for manual master and inq.
@@ -495,12 +494,13 @@
 0 REM timeouts, in any of those cases we will let the @ALARM
 0 REM handle the slave mode stuff
 0 REM idle used for slave connections, pairing or paired
-@IDLE 303
-303 L = 0;
+@IDLE 301
+301 L = 0;
 
-304 IF $3[3] <> 48 THEN 977;
-305 IF K = 1 THEN 308;
-306 IF K = 2 THEN 309;
+302 IF $3[3] <> 48 THEN 977;
+303 IF K = 1 THEN 308;
+304 IF K = 2 THEN 309;
+305 IF K = 3 THEN 988;
 0 REM start alarm
 307 GOTO 330
 
@@ -617,7 +617,7 @@
 390 B = pioset ($8[1]-48)
 391 B = pioclr ($8[0]-48)
 392 A = slave-1
-393 K = 2
+393 K = 3
 394 RETURN
 
 0 REM this is a long button press, we have stuff to do
@@ -991,7 +991,7 @@
 646 PRINTS"\n\rStop Bits settin"
 647 PRINTS"gs:\n\r0 for 1 stop
 648 PRINTS" bit\n\r1 for 2 stop
-649 PRINTS" bits:
+649 PRINTS" bits: "
 650 GOSUB 554
 652 $22[1] = C
 653 GOTO 570
@@ -1074,7 +1074,7 @@
 
 0 REM ----------------------- Help code ---------------------------------------
 0 REM h: help, l: list,
-0 REM n: name, p: pin, k: name/pin settings, 
+0 REM n: name, p: pin, k: name settings, 
 0 REM b: name filter, g: address filter,
 0 REM c: class of device, u: uart, d: date,
 0 REM i: inquiry, m: master, a: mode,
@@ -1083,7 +1083,7 @@
 0 REM q: PIO settings
 711 PRINTS"h: help, l: list,\n"
 712 PRINTS"\rn: name, p: pin, "
-713 PRINTS"k: name/pin setting"
+713 PRINTS"k: name setting"
 714 PRINTS"s,\n\rb: name filte"
 715 PRINTS"r, g: address filte"
 716 PRINTS"r,\n\rc: class of d"
@@ -1190,15 +1190,14 @@
 0 REM 0: Don't add anything,
 0 REM 1: Add uniq to the name,
 0 REM 2: Add uniq to the name, set pin to uniq.
-798 PRINTS"Name/Pin settings:\n"
-799 PRINTS"\r0: Don't add anyth"
-800 PRINTS"ing,\n\r1: Add uniq "
-801 PRINTS"to the name,\n\r2: "
-802 PRINTS"Add uniq to the nam"
-803 PRINTS"e, set pin to uniq: "
+798 PRINTS"Name:\n\r0: Don't ad"
+799 PRINTS"d anything,\n\r1: "
+800 PRINTS"Add version informa"
+801 PRINTS"tion to the name,\n"
+802 PRINTS"\rOption: "
 804 GOSUB 554
 805 IF C < 48 THEN 809
-806 IF C > 50 THEN 809
+806 IF C > 49 THEN 809
 807 $23 = $553
 808 GOTO 570
 
@@ -1238,10 +1237,10 @@
 832 IF $39[0] = 49 THEN 811
 833 PRINTS"Inquirying for "
 834 PRINTS"16s. Please wait.
-835 B = inquiry 10
+835 B = inquiry 8
 836 $24 = $3;
 837 $3[3] = 51;
-838 ALARM 16
+838 ALARM 24
 839 RETURN
 
 0 REM master code
@@ -1322,13 +1321,14 @@
 966 $39 = $1
 967 RETURN
 
-968 B = status
-969 IF B > 0 THEN 975
+968 IF $3[3]<>48 THEN 816
+969 B = status
+970 IF B > 0 THEN 975
 0 REM to show the user the command line can be accessed, we do a long blink
-970 A = pioset($8[1]-48);
-971 A = pioset($8[0]-48)
-972 A = pioclr($8[0]-48);
-973 A = slave 30
+971 A = pioset($8[1]-48);
+972 A = pioset($8[0]-48)
+973 A = pioclr($8[0]-48);
+974 A = slave 30
 
 975 ALARM 5
 976 RETURN
@@ -1337,8 +1337,8 @@
 978 GOTO 330
 
 0 REM idle mode, can we shutdown the FTP
-981 ALARM 2 
-982 IF H=1 THEN 984;
+981 IF H=1 THEN 984;
+982 ALARM 2
 983 RETURN
 
 984 B = readcnt;
