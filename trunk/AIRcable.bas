@@ -464,7 +464,7 @@
 276 $3[0] = 51;
 277 W = 0;
 278 B = zerocnt;
-279 A = slave-1
+279 A = slave-2
 280 RETURN
 
 0 REM switch to pair as slave
@@ -516,7 +516,7 @@
 0 REM 321 A = slave -5;
 0 REM 322 GOTO 979
 
-308 A = slave-1
+308 A = slave-2
 309 K = 0;
 310 GOTO 981
 
@@ -616,7 +616,7 @@
 0 REM manual idle code, this is the only mode that ends here.
 390 B = pioset ($8[1]-48)
 391 B = pioclr ($8[0]-48)
-392 A = slave-1
+392 A = slave-2
 393 K = 3
 394 RETURN
 
