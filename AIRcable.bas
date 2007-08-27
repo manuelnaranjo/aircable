@@ -592,7 +592,7 @@
 359 GOTO 361;
 360 A = slave -30;
 361 IF H = 0 THEN 363
-362 GOSUB 983
+362 GOSUB 984
 363 ALARM 5
 
 0 REM now are we on cable or service?
@@ -943,7 +943,7 @@
 600 PRINTS "Bye!!\n\r
 601 GOSUB 136;
 602 $3[3] = 48;
-603 A = slave -1
+603 K = 1
 604 A = disconnect 0
 605 A = zerocnt
 606 A = pioset($8[1]-48);
@@ -1336,22 +1336,19 @@
 977 $3[3] = 48
 978 GOTO 330
 
-0 REM this is part of the @IDLE
-979 IF H=1 THEN 130
-980 GOTO 349
-
 0 REM idle mode, can we shutdown the FTP
-981 IF H=1 THEN 983
-982 RETURN
+981 ALARM 2 
+982 IF H=1 THEN 984;
+983 RETURN
 
-983 B = readcnt
-984 C = atoi $16
-985 IF B < C THEN 990
-986 IF $9[2] = 49 THEN 988
-987 A = disable 3
-988 H = 0
-989 RETURN
+984 B = readcnt;
+985 C = atoi $16;
+986 IF B < C THEN 995;
+987 IF $9[2] = 49 THEN 989;
+988 A = disable 3;
+989 H = 0;
+990 RETURN
 
-990 ALARM 30
-991 RETURN
+995 ALARM 30;
+996 RETURN
 
