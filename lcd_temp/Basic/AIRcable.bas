@@ -28,7 +28,7 @@
 @INIT 28
 28 A = baud 1152
 0 REM debug to uart
-29 Z = 1
+29 A = disable 2
 0 REM LED output and on
 30 A = pioout 9
 31 A = pioset 9
@@ -66,7 +66,7 @@
 
 0 REM
 52 $0="AIRCABLE THERMO TYPE "
-53 PRINTV 11
+53 PRINTV $11
 54 A = lcd $0
 55 WAIT 1
 56 FOR C = 1 TO 15
@@ -85,7 +85,7 @@
 63 $6="DISCOVER"
 64 $7="SENDRATE"
 65 $8="CONTRAST"
-66 A = lcd $8
+
 
 0 REM ice water compensation
 67 X = atoi $9[0]
@@ -112,9 +112,8 @@
 
 0 REM let's start up
 84 Q = 0;
-85 ALARM 1
-86 PRINTU P
-87 RETURN
+85 ALARM 5
+86 RETURN
 
 
 0 REM buttons and power
@@ -156,7 +155,7 @@
 108 A = pioset 20;
 109 A = pioclr 20
 0 REM long press button
-110 IF W = 1 THEN 170
+110 IF W = 1 THEN 175
 0 REM here other alarm things
 111 GOTO 120
 
@@ -211,30 +210,35 @@
 
 0 REM next reading in 20 seconds
 162 ALARM 20
+0 REM reset slave timeout
+163 A = multi 30
 0 REM allow deep sleep
-163 A = uartoff
-164 RETURN
+164 A = uartoff
+165 RETURN
+
+
+
 
 0 REM power button pressed
-165 A = pioget 12
-166 IF A = 1 THEN 170
+175 A = pioget 12
+176 IF A = 1 THEN 180
 0 REM ignore other long presses
-167 W = 0
-168 ALARM 1
-169 RETURN
+177 W = 0
+178 ALARM 1
+179 RETURN
 
 0 REM long button press
-170 A = lcd "GOOD BYE"
-171 ALARM 0;
-172 A = pioget 12;
-173 IF A = 1 THEN 172;
-174 A = lcd;
-175 W = 3;
-176 A = reboot;
-177 FOR E = 0 TO 10
-178   WAIT 1
-179 NEXT E
-180 RETURN
+180 A = lcd "GOOD BYE"
+181 ALARM 0;
+182 A = pioget 12;
+183 IF A = 1 THEN 182;
+184 A = lcd;
+185 W = 3;
+186 A = reboot;
+187 FOR E = 0 TO 10
+188   WAIT 1
+189 NEXT E
+190 RETURN
 
 
 
@@ -630,6 +634,7 @@
 0 REM sensor connected to MCP3421
 610 R = 0;
 611 T = 1;
+0 REM slave address is 0xD0
 612 $1[0] = 208;
 613 $1[1] = 143;
 614 A = i2c $1;
@@ -637,6 +642,7 @@
 616 $0[1] = 0;
 617 $0[2] = 0;
 618 $0[3] = 0;
+
 619 $1[0] = 208;
 620 T = 0;
 621 R = 4;
@@ -654,8 +660,8 @@
 633 RETURN
 
 
-0 REM read IR Temp module
-0 REM ....
+
+
 
 
 
@@ -760,6 +766,57 @@
 0 REM 800-899 RESERVED FOR MENU!!!!
 
 
+0 REM read IR Temp module
+0 REM temp is in Kelvin
+0 REM substract 273.15 to get Celsius
+0 REM temp / 0.02 is K
+0 REM F = address: 6 is ambient, 7 object
+832 F = 6
+0 REM E is repeat limit
+833 E = 0;
+834 $0[0] = 0;
+835 $0[1] = 0;
+836 $0[2] = 0;
+837 R = 3;
+838 T = 1;
+8 REM slave address 0x5A
+839 $1[0] = 180;
+8 REM command read RAM addr 0x06
+840 $1[1] = F;
+842 A = i2c $1;
+843 E = E + 1;
+0 REM read until good reading
+844 IF E > 10 THEN 900;
+845 IF A <> 6 THEN 834;
+846 IF $0[2] = 255 THEN 834;
+847 IF $0[2] = 0 THEN 834;
+
+0 REM calculate temp, limit 380 C
+848 B = $0[1];
+849 IF B > 127 THEN 900;
+850 B = B * 256;
+851 B = B + $0[0];
+852 B = B - 13658;
+853 B = B / 5;
+
+854 $0[0] = 0
+855 C = B / 10
+856 PRINTV "IR,"
+857 PRINTV C
+858 PRINTV "."
+859 D = C * 10
+860 D = B - D
+861 PRINTV D
+862 A = lcd $0
+863 RETURN
+
+
+
+0 REM failed reading
+900 RETURN
+
+
+
 
 @CONTROL 910
 0 REM remote request for DTR, disconnect
@@ -778,11 +835,12 @@
 
 0 REM slave for 60 seconds after boot
 0 REM then stop FTP too
-@IDLE 982
-982 A = pioclr 20
+@IDLE 981
+981 A = pioclr 9
+982 A = pioset 9
 983 REM IF Q = 1 THEN 992
 984 REM IF Q = 2 THEN 996
-985 A = slave 3000
+985 A = multi 30
 986 Q = 1
 0 REM startup the automatic again
 987 IF U = 2 THEN 991
