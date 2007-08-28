@@ -52,6 +52,7 @@ MXML_DOCUMENT *mxml_buffer( char* buf, int style );
 RESULTS* getOptions(MXML_DOCUMENT *doc);
 int parseEntries(RESULTS *input, menu_entry *head);
 MXML_NODE* getResponseFunction(MXML_DOCUMENT *doc);
+char* getReturnVars(MXML_DOCUMENT *doc);
 
 #define DEBUG_UTILS 1
 

@@ -31,6 +31,9 @@
 #ifndef AIRCABLESPP_H_
 #define AIRCABLESPP_H_
 
+#define _GNU_SOURCE
+
+#include <math.h>
 #include <stdio.h>
 #include <ctype.h>
 #include <errno.h>

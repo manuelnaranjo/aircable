@@ -152,6 +152,38 @@ int parseEntries(RESULTS *input, menu_entry *head){
 	return i;
 }
 
+char* getReturnVars(MXML_DOCUMENT *doc){
+	MXML_NODE *node;
+	MXML_ITERATOR iter;
+	char * options;
+		
+	mxml_iterator_setup( &iter, doc );
+	
+	node =  mxml_iterator_scan_node( &iter, "returnvars" );
+	
+	if ( node == NULL )
+		return NULL;
+	
+	options = calloc (sizeof (char), 1024);
+	
+	node = node->child;
+	
+	while (node){
+		sprintf(options, 
+				"%s<%s>%s</%s>\n",  
+				options,
+				node->name,
+				node->data,
+				node->name);
+		
+		node = node->next;
+				
+	}
+	
+	return options;
+	
+}
+
 /**
  * This functions takes out all the options from the xml reply.
  * It fills a linked list with the content of each node as option.

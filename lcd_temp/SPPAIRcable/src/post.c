@@ -125,54 +125,86 @@ char * doPost(char * content){
  * <nodeid> [VALUE] </nodeid>
  * <selectedvalue> [VALUE] </selectedvalue>
  * <currentTemp> [VALUE] </currentTemp>
+ * <OPTIONAL KEYS>
  * </content> 
  */ 
-char * generateXML(char * function, char * nodeId, char * value, double temp){
+char * generateXML(char * function, char * nodeId, char * value, double temp, 
+		char *optionalKeys){
 	char* out;
 	int len;
 	
 	char * format;
 	
-	format  = 	"<?xml  version='1.0' ?>\n"
-				"<content>\n"
-				"<function>%s</function>\n"
-				"<nodeid>%s</nodeid>\n"
-				"<selectedvalue>%s</selectedvalue>\n"
-				"<currentTemp>%.2f</currentTemp>\n"
-				"</content>";
-	
-	len = strlen ( format );
-	
-	len+=strlen(function);
-	len+=strlen(nodeId);
-	if (value)
-		len+=strlen(value);
-	len+=16;
-	
-	out  = calloc(len, sizeof(char));
-	
-	sprintf(out, 
-			format ,
-			function,
-			nodeId,
-			(value ? value : ""),
-			temp);
+	if (optionalKeys == NULL){
+		format  = 	"<?xml  version='1.0' ?>\n"
+					"<content>\n"
+					"<function>%s</function>\n"
+					"<nodeid>%s</nodeid>\n"
+					"<selectedvalue>%s</selectedvalue>\n"
+					"<currentTemp>%.2f</currentTemp>\n"
+					"</content>";
 
+		len = strlen ( format );
+			
+		len+=strlen(function);
+		len+=strlen(nodeId);
+		if (value)
+			len+=strlen(value);
+		len+=16;
+			
+		out  = calloc(len, sizeof(char));
+		
+		sprintf(out, format , function,
+				 nodeId, (value ? value : ""), temp);
+
+	} else {
+		format  = 	"<?xml  version='1.0' ?>\n"
+					"<content>\n"
+					"<function>%s</function>\n"
+					"<nodeid>%s</nodeid>\n"
+					"<selectedvalue>%s</selectedvalue>\n"
+					"<currentTemp>%.2f</currentTemp>\n"
+					"%s"
+					"</content>";
+		
+		len = strlen ( format );
+			
+		len+=strlen(function);
+		len+=strlen(nodeId);
+		if (value)
+			len+=strlen(value);
+		len+=16;
+			
+		out  = calloc(len, sizeof(char));
+		
+		sprintf(out, format , function,
+				 nodeId, (value ? value : ""), temp, optionalKeys);
+	}
+		
 #ifdef DEBUG_POST
 	printf("Sending:\n%s\n", out);
 #endif	
 	return out;
 }
 
+
+
 /**
  * Send a generic request.
  */
-MXML_DOCUMENT *sendRequest(char * function, char * nodeId, char * value, double temp){
+MXML_DOCUMENT *sendRequest(char * function, char * nodeId, 
+		char * value, double temp, MXML_DOCUMENT *initial){
 	MXML_DOCUMENT * doc;	
 	char * xml;
 	char * rep;
+	char * optional = NULL;	
 	
-	xml = generateXML(function, nodeId, value, temp);
+	if (initial != NULL)
+		optional = getReturnVars(initial);		
+	
+		
+	
+	xml = generateXML(function, nodeId, value, temp, optional);
 	rep = doPost(xml);
 	doc=mxml_buffer(rep, 0);
 	
@@ -188,7 +220,7 @@ MXML_DOCUMENT *sendRequest(char * function, char * nodeId, char * value, double 
  * Initiate communications with main server.
  */
 MXML_DOCUMENT  *sendInitial(char * nodeId, double temp){			
-	return sendRequest("authenticate", nodeId, NULL, temp);
+	return sendRequest("authenticate", nodeId, NULL, temp, NULL);
 }
 
 // appends to the end of the string

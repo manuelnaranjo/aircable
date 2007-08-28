@@ -37,7 +37,8 @@
 
 #include "utils.h"
 
-MXML_DOCUMENT *sendRequest(char * function, char * nodeId, char * value, double temp);
+MXML_DOCUMENT *sendRequest(char * function, char * nodeId, char * value, 
+		double temp, MXML_DOCUMENT *initial);
 MXML_DOCUMENT *sendInitial(char * nodeId, double temp);
 
 #define URL "http://www.smart-tms.com/xmlengine/transaction.cfm"

@@ -34,6 +34,10 @@
  // NLUS2<->LCD Messages format
  // 	Temperature:
  //				!<VALUE>:<CALIBRATION>#<TYPE>
+ // 
+ //		Sensor Type <TYPE>:
+ //				K: Thermocouple type K.
+ //				I: Infrared Sensor.
  //
  //		LCD Menu:
  //				%<AMOUNT>	(amount of messages that will be sended from the 
@@ -45,7 +49,7 @@
  //										 after the ID)
  //				^C(char 03) (Close connection, the LCD wants to close the connection)
  //				
- //				
+ //    				
  //
  //
  //
@@ -54,7 +58,7 @@
 /* Delete local service */
 int deregisterSPP() {
 	if (!recHandle){
-		fprintf(stderr, "Not registered, nothing to do");
+		fprintf(stderr, "Not registered, nothing to do\n");
 		return ERROR;
 	}
 	
@@ -242,7 +246,7 @@ int sendMenu(menu_entry * menu, int length){
 	int j = 0;	
 	
 	if (!SPPclient) {
-		fprintf(stderr,"Not connected, can't go on");
+		fprintf(stderr,"Not connected, can't go on\n");
 		return ERROR;
 	}
 
@@ -264,13 +268,13 @@ int sendMenu(menu_entry * menu, int length){
 		j = mywrite(SPPclient,buf);
 
 		if ( j < 0 ){
-			fprintf(stderr, "There has been an error while writting to the socket (while)");
+			fprintf(stderr, "There has been an error while writting to the socket (while)\n");
 			return ERROR;
 		}
 		
 		j = readline(SPPclient,rec, 1024);
 		if ( j < 0 ) {
-			fprintf(stderr, "There has been a problem while waiting ACK reply (menu)");
+			fprintf(stderr, "There has been a problem while waiting ACK reply (menu)\n");
 			return ERROR;
 		}			
 		
@@ -346,52 +350,20 @@ static int readline(int socket, char *out, int MAXLEN){
     
     return len;
 }
-	
 
 
-/*static int readline(int socket, char * buf, int amountChars){
-	char * temp;
-	int i = 0;
-	fd_set rfds;
-	struct timeval tv;	
-	
-	temp = (char *) calloc(1, sizeof(char));
-	
-    for (i = 0; i < amountChars; i++) {
-    	
-    	    //set Timeout to 100 micro-second
-    		tv.tv_sec = 0; 	
-    		tv.tv_usec = 100;
-			FD_ZERO(&rfds);     
-			FD_SET(socket,&rfds);
-
-			select(socket,&rfds, NULL, NULL, &tv);
-			if ( read(socket, temp, 1) >  0) {
-				if (temp[0]  == '\n' || temp[0] == '\r')
-					break;  //we disccard the \n or the \r
-				else if (temp [0] == '\x03'){
-					*buf++='\x03';
-					break;
-				}				
-				else 
-					*buf++ = temp[0];
-				
-			} else {
-				perror("Error while reading");
-				break; //error possible timeout
-			}			
-	}	
-	if (i > 0)
-		*buf  = 0;  //add null ending.
-		
-	fprintf(stderr, "<< %s\n", buf);
-	return (i > 0 ? i : -1); //if i still 0 then we had a timeout
-}*/
-
-static float calcTemp(int val, int calib, char type){
-	if (type != 'K') return 0;
-	
-	return (125/2566.4)*(val+calib);
+static int calcTemp(int val, int calib, char type, float *realValue){
+	switch (type){
+		case 'K':
+			*realValue=(125/2566.4)*(val+calib);
+			return OK;
+		case 'I':
+			*realValue=val/10;
+			return OK;
+		default:
+			fprintf(stderr,"%c is not a valid type\n", type);
+			return ERROR;
+	}
 }
 
 static int parseTemp(char * buf, float * rvalue){
@@ -401,12 +373,11 @@ static int parseTemp(char * buf, float * rvalue){
 	//Message format: !<VAL>:<CAL>#<TYPE>
 		
 	if ( sscanf(buf, "!%f:%f#%1c", &value, &calib, &type) != 3 ){
-		fprintf(stderr, "%s doesn't match pattern", buf);
+		fprintf(stderr, "%s Doesn't match pattern\n", buf);
 		return ERROR;
 	}
 	
-	*rvalue = calcTemp(value, calib, type);
-	return OK;
+	return calcTemp(value, calib, type, rvalue);
 }
 
 static MXML_DOCUMENT * initConnection(){
@@ -566,7 +537,10 @@ static int workMenu(MXML_DOCUMENT* doc, menu_entry *reply, float * temp){
 		return ret; 
 	
 	
-	*temp = calcTemp(val, cal, type);
+	ret = calcTemp(val, cal, type, temp);
+	if (ret != OK)
+		return ret;
+	
 	reply->index = menu.index;
 	reply->next  = NULL;
 	reply->text  = menu.text;
@@ -575,20 +549,12 @@ static int workMenu(MXML_DOCUMENT* doc, menu_entry *reply, float * temp){
 	return OK;
 }
 
-
-int main(int argc, char *argv[]) 
-{
-
+int testRun(){
 	MXML_DOCUMENT* doc;
 	MXML_NODE* function;
 	menu_entry reply;
 	float temp;
 	int ret;
-	
-	ret = listenSPP(1);
-	if (ret != OK){
-		return ret;
-	}
 	
 	doc = initConnection();
 	
@@ -600,20 +566,105 @@ int main(int argc, char *argv[])
 			break;
 	
 		function = (getResponseFunction(doc));
-		
+			
 		if ( ! function )
 			break;
-		
+			
 		doc = sendRequest( 	function->data, 
-							"1234-1234-1234-1234", 
-							reply.value,
-							temp);						
+			"1234-1234-1234-1234", 
+			reply.value,
+			temp, doc);						
 	}
+		
+	return OK;
+}
+
+int normalRun(int channel){
+	MXML_DOCUMENT* doc;
+	MXML_NODE* function;
+	menu_entry reply;
+	float temp;
+	int ret;
+		
+	ret = listenSPP(channel);
+	if (ret != OK){
+		return ret;
+	}
+		
+	doc = initConnection();
 	
+	ret = OK;
+	
+	while (ret == OK && doc){
+		ret = workMenu(doc, &reply, &temp);
+		if (ret != OK)
+			break;
+	
+		function = (getResponseFunction(doc));
+			
+		if ( ! function )
+			break;
+			
+		doc = sendRequest( 	function->data, 
+			"1234-1234-1234-1234", 
+			reply.value,
+			temp, doc);						
+	}
+		
 	disconnect();
 	deregisterSPP();
-	
+		
 	return OK;
-	    
+}
+
+
+int main(int argc, char *argv[]) 
+{
+
+	int channel = 1;
+	argc--;
+	argv++;
+	
+	while (argc){
+		if ( strcmp(argv[0], "--test") == 0 ){
+			dup2((int)stdin, (int)stdout);
+			SPPclient=(int)stdin;
+			SPPclient=1;
+			return testRun();
+			
+		}
+		else if(strcmp(argv[0], "--channel") == 0){
+			if (argc == 1){
+				fprintf(stderr,"Missing channel\n");
+				return ERROR;
+			}
+			
+			channel = atoi(argv[1]);
+			if ( channel < 1 ){
+				fprintf(stderr, "Wrong Channel\n");
+				return ERROR;
+			}
+			
+			argv++;
+			argc--;	
+			
+		} else if(strcmp(argv[0], "--help") == 0){
+			fprintf(stdout, "Usage:\n");
+			fprintf(stdout, "\t--test\t\t\trun test mode\n");
+			fprintf(stdout, "\t--channel <Number>\tselect channel\n");
+			fprintf(stdout, "\t--help\t\t\tthis menu\n");
+			return OK;
+			
+		} else {
+			fprintf(stdout, "Wrong option\n");
+			return ERROR;
+		}
+		
+		argv++;
+		argc--;
+	}
+	
+	fprintf(stdout, "Using channel: %i\n", channel);
+	return normalRun(channel);
 }
 
