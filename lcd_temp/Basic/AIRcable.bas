@@ -768,12 +768,12 @@
 
 0 REM read IR Temp module
 830 A = pioout 1
-831 A = pioset 1
+831 A = pioclr 1
 0 REM temp is in Kelvin
 0 REM substract 273.15 to get Celsius
 0 REM temp / 0.02 is K
 0 REM F = address: 6 is ambient, 7 object
-832 F = 6
+832 F = 7
 0 REM E is repeat limit
 833 E = 0;
 834 $0[0] = 0;
@@ -803,20 +803,22 @@
 
 854 $0[0] = 0
 855 C = B / 10
-856 PRINTV "IR,"
+856 PRINTV "IR."
 857 PRINTV C
 858 PRINTV "."
 859 D = C * 10
 860 D = B - D
 861 PRINTV D
-862 A = lcd $0
-863 A = pioclr 1
-864 RETURN
+862 PRINTV "%C  "
+863 A = lcd $0
+864 A = pioset 1
+865 PRINTS E
+866 RETURN
 
 
 
 0 REM failed reading
-900 A = pioclr 1
+900 A = pioset 1
 901 RETURN
 
 
