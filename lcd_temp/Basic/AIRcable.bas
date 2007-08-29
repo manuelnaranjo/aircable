@@ -211,7 +211,7 @@
 0 REM next reading in 20 seconds
 162 ALARM 20
 0 REM reset slave timeout
-163 A = multi 30
+163 A = slave 30
 0 REM allow deep sleep
 164 A = uartoff
 165 RETURN
@@ -667,7 +667,7 @@
 
 0 REM __________INTERACTIVE MODE_______
 @MASTER 650
-650 A = lcd "WAIT..."
+650 A = lcd "WAIT . . ."
 651 U = 2
 652 A = pioset 20
 653 GOTO 670
@@ -767,6 +767,8 @@
 
 
 0 REM read IR Temp module
+830 A = pioout 1
+831 A = pioset 1
 0 REM temp is in Kelvin
 0 REM substract 273.15 to get Celsius
 0 REM temp / 0.02 is K
@@ -808,12 +810,14 @@
 860 D = B - D
 861 PRINTV D
 862 A = lcd $0
-863 RETURN
+863 A = pioclr 1
+864 RETURN
 
 
 
 0 REM failed reading
-900 RETURN
+900 A = pioclr 1
+901 RETURN
 
 
 
@@ -840,7 +844,7 @@
 982 A = pioset 9
 983 REM IF Q = 1 THEN 992
 984 REM IF Q = 2 THEN 996
-985 A = multi 30
+985 A = slave 30
 986 Q = 1
 0 REM startup the automatic again
 987 IF U = 2 THEN 991
