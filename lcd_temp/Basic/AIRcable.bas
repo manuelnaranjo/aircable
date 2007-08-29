@@ -2,7 +2,7 @@
 
 0 REM $2 is for button state
 0 REM $3 is for master BT address
-0 REM $4 used for transfer rate
+0 REM $4 used for transfer rate default disabled
 0 REM $5-$8 are 4 menu entries
 0 REM $9 used for ice water compensation
 0 REM $10 used for LCD contrast storage
@@ -10,6 +10,7 @@
 
 0 REM $15 - $19 types of sensor
 
+4 15
 3 0050C258501B
 5 CALIBRAT
 6 DISCOVER
@@ -98,9 +99,8 @@
 74 $9 = $0
 
 0 REM reading rate restore
-75 P = atoi $4[0]
-75 P = 0
-76 IF P > 30 THEN 79
+75 P = atoi $4
+76 IF P > 90 THEN 79
 77 IF P = 0 THEN 79
 78 GOTO 83
 79 P = 0
@@ -113,30 +113,33 @@
 0 REM let's start up
 84 Q = 0;
 85 ALARM 5
-86 RETURN
+0 REM mark we are booting
+86 U = 1000
+87 RETURN
 
 
 0 REM buttons and power
-@PIO_IRQ 90
+@PIO_IRQ 89
 0 REM press button starts alarm for long press recognition
-90 IF $0[2]=48 THEN 96;
-91 IF $0[3]=48 THEN 96;
-92 IF $0[12]=49 THEN 96;
+89 IF $0[2]=48 THEN 95;
+90 IF $0[3]=48 THEN 95;
+91 IF $0[12]=49 THEN 95;
 0 REM ignore button release on rebooting
-93 IF W = 3 THEN 95;
+92 IF W = 3 THEN 94;
 0 REM was it a release, handle it
-94 IF W <> 0 THEN 200;
-95 RETURN
+93 IF W <> 0 THEN 200;
+94 RETURN
 
 0 REM button press, save state, start ALARM
-96 $2 = $0;
-97 W = 1;
-98 ALARM 3
-99 RETURN
+95 $2 = $0;
+96 W = 1;
+97 ALARM 3
+98 RETURN
 
 
 
-@ALARM 100
+@ALARM 99
+99 IF U = 1000 THEN 118
 0 REM contrast timeout, back to preset value.
 100 IF U = 8 THEN 550
 0 REM inquiry found none results.
@@ -156,23 +159,31 @@
 109 A = pioclr 20
 0 REM long press button
 110 IF W = 1 THEN 175
-0 REM here other alarm things
-111 GOTO 120
+0 REM clear lcd
+111 A = lcd "           "
+0 REM are we in messaging mode?
+112 IF P = 0 THEN 120
+0 REM if we are, have we reached timer?
+113 A = readcnt
+114 IF A > P THEN 119
+115 GOTO 162
+
 
 0 REM get a reading, put it on LCD
-120 GOSUB 600
-121 Y = Y + X
-122 Y = Y / 20
+118 U = 0
+119 A = zerocnt
+120 GOSUB 630
 123 $0 = "T "
 124 PRINTV Y
 125 PRINTV " %C    "
 126 A = lcd $0
-127 A = strlen $3
-128 IF A = 0 THEN 162
-0 REM check if P has reached number of seconds
-129 IF P = 0 THEN 162
-130 A = readcnt
-131 IF A < P THEN 162
+0 REM show temp for 2 secs
+127 WAIT 2
+0 REM messaging mode?
+128 IF P = 0 THEN 163
+0 REM are we paired?
+129 A = strlen $3
+130 IF A < 12 THEN 162
 
 0 REM prepare OBEX message
 132 GOSUB 600
@@ -201,20 +212,21 @@
 154 A = success
 155 IF A > 0 THEN 160
 156 A = lcd " FAILED "
-157 WAIT 1
-158 GOTO 120
+157 GOTO 162
+ 
 
 0 REM ---------------------------
 160 A = lcd "   OK   "
-161 GOTO 120
+161 WAIT 5
+162 A = lcd "        "
 
-0 REM next reading in 20 seconds
-162 ALARM 20
+0 REM next reading in P seconds
+163 ALARM 60
 0 REM reset slave timeout
-163 A = slave 30
+164 A = slave 30
 0 REM allow deep sleep
-164 A = uartoff
-165 RETURN
+165 A = uartoff
+166 RETURN
 
 
 
@@ -246,7 +258,7 @@
 
 0 REM we have button applications
 0 REM state variable is U
-0 REM U = 0 for main menue
+0 REM U = 0 for main menu
 0 REM left means make a streaming connection
 0 REM right means shows current temp
 0 REM middle means display menu entries
@@ -271,7 +283,7 @@
 201 W = 0;
 0 REM display temperature
 202 IF U = 0 THEN 212;
-0 REM show menue
+0 REM show menu
 203 IF U = 1 THEN 240;
 0 REM interactive mode
 204 IF U = 2 THEN 660;
@@ -304,16 +316,13 @@
 
 0 REM right
 0 REM show temperature
-220 GOSUB 600
-221 IF $11[0] <> 75 THEN 224
-222 Y = Y + X
-223 Y = Y / 20
-224 $0="T "
-225 PRINTV Y;
-226 PRINTV " %C    "
-227 A = lcd $0
-228 ALARM 20
-229 RETURN
+220 GOSUB 630
+221 $0="T "
+222 PRINTV Y;
+223 PRINTV " %C    "
+224 A = lcd $0
+225 ALARM 20
+226 RETURN
 
 0 REM middle
 0 REM select function
@@ -338,7 +347,7 @@
 0 REM inquiries
 251 IF J = 6 THEN 290;
 0 REM send rate
-252 IF J = 7 THEN 300;
+252 IF J = 7 THEN 299;
 0 REM contrast
 253 IF J = 8 THEN 510;
 254 ALARM 1
@@ -387,6 +396,7 @@
 
 
 0 REM ___________________ U = 7, automatic message rate
+299 P = P /60
 0 REM buttons right, left, middle
 300 $0[0] = 0
 301 PRINTV P
@@ -401,16 +411,16 @@
 312 IF $2[12] = 49 THEN 330;
 313 RETURN
 
-320 IF P >= 30 THEN 323;
-321 P = P + 1;
+320 IF P > 90 THEN 323;
+321 P = P + 5;
 322 GOTO 300;
 323 P = 0
 324 GOTO 300
 
 325 IF P = 0 THEN 328;
-326 P = P - 1;
+326 P = P - 5;
 327 GOTO 300;
-328 P = 30
+328 P = 90
 329 GOTO 300
 
 0 REM store R persistent
@@ -627,11 +637,13 @@
 595 GOTO 587
 
 0 REM I2C sensor reading handler
-600 IF $11[0] = 75 THEN 610
-601 Y = 0
-602 RETURN
+600 IF $11[0] = 75 THEN 609
+601 IF $11[0] = 73 THEN 829
+602 Y = 0
+603 RETURN
 
 0 REM sensor connected to MCP3421
+609 A=ring
 610 R = 0;
 611 T = 1;
 0 REM slave address is 0xD0
@@ -649,16 +661,16 @@
 622 A = i2c $1;
 623 Y = $0[1] * 256;
 624 Y = Y + $0[2];
-625 REM RETURN
-626 PRINTU "I2C: "
-627 A = $0[1]
-628 PRINTU A
-629 PRINTU " "
-630 A = $0[2]
-631 PRINTU A
-632 PRINTU "\r\n"
-633 RETURN
+625 RETURN
 
+630 GOSUB 600
+631 IF $11[0] <> 75 THEN 634
+632 Y = Y + X
+633 Y = Y / 20
+634 IF $11[0] <> 73 THEN 636
+0 REM round to 0 dec
+635 Y = Y / 10
+636 RETURN
 
 
 
@@ -767,6 +779,7 @@
 
 
 0 REM read IR Temp module
+829 A = ring
 830 A = pioout 1
 831 A = pioclr 1
 0 REM temp is in Kelvin
@@ -788,38 +801,43 @@
 842 A = i2c $1;
 843 E = E + 1;
 0 REM read until good reading
-844 IF E > 10 THEN 900;
+844 IF E > 10 THEN 870;
 845 IF A <> 6 THEN 834;
 846 IF $0[2] = 255 THEN 834;
 847 IF $0[2] = 0 THEN 834;
 
 0 REM calculate temp, limit 380 C
 848 B = $0[1];
-849 IF B > 127 THEN 900;
+849 IF B > 127 THEN 870;
 850 B = B * 256;
 851 B = B + $0[0];
 852 B = B - 13658;
 853 B = B / 5;
 
-854 $0[0] = 0
-855 C = B / 10
-856 PRINTV "IR."
-857 PRINTV C
-858 PRINTV "."
-859 D = C * 10
-860 D = B - D
-861 PRINTV D
-862 PRINTV "%C  "
-863 A = lcd $0
-864 A = pioset 1
-865 PRINTS E
-866 RETURN
+854 Y = B
+855 A = pioset 1
+856 RETURN
+
+0 REM 854 $0[0] = 0
+0 REM 855 C = B / 10
+0 REM 856 PRINTV "IR."
+0 REM 857 PRINTV C
+0 REM 858 PRINTV "."
+0 REM 859 D = C * 10
+0 REM 860 D = B - D
+0 REM 861 PRINTV D
+0 REM 862 PRINTV "%C  "
+0 REM 863 A = lcd $0
+0 REM 864 A = pioset 1
+0 REM 865 PRINTS E
+0 REM 866 RETURN
 
 
 
 0 REM failed reading
-900 A = pioset 1
-901 RETURN
+870 A = pioset 1
+871 Y = -32000
+872 RETURN
 
 
 
@@ -861,4 +879,5 @@
 994 A = slave -1
 995 Q = 2
 996 RETURN
+
 
