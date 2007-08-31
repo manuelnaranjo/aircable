@@ -996,8 +996,7 @@
 0 REM b: name filter, g: address filter,
 0 REM c: class of device, u: uart, d: date,
 0 REM s: slave, i: inquiry, m: master, a: mode
-0 REM o: obex, f: obexftp, j: relay mode pair
-0 REM e: exit, r: reboot
+0 REM o: obex, e: exit, r: reboot
 619 PRINTU"h: help, l: list,\n"
 620 PRINTU"\rn: name, p: pin, "
 621 PRINTU"k: name/pin setting"
@@ -1007,9 +1006,10 @@
 625 PRINTU"date,\n\rs: slave, "
 626 PRINTU"i: inquiry, m: mast"
 627 PRINTU"er, a: mode,\n\ro: "
-628 PRINTU"obex, f: obexftp\n"
-629 PRINTU"\re: exit, r: reboot"
-630 GOTO 469;
+628 PRINTU"obex/obexFTP settin"
+629 PRINTU"gs, e: exit, r: r"
+630 PRINTU"boot\n\r"
+631 GOTO 469;
 
 0 REM Name Function
 634 PRINTU"New Name: "
@@ -1089,12 +1089,12 @@
 694 $0[0] = 0
 695 A = psget 6
 696 $0[11] = 48
-697 A = psset 3
+697 A = psset 4
 698 GOTO 469
 699 $0[0] = 0
 700 A = psget 6
 701 $0[11] = 54
-702 A = psset 3
+702 A = psset 4
 703 GOTO 469
 
 0 REM one char read function
