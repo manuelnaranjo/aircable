@@ -47,6 +47,7 @@
 </toolChain>
 </folderInfo>
 <sourceEntries>
+<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="curl"/>
 <entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="spp"/>
 </sourceEntries>
 </configuration>
@@ -343,6 +344,7 @@
 </toolChain>
 </folderInfo>
 <sourceEntries>
+<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="curl"/>
 <entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="spp"/>
 </sourceEntries>
 </configuration>

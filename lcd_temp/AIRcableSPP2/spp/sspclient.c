@@ -389,7 +389,7 @@ int sppWriteLine(const char * buf){
 	return ret;
 }
 
-int main(void) {
+int sppmain(void) {
 	int r = sppRegister(1);
 	if (r != OK)
 		return -1;

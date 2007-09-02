@@ -24,8 +24,6 @@
 #ifndef SPPCLIENT_H_
 #define SPPCLIENT_H_
 
-#define _GNU_SOURCE
-
 #include <stdio.h>
 #include <ctype.h>
 #include <errno.h>
@@ -49,7 +47,7 @@
 #include <bluetooth/sdp.h>
 #include <bluetooth/sdp_lib.h>
 
-#include "errorcodes.h"
+#include "../errorcodes.h"
 
 //Public functions
 /** Register SPP service **/
