@@ -1,7 +1,7 @@
 @ERASE
 
 0 REM $2 is for button state
-0 REM $3 is for master BT address
+0 REM $3 is for peer BT address
 0 REM $4 used for transfer rate default disabled
 0 REM $5-$8 are 4 menu entries
 0 REM $9 used for ice water compensation
@@ -12,7 +12,7 @@
 
 4 15
 3 0050C258501B
-5 CALIBRAT
+5 SENSOR
 6 DISCOVER
 7 SENDRATE
 8 CONTRAST
@@ -82,7 +82,7 @@
 61 A = zerocnt
 
 0 REM strings with spaces
-62 $5="CALIBRAT"
+62 $5="SENSOR"
 63 $6="DISCOVER"
 64 $7="SENDRATE"
 65 $8="CONTRAST"
@@ -143,7 +143,7 @@
 0 REM contrast timeout, back to preset value.
 100 IF U = 8 THEN 550
 0 REM inquiry found none results.
-101 IF U = 9 THEN 370
+101 IF U = 9 THEN 375
 102 IF U <> 2 THEN 107
 
 0 REM interactive mode mode U=2
@@ -443,34 +443,44 @@
 
 0 REM right we show the previous device
 345 M = M - 1;
-346 IF M > 0 THEN 348;
-347 M = N;
-348 $0[0] = 0;
-349 PRINTV $(389+M);
-350 PRINTV "        "
-351 A = lcd $0[13]
-352 RETURN
+346 IF M > -2 THEN 349;
+347 IF N = 0 THEN 375
+348 M = N;
+349 $0[0] = 0;
+350 PRINTV $(389+M);
+351 PRINTV "        "
+352 A = lcd $0[13]
+353 RETURN
 
 0 REM left show next device
 355 M = M + 1;
-356 IF M < N THEN 348;
-357 M = 1;
-358 GOTO 348;
+356 IF M < N THEN 349;
+357 M = -1;
+358 GOTO 349;
 
 0 REM user choose a device
-359 A = lcd "SELECTED"
-360 $3=$(389 +M)
-361 U = 3
-362 ALARM 1
-363 RETURN
+359 IF M < 1 THEN 365
+360 A = lcd "SELECTED"
+361 $3=$(389 +M)
+362 U = 3
+363 ALARM 1
+364 RETURN
+
+365 IF M = -1 THEN 368
+366 A = lcd "UNPAIRED"
+367 $3[0]=0
+368 U = 3
+369 ALARM 1
+370 RETURN
+
 
 0 REM no devices found
-370 A = lcd "NOTFOUND"
-371 $3[0] = 0
-372 U = 0
-373 ALARM 1
-374 RETURN
+375 A = lcd "NOTFOUND"
+376 M = 0
+377 RETURN
 
+388 CANCEL
+389 UNPAIR
 
 0 REM LINES 390 to 399 are reserved to show discovered devices.
 @INQUIRY 400
