@@ -82,7 +82,7 @@
 61 A = zerocnt
 
 0 REM strings with spaces
-62 $5="SENSOR"
+62 $5="SENSOR  "
 63 $6="DISCOVER"
 64 $7="SENDRATE"
 65 $8="CONTRAST"
