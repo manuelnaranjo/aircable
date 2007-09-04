@@ -173,17 +173,13 @@
 118 U = 0
 119 A = zerocnt
 120 GOSUB 630
-123 $0 = "T "
-124 PRINTV Y
-125 PRINTV " %C    "
-126 A = lcd $0
 0 REM show temp for 2 secs
-127 WAIT 2
+123 WAIT 2
 0 REM messaging mode?
-128 IF P = 0 THEN 163
+124 IF P = 0 THEN 163
 0 REM are we paired?
-129 A = strlen $3
-130 IF A < 12 THEN 162
+125 A = strlen $3
+126 IF A < 12 THEN 162
 
 0 REM prepare OBEX message
 132 GOSUB 600
@@ -317,12 +313,8 @@
 0 REM right
 0 REM show temperature
 220 GOSUB 630
-221 $0="T "
-222 PRINTV Y;
-223 PRINTV " %C    "
-224 A = lcd $0
-225 ALARM 20
-226 RETURN
+221 ALARM 20
+222 RETURN
 
 0 REM middle
 0 REM select function
@@ -477,7 +469,8 @@
 0 REM no devices found
 375 A = lcd "NOTFOUND"
 376 M = 0
-377 RETURN
+377 U = 10
+378 RETURN
 
 388 CANCEL
 389 UNPAIR
@@ -564,7 +557,8 @@
 498 $9 = $0
 499 U = 0
 500 ALARM 1
-501 RETURN
+501 X = Y
+502 RETURN
 
 0 REM ___________________ U = 8, LCD contrast
 0 REM buttons right, left, middle
@@ -674,25 +668,35 @@
 625 RETURN
 
 630 GOSUB 600
-631 IF $11[0] <> 75 THEN 634
-632 Y = Y + X
-633 Y = Y / 20
-634 IF $11[0] <> 73 THEN 636
-0 REM round to 0 dec
-635 Y = Y / 10
-636 RETURN
+631 IF $11[0] = 73 THEN 640
+632 $0="T "
+633 Y = Y + X
+634 Y = Y / 20
+0 REM should add the ºF thing here
+635 PRINTV Y
+636 PRINTV" %C         "
+637 A = lcd $0
+638 RETURN
 
-
-
+0 REM IR sensor
+640 $0 ="IR. "
+642 C = Y / 10
+643 PRINTV C
+644 PRINTV"."
+645 D = C * 10
+646 D = Y-D
+647 PRINTV D
+648 A = pioset 1
+649 GOTO 636
 
 
 
 0 REM __________INTERACTIVE MODE_______
-@MASTER 650
-650 A = lcd "WAIT . . ."
-651 U = 2
-652 A = pioset 20
-653 GOTO 670
+@MASTER 655
+655 A = lcd "WAIT . . ."
+656 U = 2
+657 A = pioset 20
+658 GOTO 670
 
 0 REM __interactive mode button handler __
 0 REM $MENU code: right, left, middle
@@ -785,7 +789,7 @@
 763 U = 0
 764 RETURN
 
-0 REM 800-899 RESERVED FOR MENU!!!!
+0 REM 800-828 RESERVED FOR MENU!!!!
 
 
 0 REM read IR Temp module
@@ -827,22 +831,6 @@
 854 Y = B
 855 A = pioset 1
 856 RETURN
-
-0 REM 854 $0[0] = 0
-0 REM 855 C = B / 10
-0 REM 856 PRINTV "IR."
-0 REM 857 PRINTV C
-0 REM 858 PRINTV "."
-0 REM 859 D = C * 10
-0 REM 860 D = B - D
-0 REM 861 PRINTV D
-0 REM 862 PRINTV "%C  "
-0 REM 863 A = lcd $0
-0 REM 864 A = pioset 1
-0 REM 865 PRINTS E
-0 REM 866 RETURN
-
-
 
 0 REM failed reading
 870 A = pioset 1
