@@ -285,7 +285,7 @@
 204 IF U = 2 THEN 660;
 
 0 REM 5-8 display the menu
-205 IF U = 5 THEN 210;
+205 IF U = 5 THEN 211;
 0 REM start inquiry
 206 IF U = 6 THEN 290;
 0 REM message rate
@@ -334,7 +334,7 @@
 0 REM middle
 0 REM switch state
 249 U = J;
-0 REM cablibration 
+0 REM sensor 
 250 IF J = 5 THEN 560;
 0 REM inquiries
 251 IF J = 6 THEN 290;
@@ -394,7 +394,8 @@
 301 PRINTV P
 302 PRINTV " MINUTES"
 303 A = lcd $0
-304 RETURN
+304 ALARM 20
+305 RETURN
 
 0 REM 
 0 REM right left middle
@@ -605,7 +606,8 @@
 
 0 REM type of sensor chooser
 560 V = 0
-561 GOTO 587
+561 U = 11
+562 GOTO 587
 
 0 REM button handler
 0 REM rigth, left, middle
@@ -613,10 +615,10 @@
 566 IF $2[3] = 48 THEN 572;
 567 IF $2[12] = 49 THEN 575;
 
-570 V = V-1
+570 V = V+1
 571 GOTO 585
 
-572 V = V+1
+572 V = V-1
 573 GOTO 585
 
 575 $11=$(15+V)
