@@ -3,7 +3,7 @@
  *  SPPclient, little spp client.
  *
  *  Copyright (C) 2007 Naranjo,manuel <manuel@aircable.net>
- *  Copyright (C) 2007 Wireless Cables Inc  <aircable.net>
+ *  Copyright (C) 2007 Wireless Cables Inc <http://www.aircable.net>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by

@@ -2,7 +2,7 @@
  *  Simple www post application.
  *
  *  Copyright (C) 2007 Naranjo,manuel <manuel@aircable.net>
- *  Copyright (C) 2007 Wireless Cables Inc  <aircable.net>
+ *  Copyright (C) 2007 Wireless Cables Inc <http://www.aircable.net>
  * 
  *  Part of the work is based on: 
  * 			http://curl.haxx.se/lxr/source/docs/examples/getinmemory.c
