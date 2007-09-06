@@ -1,8 +1,14 @@
+#ifndef XML_H_
+#define XML_H_
+
 /*
- *  Simple www post application.
+ *  XML parsing functions, using mxml[1]
  *
  *  Copyright (C) 2007 Naranjo,manuel <manuel@aircable.net>
  *  Copyright (C) 2007 Wireless Cables Inc  <aircable.net>
+ * 
+ *  Part of the work is based on: 
+ * 			http://curl.haxx.se/lxr/source/docs/examples/getinmemory.c
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -18,24 +24,19 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  * 
+ *  [1] http://mxml.sourceforge.net/
+ * 
  */
 
-#ifndef POST_H_
-#define POST_H_
-
-#include "../errorcodes.h"
-
 #include <stdlib.h>
-#include <malloc.h>
 #include <stdio.h>
+
+#include <mxml.h>
+#include <mxml_file.h>
+#include <mxml_defs.h>
+
 #include <string.h>
 
+#define XML_DEBUG
 
-void  postCleanUP();
-void  postSetURL(const char* newURL);
-int   postGetURL(char * url);
-
-/** This command will make the post. If you pass out then it must be allocated with calloc **/
-int post(const char * content, char* out, int maxlen);
-
-#endif /*POST_H_*/
+#endif /*XML_H_*/
