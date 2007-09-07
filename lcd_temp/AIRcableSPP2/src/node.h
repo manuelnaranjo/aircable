@@ -32,6 +32,7 @@
 #include "spp/sppclient.h"
 #include "curl/post.h"
 #include "mxml/xml.h"
+#include "menu.h"
 
 typedef struct RESULTS RESULTS;
 
@@ -49,28 +50,32 @@ struct menu_entry{
 	menu_entry * next;
 };
 
-typedef struct node node;
-
-struct node {
+struct node {	
 	char 		  * function;
 	char 		  * nodeId; 
 	char 		  * value;
+	char 		  type;
 	double 		   temperature;
 	MXML_DOCUMENT *lastReply;
 	sppSocket 	  *socket;
 };
 
-node * node_new();
-void node_destroy(node * node);
+typedef struct node NODE;
+
+NODE * node_new();
+void node_destroy(NODE * node);
+
+int getSelected();
+
+void nodemain(int channel);
+void simulate();
+
+
 
 RESULTS* results_new();
 void results_destroy(RESULTS* node);
 
 menu_entry* menu_entry_new();
 void menu_entry_destroy(menu_entry* node);
-
-int getSelected();
-
-void nodemain(int channel);
 
 #endif /*NODE_H_*/

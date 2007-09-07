@@ -22,27 +22,10 @@
 
 #include "node.h"
 
-RESULTS* results_new(){
-	return (RESULTS*) malloc(sizeof(RESULTS));
-}
-
-void results_destroy(RESULTS* node){
-	if (!node)
-		return;
+NODE * node_new(){
+	NODE * out;
 	
-	if (node->val)
-		mxml_node_destroy(node->val);
-	
-	if (node->next)
-		results_destroy(node->next);
-	
-	free(node);
-}
-
-node * node_new(){
-	node * out;
-	
-	out = (node*) malloc (sizeof(node));
+	out = (NODE*) malloc (sizeof(NODE));
 	
 	out->function = 0;
 	out->lastReply = 0;
@@ -50,11 +33,12 @@ node * node_new(){
 	out->socket = 0;
 	out->value = 0;
 	out->temperature=0.0f;
+	out->type=0;
 	
 	return out;
 }
 
-void node_destroy(node * node){
+void node_destroy(NODE * node){
 	if (!node)
 		return;
 	
@@ -72,62 +56,42 @@ void node_destroy(node * node){
 	
 	if (node->value)
 		free(node->value);
-	
+
 	free(node);
 }
 
-menu_entry* menu_entry_new(){
-	return (menu_entry*)malloc(sizeof(menu_entry));
-}
-
-void menu_entry_destroy(menu_entry* node){
-	if (!node)
-		return;
-	
-	if (node->text)
-		free(node->text);
-	
-	if (node->value)
-		free(node->value);
-	
-	if (node->next)
-		menu_entry_destroy(node->next);
-	
-	free(node);
-}
-
-int calcTemp(int val, int calib, char type, float *realValue){
-	switch (type){
+int calcTemp(NODE* node, int val, int calib){
+	switch (node->type){
 		case 'K':
-			*realValue=(125/2566.4)*(val+calib);
+			node->temperature=(125/2566.4)*(val+calib);
 			return OK;
 		case 'I':
-			*realValue=val/10;
+			node->temperature=val/10;
 			return OK;
 		default:
-			fprintf(stderr,"%c is not a valid type\n", type);
+			fprintf(stderr,"%c is not a valid type\n", node->type);
 			return ERROR;
 	}
 }
 
-int parseTemp(char * buf, float * rvalue){
+int parseTemp(NODE* node, char * buf){
 	float value, calib;
-	char type;
-	
+		
 	//Message format: !<VAL>:<CAL>#<TYPE>
 		
-	if ( sscanf(buf, "!%f:%f#%1c", &value, &calib, &type) != 3 ){
+	if ( sscanf(buf, "!%f:%f#%1c", &value, &calib, &node->type) != 3 ){
 		fprintf(stderr, "%s Doesn't match pattern\n", buf);
 		return ERROR;
 	}
 	
-	return calcTemp(value, calib, type, rvalue);
+	return calcTemp(node, value, calib);
 }
 
 char* getReturnVars(MXML_DOCUMENT *doc){
 	MXML_NODE *node;
 	MXML_ITERATOR iter;
 	char * options;
+	int t = 0;
 		
 	mxml_iterator_setup( &iter, doc );
 	
@@ -141,22 +105,23 @@ char* getReturnVars(MXML_DOCUMENT *doc){
 	node = node->child;
 	
 	while (node){
-		sprintf(options, 
+		t += sprintf(options, 
 				"%s<%s>%s</%s>\n",  
 				options,
 				node->name,
 				node->data,
-				node->name);
+				node->name);		
 		
 		node = node->next;
 				
 	}
+	options[t]=0;
 	
 	return options;
 	
 }
 
-char * generateXML(const node * node) {
+char * generateXML(const NODE * node) {
 	char* out = NULL;	
 	int len = 0;
 	
@@ -189,7 +154,8 @@ char * generateXML(const node * node) {
 	
 	if (node->lastReply){
 		optional = getReturnVars(node->lastReply);
-		len+=strlen(optional);
+		if (optional)
+			len+=strlen(optional);
 	}
 	
 	len+=1;
@@ -202,7 +168,7 @@ char * generateXML(const node * node) {
 			node->nodeId, 
 			(node->value ? node->value : ""), 
 			node->temperature, //temp,
-			(node->lastReply ? optional : "")
+			(optional ? optional : "")
 	);
 	
 	if (optional)
@@ -211,7 +177,7 @@ char * generateXML(const node * node) {
 	return out;
 }
 
-int sendRequest(node* node){
+int sendRequest(NODE* node){
 	MXML_DOCUMENT * doc;	
 	char * xml;
 	char * rep = NULL;
@@ -242,12 +208,396 @@ int sendRequest(node* node){
 	node->lastReply = doc;
 	
 	return OK;
-} 
+}
 
-int initConnection(node* node){
+menu_entry* menu_entry_new(){
+	menu_entry * out = (menu_entry*)malloc(sizeof(menu_entry));
+	out->next=NULL;
+	out->text=0;
+	out->value=0;
+	return out;
+}
+
+void menu_entry_destroy(menu_entry* node){
+	if (!node)
+		return;
+	
+	if (node->next)
+		menu_entry_destroy(node->next);
+	
+	free(node);
+}
+
+RESULTS* results_new(){
+	return (RESULTS*) malloc(sizeof(RESULTS));
+}
+
+void results_destroy(RESULTS* node){
+	if (!node)
+		return;
+	
+	if (node->val)
+		mxml_node_destroy(node->val);
+	
+	if (node->next)
+		results_destroy(node->next);
+	
+	free(node);
+}
+
+menu_entry *sort(menu_entry* list, int n)
+{
+  menu_entry *lst, *tmp = list, *prev = NULL, *potentialprev = list;
+  int idx, idx2;
+  
+  for (idx=0; idx<n-1; idx++) 
+  {
+    for (idx2=0,lst=list; 
+         lst && lst->next && (idx2<=n-1-idx);
+         idx2++)
+    {
+      if (!idx2)
+      {
+        //we are at beginning, so treat start 
+        //node as prev node
+        prev = lst;
+      }
+      
+      //compare the two neighbors
+      if (lst->next->index < lst->index) 
+      {  
+        //swap the nodes
+        tmp = (lst->next?lst->next->next:0);
+                
+        if (!idx2 && (prev == list))
+        {
+          //we do not have any special sentinal nodes
+          //so change beginning of the list to point 
+          //to the smallest swapped node
+          list = lst->next;
+        }
+        potentialprev = lst->next;
+        prev->next = lst->next;
+        lst->next->next = lst;
+        lst->next = tmp;
+        prev = potentialprev;
+      }
+      else
+      {
+        lst = lst->next;
+        if(idx2)
+        {
+          //just keep track of previous node, 
+          //for swapping nodes this is required
+          prev = prev->next;
+        }
+      }     
+    } 
+  }
+  return list;
+}
+
+/**
+ * Get menu options from last reply
+ */
+int parseEntries(NODE * node, menu_entry *output){
+	menu_entry * out;
+	menu_entry * curr;
+	int i = 0;
+	
+	MXML_NODE *menu;
+	MXML_ITERATOR *iter;
+	
+	iter = mxml_iterator_new(node->lastReply);
+	
+	mxml_iterator_setup( iter, node->lastReply );
+	
+	menu = mxml_iterator_scan_node( iter, "selectmenu" );
+	
+	mxml_iterator_destroy(iter);
+	out = NULL;
+	
+	menu = menu->child;
+	
+	while (menu){
+    	MXML_NODE *node;
+    	
+    	curr =menu_entry_new();
+    	
+    	curr->next = out;
+    	node = menu->child;    	
+    	
+    	if (strcmp(node->name, "text") == 0){
+    		curr->text = node->data;
+    	}
+    	else if (strcmp(node->name, "value") == 0){
+    		curr->value = node->data;
+    	}
+    	curr->index = ++i;
+    	
+    	node = node->next;
+    	
+    	if (strcmp(node->name, "text") == 0){
+    		curr->text = node->data;
+    	}
+    	else if (strcmp(node->name, "value") == 0){
+    		curr->value = node->data;
+    	}
+   		
+    	menu=menu->next;
+    	
+    	out = curr;
+    }
+    
+    out = sort(out, i);
+    
+    if (out){
+    	output->index = out->index;
+    	output->next  = out->next;
+    	output->text  = out->text;
+    	output->value = out->value;
+    	free(out);
+    }     
+    
+#ifdef DEBUG_UTILS
+	curr = out;
+	while (curr){
+		printf("index: %i,\ttext: %s,\tvalue: %s\n", curr->index, curr->text, curr->value);
+		curr = curr->next;
+	}
+#endif
+	
+	return OK;
+}
+
+/**
+ * Get the response function
+ */
+int getResponseFunction(NODE * node){
+	MXML_NODE *respNode;
+	MXML_ITERATOR *iter;
+	int len;
+	
+	iter = mxml_iterator_new(node->lastReply);
+	
+	mxml_iterator_setup( iter, node->lastReply );
+	
+	respNode = mxml_iterator_scan_node( iter, "responsefunction" );
+
+	node->function = realloc(node->function, strlen(respNode->data)+1);
+	
+	len = sprintf(node->function, "%s", respNode->data);
+	node->function[len]=0;
+	
+	mxml_iterator_destroy(iter);
+	
+	return OK;		
+}
+
+int getSelected(NODE * node, menu_entry * menu, menu_entry * reply){
+	char *buf;	
+	unsigned short int rep;	
+	float cal, val;
+		
+	buf = calloc(30, sizeof(char));
+	
+	if (!buf){
+		perror("Couldn't allocate buffer at getSelected()\n");
+		return ERROR;
+	}
+	
+	if (!sppReadLine(node->socket, buf, 30)){
+		perror("Couldn't read option");
+		free(buf);
+		return ERROR;
+	}
+	
+	if (strcmp( buf, "\x03") == 0){
+		printf("LCD closed connection\n");
+		free(buf);
+		return CONNECTION_CLOSE;
+	}
+		
+	if ( sscanf(buf, "@%02hX!%f:%f#%s", &rep, &val, &cal, &node->type) != 4 ){
+		perror("Wrong content");
+		free(buf);
+		return ERROR;
+	}					
+	
+	while (menu && menu->index != rep)
+		menu = menu->next;
+						
+	if (menu == NULL ){
+		fprintf(stderr, "Wrong Option %i\n" , rep);
+		return ERROR;
+	}
+		
+	printf("Selected: index:%02hX\ttext:%s\tvalue:%s\n", rep, menu->text, menu->value);
+	
+	reply->index = menu->index;
+	reply->next  = NULL;
+	
+	if (strlen(menu->text)){
+		reply->text = realloc(reply->text, strlen(menu->text)+1);
+		reply->text[0] = 0;
+		strcpy(reply->text, menu->text);
+		reply->text[strlen(menu->text)]=0;
+	}
+	
+	if (strlen(menu->value)){		
+		reply->value = realloc(reply->value, strlen(menu->value)+1);
+		reply->value[0] = 0;
+		strcpy(reply->value, menu->value);
+		reply->value[strlen(menu->value)]=0;
+	}
+	
+	free(buf);
+	return OK;
+		
+}
+
+int sendMenu(sppSocket *socket, menu_entry * menu){
+	const static int bufsize=1024;
+	char * buf, * rec;
+	int j = 0;
+	menu_entry * head;
+	
+	if (!socket->SPPclient) {
+		fprintf(stderr,"Not connected, can't go on\n");
+		return ERROR;
+	}
+
+	buf = calloc(bufsize, sizeof(char));
+	rec = calloc(bufsize, sizeof(char));
+	
+	head = menu;
+	
+	while (menu){
+		j++;
+		menu=menu->next;
+	}
+	
+	menu = head;
+		
+	sprintf(buf, "%%%i\n\r", j);
+	
+	j = sppWriteLine(socket,buf);
+
+	if (j < 0){
+		fprintf(stderr, "failed to send amount of options\n");
+		return ERROR;
+	}
+	
+	//by now give time to the lcd to settle up
+	while (menu){
+		sprintf(buf,"%02hX%s\n\r", menu->index, menu->text);
+		j = sppWriteLine(socket, buf);
+
+		if ( j < 0 ){
+			fprintf(stderr, "There has been an error while writting "
+					"to the socket (while)\n");
+			return ERROR;
+		}
+		
+		j = sppReadLine(socket, rec, bufsize);
+		if ( j < 0 ) {
+			fprintf(stderr, "There has been a problem while "
+					"waiting ACK reply (menu)\n");
+			return ERROR;
+		}			
+		
+		if (menu->next)
+			sprintf(buf,"&%02hX", menu->index);
+		else
+			sprintf(buf,"$%02hX", menu->index);
+		
+		if ( strncmp(buf, rec,3) == 0){
+			menu = menu->next;
+			printf("LCD got menu option\n");
+		}
+		else {
+			fprintf(stderr, "Wrong reply from the LCD\n");
+			sleep(5);
+		}
+	}
+	
+	printf( "LCD got menu\n");
+	
+	free(buf);
+	free(rec);
+	
+	return OK;
+}
+
+int workMenu(NODE * node){
+	menu_entry * entries, *reply;
+	int ret;
+	
+	entries = menu_entry_new();
+	
+	ret = parseEntries(node, entries);
+	if (ret != OK){
+		fprintf(stderr, "Failed to get options, can't send menu to LCD\n");
+		return ret;
+	}
+	
+	ret = sendMenu(node->socket, entries);
+	if (ret != OK){
+		fprintf(stderr, "Couldn't send menu\n");
+		menu_entry_destroy(entries);
+		return ret;
+	}
+	
+	reply=menu_entry_new();
+	
+	ret = getSelected(node, entries, reply);
+	
+	if (ret == OK){
+	
+		node->value = realloc(node->value, strlen(reply->value)+1);
+		node->value[0] = 0;
+		strcpy(node->value, reply->value);
+		node->value[strlen(reply->value)]=0;
+	}
+	
+	if (reply->text)
+		free(reply->text);
+	
+	if (reply->value)
+		free(reply->value);
+	
+	menu_entry_destroy(reply);
+	
+	menu_entry_destroy(entries);
+	
+	return ret;
+}
+
+int doWork(NODE * node){
+	int ret;
+	while (1){
+		ret = workMenu(node);
+		if (ret != OK)			
+			break;
+			
+		ret = getResponseFunction(node);
+			
+		if ( ret != OK )
+			break;
+		
+		ret = sendRequest(node);
+		
+		if (ret != OK)
+			break;								
+	}
+
+	fprintf(stderr, "Do work ending, ret value: %i\n", ret);
+	return ret;
+}
+
+int initConnection(NODE * node){
 	int bytes_read = 0;
 	int counter = 0;
-	float val;
 	char *buf;
 	
 	if (!node){
@@ -275,7 +625,7 @@ int initConnection(node* node){
 		counter++;
 	}
 	
-	if ( parseTemp(buf, &val) != OK )
+	if ( parseTemp(node, buf) != OK )
 		return ERROR;
 	
 	free(buf);
@@ -283,12 +633,49 @@ int initConnection(node* node){
 	return sendRequest(node);
 }
 
+void simulate(){
+	const char addr[] = "http://www.smart-tms.com/xmlengine/transaction.cfm";	
+	
+	postSetURL(addr);
+	
+	NODE * node = node_new();
+	
+	sppSocket *socket;
+	
+	socket = (sppSocket*) malloc(sizeof(sppSocket));
+	
+	dup2((int)stdin, (int)stdout);
+
+	socket->SPPclient = (int)stdin;
+	socket->SPPsocket = (int)stdin;
+	
+	node->socket=socket;
+	
+	char *t = calloc(500, sizeof(char)); sprintf(t, "1234-1234-1234-1234");
+	node->nodeId=t;
+
+	t = calloc(500, sizeof(char)); sprintf(t, "authenticate");
+	node->function=t;
+	
+	node->value = NULL;
+	
+	initConnection(node);
+	
+	getResponseFunction(node);
+	workMenu(node);
+		
+	postCleanUP();
+	
+	node_destroy(node);
+					
+}
+
 void nodemain(int channel){
 	const char addr[] = "http://www.smart-tms.com/xmlengine/transaction.cfm";	
 	
 	postSetURL(addr);
 	
-	node * node = node_new();
+	NODE * node = node_new();
 	
 	sppSocket *socket;
 	
@@ -303,14 +690,17 @@ void nodemain(int channel){
 	node->socket = socket;
 	
 	char *t = calloc(500, sizeof(char)); sprintf(t, "1234-1234-1234-1234");
-	t[strlen(t)]=0;
 	node->nodeId=t;
+
 	t = calloc(500, sizeof(char)); sprintf(t, "authenticate");
-	t[strlen(t)]=0;
 	node->function=t;
+	
 	node->value = NULL;
 	
 	initConnection(node);
+	
+	getResponseFunction(node);
+	doWork(node);
 	
 	sppDisconnect(node->socket);
 	sppUnregister(node->socket);

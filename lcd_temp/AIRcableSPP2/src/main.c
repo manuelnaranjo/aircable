@@ -65,6 +65,13 @@ int main(int argc, char *argv[]) {
 			}
 			
 			else 
+			if (!strcmp("--simulate", argv[0])){
+				simulate();								
+			}
+			
+
+			
+			else 
 			if (!strcmp("--help", argv[0])){
 				fprintf(stderr, "Usage: \n");
 				fprintf(stderr, "\t\t--testxml Content\n");
