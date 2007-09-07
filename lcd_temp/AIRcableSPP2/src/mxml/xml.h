@@ -37,6 +37,9 @@
 
 #include <string.h>
 
+MXML_DOCUMENT *mxml_buffer(const char* buf, int style );
+int xmlmain(int argc, char *argv[]);
+
 #define XML_DEBUG
 
 #endif /*XML_H_*/

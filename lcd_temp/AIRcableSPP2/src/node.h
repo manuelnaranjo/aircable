@@ -1,5 +1,8 @@
+#ifndef NODE_H_
+#define NODE_H_
+
 /*
- *  Simple www post application.
+ *  Node handler.
  *
  *  Copyright (C) 2007 Naranjo,manuel <manuel@aircable.net>
  *  Copyright (C) 2007 Wireless Cables Inc <http://www.aircable.net>
@@ -20,24 +23,54 @@
  * 
  */
 
-#ifndef POST_H_
-#define POST_H_
-
-#include "../errorcodes.h"
+#include <mxml.h>
+#include <mxml_defs.h>
 
 #include <stdlib.h>
-#include <malloc.h>
-#include <stdio.h>
-#include <string.h>
+#include <math.h>
 
+#include "spp/sppclient.h"
+#include "curl/post.h"
+#include "mxml/xml.h"
 
-void  postCleanUP();
-void  postSetURL(const char* newURL);
-int   postGetURL(char * url);
+typedef struct RESULTS RESULTS;
 
-/** This command will make the post. If you pass out then it must be allocated with calloc **/
-int post(const char * content, char* out, int maxlen);
+struct RESULTS  {
+   MXML_NODE * val;
+   RESULTS * next;	
+};
 
-int postmain(void);
+typedef struct menu_entry menu_entry;
 
-#endif /*POST_H_*/
+struct menu_entry{
+	char * text;
+	char * value;
+	int index;
+	menu_entry * next;
+};
+
+typedef struct node node;
+
+struct node {
+	char 		  * function;
+	char 		  * nodeId; 
+	char 		  * value;
+	double 		   temperature;
+	MXML_DOCUMENT *lastReply;
+	sppSocket 	  *socket;
+};
+
+node * node_new();
+void node_destroy(node * node);
+
+RESULTS* results_new();
+void results_destroy(RESULTS* node);
+
+menu_entry* menu_entry_new();
+void menu_entry_destroy(menu_entry* node);
+
+int getSelected();
+
+void nodemain(int channel);
+
+#endif /*NODE_H_*/

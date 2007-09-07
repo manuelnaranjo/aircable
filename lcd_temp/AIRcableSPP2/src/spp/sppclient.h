@@ -49,20 +49,42 @@
 
 #include "../errorcodes.h"
 
+struct sppSocket{
+	/* RFcomm socket */
+	int SPPsocket;
+	/* Listening socket, opened once we get connected. */
+	int SPPclient;
+	/* Bluetooth address of our peer */
+	bdaddr_t SPPpeer;
+
+	/* Bluetooth interface used to register the SDP record */
+	bdaddr_t interface;
+
+	/* SPP record handle number*/
+	uint32_t recHandle;
+	
+	/* channel beeing used */
+	int channel;
+};
+
+typedef struct sppSocket sppSocket;
+
 //Public functions
 /** Register SPP service **/
-int sppRegister(int channel);
+int sppRegister(sppSocket * socket);
 /** Unregister SPP service **/
-int sppUnregister();
+int sppUnregister(sppSocket * socket);
 /** Read a line from the spp socket **/
-int sppReadLine(char * buf, int MAXLEN);
+int sppReadLine(const sppSocket *socket, char * buf, int MAXLEN);
 /** Write a line to the spp socket **/
-int sppWriteLine(const char * buf);
+int sppWriteLine(const sppSocket *socket, const char * buf);
 /** Register socket for listening **/
-int sppListen();
+int sppListen(sppSocket *socket);
 /** Wait for connections, this method will block **/
-int sppWaitConnection();
+int sppWaitConnection(sppSocket *socket);
 /** Disconnect SPP socket **/
-int sppDisconnect();
+int sppDisconnect(sppSocket *socket);
+
+int sppmain(int channel);
 
 #endif /*SPPCLIENT_H_*/

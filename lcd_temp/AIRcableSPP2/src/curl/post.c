@@ -3,9 +3,6 @@
  *
  *  Copyright (C) 2007 Naranjo,manuel <manuel@aircable.net>
  *  Copyright (C) 2007 Wireless Cables Inc <http://www.aircable.net>
- * 
- *  Part of the work is based on: 
- * 			http://curl.haxx.se/lxr/source/docs/examples/getinmemory.c
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -54,11 +51,23 @@ int post(const char * content, char* out, const int maxlen){
 	char *commandBuffer;
 	char line[256];
 	int count = 0;
-	int bufLen = 0, len = 0;	
+	int bufLen = 0, len = 0;
+	
+	if (!TARGET_URL){
+		fprintf(stderr, "You need to setup URL before calling post\n");
+		return ERROR;
+	}	
+	
+	if (!content){
+		fprintf(stderr, "Can't send a null content\n");
+		return ERROR;
+	}
+	
 	bufLen  = strlen(commandFormat);
 	bufLen += strlen(TARGET_URL);
 	bufLen += strlen(content);	
 	commandBuffer = malloc(bufLen + 5);
+	
 	sprintf(commandBuffer, commandFormat, content, TARGET_URL);
 
 	if ( !(fpipe = (FILE*)popen(commandBuffer,"r")) )

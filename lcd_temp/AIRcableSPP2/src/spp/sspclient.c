@@ -24,33 +24,27 @@
 
 static int channelNumber;
 
-/* RFcomm socket */
-static int SPPsocket;
-/* Listening socket, opened once we get connected. */
-static int SPPclient;
-/* Bluetooth address of our peer */
-static bdaddr_t SPPpeer;
-
-/* Bluetooth interface used to register the SDP record */
-static bdaddr_t interface;
-
-/* SPP record handle number*/
-static uint32_t recHandle;
-
 /** Constants	**/
 //times
 #define TIMEOUT 			120
 
 #define SPP_DEBUG
 
-int sppRegister(int channelN){
+int sppRegister(sppSocket * socket){	
 	sdp_list_t *svclass_id, *apseq, *proto[2], *profiles, *root, *aproto;
 	uuid_t root_uuid, sp_uuid, l2cap, rfcomm;
 	sdp_profile_desc_t profile;
-	uint8_t u8 = channelN ? channelN : 1;
+	uint8_t u8;
 	sdp_record_t  *record;
 	sdp_session_t *session;	
 	sdp_data_t *channel;
+	
+	if (socket->channel<1){
+		fprintf(stderr, "Wrong channel %i\n", socket->channel);
+		return ERROR;
+	}
+	
+	u8 = socket->channel;
 	
 	int ret;
 	
@@ -96,11 +90,11 @@ int sppRegister(int channelN){
 	aproto = sdp_list_append(0, apseq);
 	sdp_set_access_protos(record, aproto);
 
-	bacpy(&interface, BDADDR_ANY);
+	bacpy(&socket->interface, BDADDR_ANY);
 
 	sdp_set_info_attr(record, "Serial Port", 0, "AIRcableSPP server");
 
-	if (sdp_device_record_register(session, &interface, record, 0) < 0) {
+	if (sdp_device_record_register(session, &socket->interface, record, 0) < 0) {
 		perror("Service Record registration failed\n");
 		ret = ERROR;
 		goto end;
@@ -108,7 +102,7 @@ int sppRegister(int channelN){
 
 	printf("Serial Port service registered\n");
 	
-	recHandle = record->handle;
+	socket->recHandle = record->handle;
 	
 	ret = OK;
 	channelNumber = u8;
@@ -126,8 +120,8 @@ end:
 
 }
 
-int sppUnregister(){
-	if (!recHandle){
+int sppUnregister(sppSocket * socket){
+	if (!socket->recHandle){
 		fprintf(stderr, "Not registered, nothing to do\n");
 		return ERROR;
 	}
@@ -137,14 +131,14 @@ int sppUnregister(){
 	sdp_session_t *sess;
 	sdp_record_t *rec;
 
-	sess = sdp_connect(&interface, BDADDR_LOCAL, SDP_RETRY_IF_BUSY);
+	sess = sdp_connect(&socket->interface, BDADDR_LOCAL, SDP_RETRY_IF_BUSY);
 	if (!sess) {
 		printf("No local SDP server!\n");
 		return ERROR;
 	}
 
 	attr = sdp_list_append(0, &range);
-	rec = sdp_service_attr_req(sess, recHandle, SDP_ATTR_REQ_RANGE, attr);
+	rec = sdp_service_attr_req(sess, socket->recHandle, SDP_ATTR_REQ_RANGE, attr);
 	sdp_list_free(attr, 0);
 
 	if (!rec) {
@@ -153,7 +147,7 @@ int sppUnregister(){
 		return ERROR;
 	}
 
-	if (sdp_device_record_unregister(sess, &interface, rec)) {
+	if (sdp_device_record_unregister(sess, &socket->interface, rec)) {
 		printf("Failed to unregister service record: %s\n", strerror(errno));
 		sdp_close(sess);
 		return ERROR;
@@ -164,10 +158,11 @@ int sppUnregister(){
 	return OK;
 }
 
-int sppListen(){
+int sppListen(sppSocket * Socket){
+	// Mayus needd for Socket to avoid conflicts with function socket
 	struct sockaddr_rc loc_addr = { 0 };
 	
-	if (channelNumber < 1){
+	if (Socket->channel < 1){
 		fprintf(stderr, "Channel Number can't be 0 or negative\n");
 		fprintf(stderr, "You need to call sppRegister() first\n");
 		return ERROR;
@@ -175,10 +170,10 @@ int sppListen(){
 		
 	
     // allocate socket
-	SPPsocket = socket(AF_BLUETOOTH, SOCK_STREAM, BTPROTO_RFCOMM);
-    if (SPPsocket < 0) {
+	Socket->SPPsocket = socket(AF_BLUETOOTH, SOCK_STREAM, BTPROTO_RFCOMM);
+    if (Socket->SPPsocket < 0) {
 		perror("Can't create RFCOMM socket");
-		SPPsocket = 0;
+		Socket->SPPsocket = 0;
 		return ERROR;
 	}
 
@@ -187,72 +182,88 @@ int sppListen(){
     loc_addr.rc_family = AF_BLUETOOTH;
     loc_addr.rc_bdaddr = *BDADDR_ANY;
     loc_addr.rc_channel = (uint8_t) (channelNumber);
-    if (bind(SPPsocket, (struct sockaddr *)&loc_addr, sizeof(loc_addr)) < 0) {
+    if (bind(Socket->SPPsocket, (struct sockaddr *)&loc_addr, sizeof(loc_addr)) < 0) {
 		perror("Can't bind RFCOMM socket");
-		close(SPPsocket);
-		SPPsocket = 0;
+		close(Socket->SPPsocket);
+		Socket->SPPsocket = 0;
 		return ERROR;
 	}    
 
     // put socket into listening mode
-    listen(SPPsocket, 1);
+    listen(Socket->SPPsocket, 1);
+    
+    printf("Listening in channel %i\n", Socket->channel);
     
     return OK;
 }
     
-int sppWaitConnection(){
+int sppWaitConnection(sppSocket * socket){
 	struct sockaddr_rc peer_addr = { 0 };
     char addr[17] = { 0 };
     int unsigned opt = sizeof(peer_addr);
     struct timeval t;
 	int result; 
 	int unsigned ol = sizeof(struct timeval);
+	
+	printf("Waiting for connection in Channel: %i\n", socket->channel);
     
-	if (!SPPsocket){
+	if (!socket->SPPsocket){
 		fprintf(stderr, "You need to call sspListen first\n");
 		return ERROR;
 	}
 	
     // accept one connection
-    SPPclient = accept(SPPsocket, (struct sockaddr *)&peer_addr, &opt);
+    socket->SPPclient = accept(socket->SPPsocket, (struct sockaddr *)&peer_addr, &opt);
 
     ba2str( &peer_addr.rc_bdaddr, addr );
-    bacpy( &SPPpeer, &peer_addr.rc_bdaddr);
+    bacpy( &socket->SPPpeer, &peer_addr.rc_bdaddr);
     printf("accepted connection from %s\n", addr);
         
-    result = getsockopt(SPPclient, SOL_SOCKET, SO_RCVTIMEO, &t, &ol); 
+    result = getsockopt(socket->SPPclient, SOL_SOCKET, SO_RCVTIMEO, &t, &ol); 
 	
-	if (result < 0)
-		perror("timeout");
+	if (result < 0){
+		perror("Couldn't set timeout");
+		return OK;
+	}
 
 	t.tv_sec = TIMEOUT;
 	t.tv_usec = 0;
-	result = setsockopt(SPPclient, SOL_SOCKET, SO_RCVTIMEO,  &t, ol);	
-	if (result < 0)
-		perror("timeout");
+	result = setsockopt(socket->SPPclient, SOL_SOCKET, SO_RCVTIMEO,  &t, ol);	
+	if (result < 0){
+		perror("Couldn't set timeout");
+		return OK;
+	}
 
-	result = getsockopt(SPPclient, SOL_SOCKET, SO_RCVTIMEO, &t, &ol); 
+	result = getsockopt(socket->SPPclient, SOL_SOCKET, SO_RCVTIMEO, &t, &ol); 
 	if (result < 0)
-		perror("timeout");
+		perror("Couldn't set timeout");
+	
       
     return OK;
 }
 
-int sppDisconnect(){
+int sppDisconnect(sppSocket * socket){
 	struct hci_conn_info_req *cr;
 	int dd;
 	int ret = OK;
 	
-	if (SPPclient < 1 || SPPsocket < 1){
+	if (socket->SPPclient < 1 && socket->SPPsocket < 1){
 		perror("Not Connected, can't disconnect\n");
 		return ERROR;
 	}
 	// close connection
-	if (SPPclient)
-    	close(SPPclient);
-    	
-    if (SPPsocket)
-    	close(SPPsocket);
+	if (socket->SPPsocket)
+    	close(socket->SPPsocket);
+	
+	printf("Closed socket\n");
+	   	
+    if (socket->SPPclient)
+    	close(socket->SPPclient);
+    
+    printf("Closed client\n");
+    
+    socket->SPPclient = 0;
+    socket->SPPsocket = 0;
 	
 	dd = hci_open_dev(hci_get_route(NULL));
 	if (dd < 0) {
@@ -266,7 +277,7 @@ int sppDisconnect(){
 		return ERROR;
 	}
 
-	bacpy(&cr->bdaddr, &SPPpeer);
+	bacpy(&cr->bdaddr, &socket->SPPpeer);
 	cr->type = ACL_LINK;
 	if (ioctl(dd, HCIGETCONNINFO, (unsigned long) cr) < 0) {
 		perror("Get connection info failed");
@@ -278,6 +289,8 @@ int sppDisconnect(){
 		perror("Disconnect failed");
 		ret = ERROR;
 	}
+	
+	printf("Closed hci connection\n");
 
 	if (cr)
 		free(cr);
@@ -289,12 +302,12 @@ int sppDisconnect(){
 }
 
 
-int sppReadLine(char * out, int MAXLEN){
+int sppReadLine(const sppSocket * socket, char * out, int MAXLEN){
 	struct pollfd fds;
 	int ret, len=0;
 	char c;	
 
-	fds.fd = SPPclient;
+	fds.fd = socket->SPPclient;
 	fds.events = POLLIN;
 
 	while(1) {
@@ -304,7 +317,7 @@ int sppReadLine(char * out, int MAXLEN){
 			return ERROR;
 		}
 			
-		ret = read(SPPclient, &c, 1);
+		ret = read(socket->SPPclient, &c, 1);
 		if ( ret < 0 ) {
 			perror("Error while reading from Rfcomm Socket (read)");
 			return ERROR;
@@ -344,12 +357,12 @@ int sppReadLine(char * out, int MAXLEN){
 	
 }
 
-int sppWriteLine(const char * buf){
+int sppWriteLine(const sppSocket * socket, const char * buf){
 	int ret = 0, len;
 	struct pollfd fds;
 	char * out = NULL;
 	
-	if (!SPPclient){
+	if (!socket->SPPclient){
 			fprintf(stderr, "SPP socket is not opened, can't write\n");
 			return ERROR;
 	}
@@ -362,7 +375,7 @@ int sppWriteLine(const char * buf){
 	}
 		
 		
-	fds.fd = SPPclient;
+	fds.fd = socket->SPPclient;
 	fds.events = POLLOUT;
 		
 	ret = poll(&fds, 1, -1); //wait forever, there's no chance poll will return = 0
@@ -373,7 +386,7 @@ int sppWriteLine(const char * buf){
 	}
 	
 	sprintf(out, "%s\n", buf);
-	ret = write(SPPclient,out,strlen(out));
+	ret = write(socket->SPPclient,out,strlen(out));
 			
 	if (ret < 0) {
 		perror("Error while writting to RFcomm Socket (write)");
@@ -389,22 +402,24 @@ int sppWriteLine(const char * buf){
 	return ret;
 }
 
-int sppmain(void) {
-	int r = sppRegister(1);
+int sppmain(int channel) {
+	sppSocket socket;
+	socket.channel=channel;
+	int r = sppRegister(&socket);
 	if (r != OK)
 		return -1;
 	
-	sppListen();
-	sppWaitConnection();
+	sppListen(&socket);
+	sppWaitConnection(&socket);
 	
 	char * line;
 	line = calloc(1024, sizeof(char));
 	
-	sppReadLine(line, 1024);
-	sppWriteLine(line);
+	sppReadLine(&socket, line, 1024);
+	sppWriteLine(&socket, line);
 	
 	free(line);
-	sppUnregister();
+	sppUnregister(&socket);
 	
 	sdp_cleanup();
 	return 0;

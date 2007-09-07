@@ -66,7 +66,7 @@ MXML_DOCUMENT *mxml_buffer(const char* buf, int style )
 }
 
 
-int main(int argc, char *argv[]){	
+int xmlmain(int argc, char *argv[]){	
 	MXML_DOCUMENT *doc = mxml_buffer(argv[1], 1);
 	
 	if (!doc)
