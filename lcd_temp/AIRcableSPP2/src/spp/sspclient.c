@@ -244,7 +244,7 @@ int sppWaitConnection(sppSocket * socket){
 
 int sppDisconnect(sppSocket * socket){
 	struct hci_conn_info_req *cr;
-	int dd;
+	int dd, hcidev;
 	int ret = OK;
 	
 	if (socket->SPPclient < 1 && socket->SPPsocket < 1){
@@ -265,7 +265,14 @@ int sppDisconnect(sppSocket * socket){
     socket->SPPclient = 0;
     socket->SPPsocket = 0;
 	
-	dd = hci_open_dev(hci_get_route(NULL));
+    hcidev = hci_get_route(NULL);
+    
+    if (hcidev < 0){
+    	perror("Couldn't route to hci dev, can't close ACL link\n");
+    	return ERROR;
+    }
+    
+	dd = hci_open_dev(hcidev);
 	if (dd < 0) {
 		perror("HCI device open failed");
 		return ERROR;
@@ -421,6 +428,6 @@ int sppmain(int channel) {
 	free(line);
 	sppUnregister(&socket);
 	
-	sdp_cleanup();
+	//sdp_cleanup();
 	return 0;
 }

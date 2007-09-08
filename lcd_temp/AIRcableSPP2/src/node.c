@@ -421,15 +421,17 @@ int getSelected(NODE * node, menu_entry * menu, menu_entry * reply){
 	if ( sscanf(buf, "@%02hX!%f:%f#%s", &rep, &val, &cal, &node->type) != 4 ){
 		perror("Wrong content");
 		free(buf);
-		return ERROR;
+		return WRONG_REPLY;
 	}					
+	
+	free(buf);
 	
 	while (menu && menu->index != rep)
 		menu = menu->next;
 						
 	if (menu == NULL ){
 		fprintf(stderr, "Wrong Option %i\n" , rep);
-		return ERROR;
+		return WRONG_REPLY;
 	}
 		
 	printf("Selected: index:%02hX\ttext:%s\tvalue:%s\n", rep, menu->text, menu->value);
@@ -451,7 +453,6 @@ int getSelected(NODE * node, menu_entry * menu, menu_entry * reply){
 		reply->value[strlen(menu->value)]=0;
 	}
 	
-	free(buf);
 	return OK;
 		
 }
@@ -531,7 +532,7 @@ int sendMenu(sppSocket *socket, menu_entry * menu){
 
 int workMenu(NODE * node){
 	menu_entry * entries, *reply;
-	int ret;
+	int ret, count = 0;
 	
 	entries = menu_entry_new();
 	
@@ -549,17 +550,40 @@ int workMenu(NODE * node){
 	}
 	
 	reply=menu_entry_new();
-	
-	ret = getSelected(node, entries, reply);
-	
-	if (ret == OK){
-	
-		node->value = realloc(node->value, strlen(reply->value)+1);
-		node->value[0] = 0;
-		strcpy(node->value, reply->value);
-		node->value[strlen(reply->value)]=0;
+	if (!reply){
+		perror("Couldn't allocate memory\n");
+		menu_entry_destroy(entries);
+		return ERROR;
 	}
 	
+	ret = ERROR;
+	
+	while ( count < 3 ){
+		ret = getSelected(node, entries, reply);
+		if (ret==OK || ret==CONNECTION_CLOSE)
+			break;
+		
+		count ++;
+	}
+	
+	if (ret == CONNECTION_CLOSE){
+		fprintf(stderr, "Node will close connection\n");
+		goto free;
+	}
+	
+	if (ret != OK){
+		fprintf(stderr, "Didn't got right response from LCD, ret code: %i\n", ret);
+		goto free;
+	}
+	
+	
+	count = strlen(reply->value);
+	
+	node->value = realloc(node->value, count+1);	
+	memcpy(node->value, reply->value,count);
+	node->value[count]=0;
+
+free:
 	if (reply->text)
 		free(reply->text);
 	
@@ -670,6 +694,29 @@ void simulate(){
 					
 }
 
+int isAccepted(NODE * node){
+	MXML_NODE *respNode;
+	MXML_ITERATOR *iter;
+	int ret = OK;
+	
+	iter = mxml_iterator_new(node->lastReply);
+	
+	mxml_iterator_setup( iter, node->lastReply );
+	
+	respNode = mxml_iterator_scan_node( iter, "accept" );
+
+	if (!respNode || !respNode->name){
+		ret = NOT_ACCEPTED;
+		printf("Node wasn't authenticated\n");
+	} else
+		printf("Authentication completed\n");
+		
+		
+	mxml_iterator_destroy(iter);
+	
+	return ret;	
+}
+
 void nodemain(int channel){
 	const char addr[] = "http://www.smart-tms.com/xmlengine/transaction.cfm";	
 	
@@ -684,14 +731,26 @@ void nodemain(int channel){
 	socket->channel=channel;
 	
 	sppRegister(socket);
+	
 	sppListen(socket);
 	sppWaitConnection(socket);
 	
 	node->socket = socket;
 	
-	char *t = calloc(500, sizeof(char)); sprintf(t, "1234-1234-1234-1234");
+#define DEBUG
+#ifndef DEBUG
+#include <bluetooth/bluetooth.h>
+	char *t = calloc(18, sizeof(char));	
+    ba2str( &socket->SPPpeer, t );
+    t[17]=0;
+    
+#else
+	char *t = calloc(21, sizeof(char)); 
+	sprintf(t, "1234-1234-1234-1234");
+	t[20]=0;
+#endif
 	node->nodeId=t;
-
+	
 	t = calloc(500, sizeof(char)); sprintf(t, "authenticate");
 	node->function=t;
 	
@@ -699,13 +758,20 @@ void nodemain(int channel){
 	
 	initConnection(node);
 	
-	getResponseFunction(node);
-	doWork(node);
+	if (isAccepted(node) == OK){
+	
+		getResponseFunction(node);
+		doWork(node);
+	}
 	
 	sppDisconnect(node->socket);
+		
+	
+	
 	sppUnregister(node->socket);
-	sdp_cleanup();
-			
+	
+	
+	
 	postCleanUP();
 	
 	node_destroy(node);

@@ -63,6 +63,8 @@ int post(const char * content, char* out, const int maxlen){
 		return ERROR;
 	}
 	
+	printf("Sending: \n%s\n", content);
+	
 	bufLen  = strlen(commandFormat);
 	bufLen += strlen(TARGET_URL);
 	bufLen += strlen(content);	

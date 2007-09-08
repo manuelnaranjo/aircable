@@ -31,5 +31,11 @@
 //TODO: Extend errors list
 #define ERROR				-1
 
+//errors related to lcd<->nslu2 protocol
+#define WRONG_REPLY			-100
+#define FAILED_SEND_MENU	-101
+
+#define NOT_ACCEPTED		-200
+
 
 #endif
