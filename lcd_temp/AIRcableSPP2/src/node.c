@@ -22,44 +22,6 @@
 
 #include "node.h"
 
-NODE * node_new(){
-	NODE * out;
-	
-	out = (NODE*) malloc (sizeof(NODE));
-	
-	out->function = 0;
-	out->lastReply = 0;
-	out->nodeId = 0;
-	out->socket = 0;
-	out->value = 0;
-	out->temperature=0.0f;
-	out->type=0;
-	
-	return out;
-}
-
-void node_destroy(NODE * node){
-	if (!node)
-		return;
-	
-	if (node->function)
-		free(node->function);
-	
-	if (node->lastReply)
-		mxml_document_destroy(node->lastReply);
-	
-	if (node->nodeId)
-		free(node->nodeId);
-	
-	if (node->socket)				
-		free(node->socket);
-	
-	if (node->value)
-		free(node->value);
-
-	free(node);
-}
-
 int calcTemp(NODE* node, int val, int calib){
 	switch (node->type){
 		case 'K':
@@ -87,41 +49,96 @@ int parseTemp(NODE* node, char * buf){
 	return calcTemp(node, value, calib);
 }
 
-char* getReturnVars(MXML_DOCUMENT *doc){
-	MXML_NODE *node;
-	MXML_ITERATOR iter;
-	char * options;
-	int t = 0;
+/**
+ * isTagPresent(Node * node, char *tag)
+ * Checks in node->document if a tag is present, in case it's present then
+ * node->tag will point to that node, and will return TAG_FOUND
+ */
+int isTagPresent(NODE * node, char *tag){
+	int ret = TAG_NOT_PRESENT;
+
+	MXML_ITERATOR iter;	
+	MXML_NODE * temp;
+	
+	if (node->tag != NULL){
+		mxml_node_destroy(node->tag);
+		node->tag = NULL;
+	}
+	
+	mxml_iterator_setup( &iter, node->lastReply );
+	
+	temp = mxml_iterator_scan_node( &iter, tag );
 		
-	mxml_iterator_setup( &iter, doc );
+	if (temp && temp->name){		
+		ret = TAG_FOUND;
+		node->tag = mxml_node_clone_tree(temp);
+	}
+		
+	return ret;	
+}
+
+
+int workMonitor(NODE *node){
+	int ret = OK;
+	int flags = 0;
+	int min, max;
 	
-	node =  mxml_iterator_scan_node( &iter, "returnvars" );
+
 	
-	if (!node)
+	if (isTagPresent(node, TAG_DISPLAY_TEMP)!=TAG_FOUND){
+		flags += FDISPLAY_TEMP;
+		
+		if (isTagPresent(node, TAG_RETURN_TEMP))
+			flags += FRETURN_TEMP;
+		
+		if (isTagPresent(node, TAG_COMP_TEMP)){
+			MXML_NODE *mnode;
+			flags += FCOMPARE_TEMP;
+			
+			mnode = node->tag->child;
+			
+			if (strcmp("min", mnode->name)==0){
+				min = atoi(mnode->data);
+				max = atoi(mnode->next->data);
+			} else {
+				max = atoi(mnode->data);
+				min = atoi(mnode->next->data);
+			}
+		}
+	}
+	
+	return ret;
+}
+
+char* getReturnVars(NODE *node){
+	MXML_NODE *mnode;
+	char * options = NULL;
+	int t = 0;
+	
+	if (isTagPresent(node, TAG_RETURN_VARS)!=TAG_FOUND)
 		return NULL;
-	
+			
 	options = calloc (2048, sizeof (char));
 	
-	node = node->child;
+	mnode = node->tag->child;
 	
-	while (node){
+	while (mnode){
 		t += sprintf(options, 
 				"%s<%s>%s</%s>\n",  
 				options,
-				node->name,
-				node->data,
-				node->name);		
+				mnode->name,
+				mnode->data,
+				mnode->name);		
 		
-		node = node->next;
+		mnode = mnode->next;
 				
 	}
 	options[t]=0;
 	
-	return options;
-	
+	return options;	
 }
 
-char * generateXML(const NODE * node) {
+char * generateXML(NODE * node) {
 	char* out = NULL;	
 	int len = 0;
 	
@@ -153,7 +170,7 @@ char * generateXML(const NODE * node) {
 		len+=strlen(node->value);
 	
 	if (node->lastReply){
-		optional = getReturnVars(node->lastReply);
+		optional = getReturnVars(node);
 		if (optional)
 			len+=strlen(optional);
 	}
@@ -204,98 +221,22 @@ int sendRequest(NODE* node){
 	doc=mxml_buffer(rep, 0);
 	
 	free(rep);
+	
+	if (node->tag) {//we need to clear the last used tag
+			mxml_node_destroy(node->tag);
+			node->tag = 0;
+	}
 
+	if (node->lastReply) {//we need to clear the last status.
+		mxml_document_destroy(node->lastReply);
+		node->lastReply = 0;
+	}
+	
 	node->lastReply = doc;
 	
 	return OK;
 }
 
-menu_entry* menu_entry_new(){
-	menu_entry * out = (menu_entry*)malloc(sizeof(menu_entry));
-	out->next=NULL;
-	out->text=0;
-	out->value=0;
-	return out;
-}
-
-void menu_entry_destroy(menu_entry* node){
-	if (!node)
-		return;
-	
-	if (node->next)
-		menu_entry_destroy(node->next);
-	
-	free(node);
-}
-
-RESULTS* results_new(){
-	return (RESULTS*) malloc(sizeof(RESULTS));
-}
-
-void results_destroy(RESULTS* node){
-	if (!node)
-		return;
-	
-	if (node->val)
-		mxml_node_destroy(node->val);
-	
-	if (node->next)
-		results_destroy(node->next);
-	
-	free(node);
-}
-
-menu_entry *sort(menu_entry* list, int n)
-{
-  menu_entry *lst, *tmp = list, *prev = NULL, *potentialprev = list;
-  int idx, idx2;
-  
-  for (idx=0; idx<n-1; idx++) 
-  {
-    for (idx2=0,lst=list; 
-         lst && lst->next && (idx2<=n-1-idx);
-         idx2++)
-    {
-      if (!idx2)
-      {
-        //we are at beginning, so treat start 
-        //node as prev node
-        prev = lst;
-      }
-      
-      //compare the two neighbors
-      if (lst->next->index < lst->index) 
-      {  
-        //swap the nodes
-        tmp = (lst->next?lst->next->next:0);
-                
-        if (!idx2 && (prev == list))
-        {
-          //we do not have any special sentinal nodes
-          //so change beginning of the list to point 
-          //to the smallest swapped node
-          list = lst->next;
-        }
-        potentialprev = lst->next;
-        prev->next = lst->next;
-        lst->next->next = lst;
-        lst->next = tmp;
-        prev = potentialprev;
-      }
-      else
-      {
-        lst = lst->next;
-        if(idx2)
-        {
-          //just keep track of previous node, 
-          //for swapping nodes this is required
-          prev = prev->next;
-        }
-      }     
-    } 
-  }
-  return list;
-}
 
 /**
  * Get menu options from last reply
@@ -306,18 +247,17 @@ int parseEntries(NODE * node, menu_entry *output){
 	int i = 0;
 	
 	MXML_NODE *menu;
-	MXML_ITERATOR *iter;
 	
-	iter = mxml_iterator_new(node->lastReply);
+	if (isTagPresent(node, TAG_SELECT_MENU)!=TAG_FOUND){
+		fprintf(stderr, "Tag <%s/> not present in the xml doc\n", 
+				TAG_SELECT_MENU);
+		fprintf(stderr, "There's no menu to send\n");
+		return ERROR;
+	}
 	
-	mxml_iterator_setup( iter, node->lastReply );
-	
-	menu = mxml_iterator_scan_node( iter, "selectmenu" );
-	
-	mxml_iterator_destroy(iter);
 	out = NULL;
 	
-	menu = menu->child;
+	menu = node->tag->child;
 	
 	while (menu){
     	MXML_NODE *node;
@@ -327,20 +267,20 @@ int parseEntries(NODE * node, menu_entry *output){
     	curr->next = out;
     	node = menu->child;    	
     	
-    	if (strcmp(node->name, "text") == 0){
+    	if (strcmp(node->name, TAG_TEXT) == 0){
     		curr->text = node->data;
     	}
-    	else if (strcmp(node->name, "value") == 0){
+    	else if (strcmp(node->name, TAG_VALUE) == 0){
     		curr->value = node->data;
     	}
     	curr->index = ++i;
     	
     	node = node->next;
     	
-    	if (strcmp(node->name, "text") == 0){
+    	if (strcmp(node->name, TAG_TEXT) == 0){
     		curr->text = node->data;
     	}
-    	else if (strcmp(node->name, "value") == 0){
+    	else if (strcmp(node->name, TAG_VALUE) == 0){
     		curr->value = node->data;
     	}
    		
@@ -374,23 +314,22 @@ int parseEntries(NODE * node, menu_entry *output){
  * Get the response function
  */
 int getResponseFunction(NODE * node){
-	MXML_NODE *respNode;
-	MXML_ITERATOR *iter;
-	int len;
-	
-	iter = mxml_iterator_new(node->lastReply);
-	
-	mxml_iterator_setup( iter, node->lastReply );
-	
-	respNode = mxml_iterator_scan_node( iter, "responsefunction" );
+	int len; char * data;
 
-	node->function = realloc(node->function, strlen(respNode->data)+1);
+	if (isTagPresent(node, TAG_RESP_FUNCTION)!=TAG_FOUND){
+		fprintf(stderr, "Tag: <%s/> is not present can't go on\n", 
+				TAG_RESP_FUNCTION);
+		return ERROR;
+	}
 	
-	len = sprintf(node->function, "%s", respNode->data);
+	data = node->tag->data;
+	
+	node->function = realloc(node->function, strlen(data)+1);
+	
+	len = sprintf(node->function, "%s", data);
 	node->function[len]=0;
 	
-	mxml_iterator_destroy(iter);
-	
+		
 	return OK;		
 }
 
@@ -600,19 +539,26 @@ free:
 int doWork(NODE * node){
 	int ret;
 	while (1){
-		ret = workMenu(node);
+		if (isTagPresent(node, TAG_MONITOR)!=TAG_FOUND)
+			ret = workMenu(node);
+		
+		else
+			ret = workMonitor(node);
+		
+		
 		if (ret != OK)			
 			break;
-			
+		
 		ret = getResponseFunction(node);
-			
+		
 		if ( ret != OK )
 			break;
 		
 		ret = sendRequest(node);
 		
 		if (ret != OK)
-			break;								
+			break;
+		
 	}
 
 	fprintf(stderr, "Do work ending, ret value: %i\n", ret);
@@ -678,8 +624,7 @@ void simulate(){
 	char *t = calloc(500, sizeof(char)); sprintf(t, "1234-1234-1234-1234");
 	node->nodeId=t;
 
-	t = calloc(500, sizeof(char)); sprintf(t, "authenticate");
-	node->function=t;
+	node->function=TAG_AUTHENTICATE;
 	
 	node->value = NULL;
 	
@@ -695,25 +640,14 @@ void simulate(){
 }
 
 int isAccepted(NODE * node){
-	MXML_NODE *respNode;
-	MXML_ITERATOR *iter;
 	int ret = OK;
 	
-	iter = mxml_iterator_new(node->lastReply);
-	
-	mxml_iterator_setup( iter, node->lastReply );
-	
-	respNode = mxml_iterator_scan_node( iter, "accept" );
-
-	if (!respNode || !respNode->name){
+	if (isTagPresent(node, TAG_ACCEPT)!=TAG_FOUND){
 		ret = NOT_ACCEPTED;
 		printf("Node wasn't authenticated\n");
 	} else
 		printf("Authentication completed\n");
 		
-		
-	mxml_iterator_destroy(iter);
-	
 	return ret;	
 }
 
@@ -751,8 +685,7 @@ void nodemain(int channel){
 #endif
 	node->nodeId=t;
 	
-	t = calloc(500, sizeof(char)); sprintf(t, "authenticate");
-	node->function=t;
+	node->function=TAG_AUTHENTICATE;
 	
 	node->value = NULL;
 	

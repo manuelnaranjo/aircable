@@ -28,54 +28,37 @@
 
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 
+#include "types.h"
 #include "spp/sppclient.h"
 #include "curl/post.h"
 #include "mxml/xml.h"
 #include "menu.h"
-
-typedef struct RESULTS RESULTS;
-
-struct RESULTS  {
-   MXML_NODE * val;
-   RESULTS * next;	
-};
-
-typedef struct menu_entry menu_entry;
-
-struct menu_entry{
-	char * text;
-	char * value;
-	int index;
-	menu_entry * next;
-};
-
-struct node {	
-	char 		  * function;
-	char 		  * nodeId; 
-	char 		  * value;
-	char 		  type;
-	double 		   temperature;
-	MXML_DOCUMENT *lastReply;
-	sppSocket 	  *socket;
-};
-
-typedef struct node NODE;
-
-NODE * node_new();
-void node_destroy(NODE * node);
 
 int getSelected();
 
 void nodemain(int channel);
 void simulate();
 
+//TAGS that we might want to look for
+#define TAG_MONITOR 		strdup("monitor")
+#define TAG_DISPLAY_TEMP 	strdup("display")
+#define TAG_RETURN_TEMP  	strdup("return")
+#define TAG_COMP_TEMP		strdup("compare")
+#define TAG_RETURN_VARS		strdup("returnvars")
+#define TAG_SELECT_MENU		strdup("selectmenu")
+#define TAG_TEXT			strdup("text")
+#define TAG_VALUE			strdup("value")
+#define TAG_RESP_FUNCTION	strdup("responsefunction")
+#define TAG_AUTHENTICATE	strdup("authenticate")
+#define TAG_ACCEPT			strdup("accept")
 
 
-RESULTS* results_new();
-void results_destroy(RESULTS* node);
-
-menu_entry* menu_entry_new();
-void menu_entry_destroy(menu_entry* node);
+//FLAGS
+#define FDISPLAY_TEMP 	1
+#define FRETURN_TEMP	2
+#define FCOMPARE_TEMP	4
 
 #endif /*NODE_H_*/
+

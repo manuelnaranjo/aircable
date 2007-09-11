@@ -47,27 +47,8 @@
 #include <bluetooth/sdp.h>
 #include <bluetooth/sdp_lib.h>
 
+#include "../types.h"
 #include "../errorcodes.h"
-
-struct sppSocket{
-	/* RFcomm socket */
-	int SPPsocket;
-	/* Listening socket, opened once we get connected. */
-	int SPPclient;
-	/* Bluetooth address of our peer */
-	bdaddr_t SPPpeer;
-
-	/* Bluetooth interface used to register the SDP record */
-	bdaddr_t interface;
-
-	/* SPP record handle number*/
-	uint32_t recHandle;
-	
-	/* channel beeing used */
-	int channel;
-};
-
-typedef struct sppSocket sppSocket;
 
 //Public functions
 /** Register SPP service **/

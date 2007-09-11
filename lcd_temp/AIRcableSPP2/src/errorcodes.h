@@ -27,6 +27,8 @@
 #define OK					0
 #define CONNECTION_CLOSE 	1
 
+#define TAG_FOUND			2
+
 //errors
 //TODO: Extend errors list
 #define ERROR				-1
@@ -36,6 +38,8 @@
 #define FAILED_SEND_MENU	-101
 
 #define NOT_ACCEPTED		-200
+
+#define TAG_NOT_PRESENT		-300
 
 
 #endif

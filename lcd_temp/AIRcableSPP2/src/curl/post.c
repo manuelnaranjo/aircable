@@ -20,6 +20,31 @@
  * 
  */
 
+ //
+ //
+ // NLUS2<->LCD Messages format
+ // 	Temperature:
+ //				!<VALUE>:<CALIBRATION>#<TYPE>
+ // 
+ //		Sensor Type <TYPE>:
+ //				K: Thermocouple type K.
+ //				I: Infrared Sensor.
+ //
+ //		LCD Menu:
+ //				%<AMOUNT>	(amount of messages that will be sended from the 
+ //										server)
+ //				<ID><TEXT> 	(2 hex chars are assigned to index)
+ //				&<ID>		(Received message, ready for next)
+ //				$<ID>		(Last message received)
+ //				@<ID>		(Accepted value, meassured temperature must be sent
+ //										 after the ID)
+ //				^C(char 03) (Close connection, the LCD wants to close the connection)
+ //				
+ //    				
+ //
+ //
+ //
+
 #include "post.h"
 
 char * TARGET_URL = NULL;
