@@ -66,7 +66,7 @@
 42 RETURN
 
 @PIN_CODE 50
-50 $0 = $5;
+50 $0 = $5
 51 RETURN
 
 @IDLE 60
@@ -133,9 +133,10 @@
 146 PRINTV C
 147 $(A+E) = $0
 
+0 REM obex the file
 148 A = open $2
-149 $0 = $(L+D)
-150 A = ftp $2
+149 $0 = $2
+150 A = bizcard $(L+D)
 151 D = D +1                             
 152 IF D = M THEN 165
 153 ALARM 60
