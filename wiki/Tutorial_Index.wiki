@@ -34,6 +34,7 @@ All this examples are released under the [http://aircable.googlecode.com/svn/tru
 
 == Miscellaneous == 
   # *[http://code.google.com/p/aircable/wiki/BitwiseOperations Bitwise Operations]*: There are times when you need to do some bitwise operations, for example when you need to calculate a checksum, here we will show some bitwise operations implementations.
+  # *[http://www.aircable.net-a.googlepages.com/proximitymarketingstandalonesolution Publisher]*: Proximity Marketing with the AIRcable OS
 
 == Future Examples ==
   # Advanced Uart: This example read from Uart and writte to SPP, via BASIC program
