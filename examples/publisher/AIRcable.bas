@@ -9,9 +9,6 @@
 0 REM number of devices in hash table
 3 541
 
-0 REM spp addr block
-4 0015E9F5BA
-
 0 REM pin
 5 1234
 
@@ -144,7 +141,7 @@
 
 160 B = atoi $0(L+D)[13]
 161 IF (B-C) > W THEN 140
-162 GOTO 149
+162 GOTO 151
 
 165 K = 4
 166 ALARM 30
@@ -157,8 +154,7 @@
 
 175 K = 0
 176 ALARM 2
-177 A = close
-178 RETURN
+177 RETURN
 
 0 REM hash calc function
 0 REM Prime number to use $3
