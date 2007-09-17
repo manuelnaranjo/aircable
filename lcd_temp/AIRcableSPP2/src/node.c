@@ -77,21 +77,58 @@ int isTagPresent(NODE * node, char *tag){
 	return ret;	
 }
 
+int sendCompare(NODE * node, const int min, const int max){
+	int ret = OK;
+	
+	char * in, *out;
+	
+	in = calloc(12, sizeof(char));
+	out = calloc(12, sizeof(char));
+	
+	sppReadLine(node->socket, in, 12);
+	
+	if (strncmp(in, "&MIN", 4))
+		goto error;
+	
+	sprintf(out, "%d", min);
+	sppWriteLine(node->socket, out);
+	sppReadLine(node->socket, in, 12);
+	if (strncmp(in, out, strlen(out)))			
+		goto error;
+	
+	sppReadLine(node->socket, in, 12);
+	if (strncmp(in, "&MAX", 4))
+		goto error;
+	
+	sprintf(out, "%d", max);
+	sppWriteLine(node->socket, out);
+	sppReadLine(node->socket, in, 12);
+	if (strncmp(in, out, strlen(out)))			
+		goto error;
+	
+	goto end;
+error:
+	ret = ERROR;
+end:
+	free(out);
+	free(in);
+	
+	return ret;
+}
 
 int workMonitor(NODE *node){
 	int ret = OK;
-	int flags = 0;
-	int min, max;
-	
+	unsigned int flags = 0;
+	int min, max, cnt;
+	char * out, *in;
 
-	
-	if (isTagPresent(node, TAG_DISPLAY_TEMP)!=TAG_FOUND){
+	if (isTagPresent(node, TAG_DISPLAY_TEMP)==TAG_FOUND){
 		flags += FDISPLAY_TEMP;
 		
-		if (isTagPresent(node, TAG_RETURN_TEMP))
+		if (isTagPresent(node, TAG_RETURN_TEMP)==TAG_FOUND)
 			flags += FRETURN_TEMP;
 		
-		if (isTagPresent(node, TAG_COMP_TEMP)){
+		if (isTagPresent(node, TAG_COMP_TEMP)==TAG_FOUND){
 			MXML_NODE *mnode;
 			flags += FCOMPARE_TEMP;
 			
@@ -106,6 +143,56 @@ int workMonitor(NODE *node){
 			}
 		}
 	}
+	
+	if (flags == 0){
+		fprintf(stdout, "Got an empty <monitor>\n");
+		return TAG_MONITOR_EMPTY;
+	}
+	
+	out = calloc(12, sizeof(char));
+	in  = calloc(12, sizeof(char));
+	
+	sprintf(out, "?%04X", flags);
+	
+	cnt = 0;
+	
+	while (cnt < 3) {
+	
+		sppWriteLine(node->socket, out);
+		
+		sppReadLine(node->socket, in, 12);
+		
+		if (!strncmp(in, out+1, 4))
+			break;
+		
+		cnt++;
+	}
+	
+	free(in);
+	free(out);
+	
+	if (cnt == 3)
+		return ERROR;
+	
+	if (flags & FCOMPARE_TEMP) {
+		cnt = 0;
+		
+		while (cnt < 3) {
+			ret = sendCompare(node, min, max);
+			if (ret == OK)
+				break;
+			cnt++;
+		}
+	}
+	
+	if (cnt == 3)
+		return ERROR;
+	
+	in = calloc (30, sizeof(char));
+	
+	sppReadLine(node->socket, in, 30);
+	
+	parseTemp(node, in);
 	
 	return ret;
 }
@@ -539,18 +626,19 @@ free:
 int doWork(NODE * node){
 	int ret;
 	while (1){
-		if (isTagPresent(node, TAG_MONITOR)!=TAG_FOUND)
+		if (isTagPresent(node, TAG_MONITOR)!=TAG_FOUND){
 			ret = workMenu(node);
+			
+			if (ret != OK)			
+						break;
+					
+			ret = getResponseFunction(node);
+
+		}
 		
 		else
 			ret = workMonitor(node);
-		
-		
-		if (ret != OK)			
-			break;
-		
-		ret = getResponseFunction(node);
-		
+			
 		if ( ret != OK )
 			break;
 		

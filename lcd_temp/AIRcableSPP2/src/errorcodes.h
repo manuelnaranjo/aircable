@@ -40,6 +40,7 @@
 #define NOT_ACCEPTED		-200
 
 #define TAG_NOT_PRESENT		-300
+#define TAG_MONITOR_EMPTY	-301
 
 
 #endif
