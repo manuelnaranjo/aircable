@@ -26,6 +26,11 @@
 18 RESERVED
 19 RESERVED
 
+0 REM $20 will store min value to compare
+0 REM $21 will store max value to compare
+20 RESERVED
+21 RESERVED
+
 @INIT 28
 28 A = baud 1152
 0 REM debug to uart
@@ -141,9 +146,9 @@
 @ALARM 99
 99 IF U = 1000 THEN 118
 0 REM contrast timeout, back to preset value.
-100 IF U = 8 THEN 550
+100 IF U = 8 THEN 506
 0 REM inquiry found none results.
-101 IF U = 9 THEN 375
+101 IF U = 9 THEN 360
 102 IF U <> 2 THEN 107
 
 0 REM interactive mode mode U=2
@@ -159,20 +164,22 @@
 109 A = pioclr 20
 0 REM long press button
 110 IF W = 1 THEN 175
+0 REM doing <monitor>
+112 IF S > 0 THEN 645
 0 REM clear lcd
-111 A = lcd "           "
+113 A = lcd "           "
 0 REM are we in messaging mode?
-112 IF P = 0 THEN 120
+114 IF P = 0 THEN 120
 0 REM if we are, have we reached timer?
-113 A = readcnt
-114 IF A > P THEN 119
-115 GOTO 162
+115 A = readcnt
+116 IF A > P THEN 119
+117 GOTO 162
 
 
 0 REM get a reading, put it on LCD
 118 U = 0
 119 A = zerocnt
-120 GOSUB 630
+120 GOSUB 570
 0 REM show temp for 2 secs
 123 WAIT 2
 0 REM messaging mode?
@@ -182,7 +189,7 @@
 126 IF A < 12 THEN 162
 
 0 REM prepare OBEX message
-132 GOSUB 600
+132 GOSUB 545
 133 $0[0]=0
 134 PRINTV"$"
 135 PRINTV A
@@ -217,12 +224,12 @@
 162 A = lcd "        "
 
 0 REM next reading in P seconds
-163 ALARM 60
+164 ALARM 60
 0 REM reset slave timeout
-164 A = slave 30
+165 A = slave 30
 0 REM allow deep sleep
-165 A = uartoff
-166 RETURN
+166 A = uartoff
+167 RETURN
 
 
 
@@ -282,20 +289,20 @@
 0 REM show menu
 203 IF U = 1 THEN 240;
 0 REM interactive mode
-204 IF U = 2 THEN 660;
+204 IF U = 2 THEN 565;
 
 0 REM 5-8 display the menu
 205 IF U = 5 THEN 211;
 0 REM start inquiry
-206 IF U = 6 THEN 290;
+206 IF U = 6 THEN 280;
 0 REM message rate
-207 IF U = 7 THEN 310;
+207 IF U = 7 THEN 300;
 0 REM LCD contrast
-208 IF U = 8 THEN 520;
+208 IF U = 8 THEN 485;
 0 REM show discovered results
-209 IF U = 10 THEN 340;
+209 IF U = 10 THEN 330;
 0 REM type of sensor chooser
-210 IF U = 11 THEN 565;
+210 IF U = 11 THEN 515;
 211 RETURN
 
 0 REM state ________________________U = 0
@@ -312,7 +319,7 @@
 
 0 REM right
 0 REM show temperature
-220 GOSUB 630
+220 GOSUB 570
 221 ALARM 20
 222 RETURN
 
@@ -335,13 +342,13 @@
 0 REM switch state
 249 U = J;
 0 REM sensor 
-250 IF J = 5 THEN 560;
+250 IF J = 5 THEN 510;
 0 REM inquiries
-251 IF J = 6 THEN 290;
+251 IF J = 6 THEN 280;
 0 REM send rate
-252 IF J = 7 THEN 299;
+252 IF J = 7 THEN 290;
 0 REM contrast
-253 IF J = 8 THEN 510;
+253 IF J = 8 THEN 475;
 254 ALARM 1
 255 RETURN
 
@@ -374,104 +381,104 @@
 
 
 0 REM ___________________ U = 6, discovery mode
-290 A = lcd "INQUIRY "
-291 A = inquiry 6
+280 A = lcd "INQUIRY "
+281 A = inquiry 6
 0 REM N is the amount of discovered devices
-292 N = 0
+282 N = 0
 0 REM M is the index of the device to show
-293 M = 0
+283 M = 0
 0 REM inquiry for 6 seconds, give time to @INQ to work
-294 ALARM 20
+284 ALARM 20
 0 REM next state is "inquiring"
-295 U = 9
-296 RETURN
+285 U = 9
+286 RETURN
 
 
 0 REM ___________________ U = 7, automatic message rate
-299 P = P /60
+290 P = P /60
 0 REM buttons right, left, middle
-300 $0[0] = 0
-301 PRINTV P
-302 PRINTV " MINUTES"
-303 A = lcd $0
-304 ALARM 20
-305 RETURN
+291 $0[0] = 0
+292 PRINTV P
+293 PRINTV " MINUTES"
+294 A = lcd $0
+295 ALARM 20
+296 RETURN
 
 0 REM 
 0 REM right left middle
-310 IF $2[2] = 48 THEN 320;
-311 IF $2[3] = 48 THEN 325;
-312 IF $2[12] = 49 THEN 330;
-313 RETURN
+300 IF $2[2] = 48 THEN 310;
+301 IF $2[3] = 48 THEN 315;
+302 IF $2[12] = 49 THEN 320;
+303 RETURN
 
-320 IF P > 90 THEN 323;
-321 P = P + 5;
-322 GOTO 300;
-323 P = 0
-324 GOTO 300
+310 IF P > 90 THEN 313;
+311 P = P + 5;
+312 GOTO 291;
+313 P = 0
+314 GOTO 291
 
-325 IF P = 0 THEN 328;
-326 P = P - 5;
-327 GOTO 300;
-328 P = 90
-329 GOTO 300
+315 IF P = 0 THEN 318;
+316 P = P - 5;
+317 GOTO 291;
+318 P = 90
+319 GOTO 291
 
 0 REM store R persistent
-330 U = 0
-331 $0[0] = 0
-332 PRINTV P
-333 $4=$0
+320 U = 0
+321 $0[0] = 0
+322 PRINTV P
+323 $4=$0
 0 REM change to minutes
-334 P = P * 60
-335 ALARM 1
-336 RETURN
+324 P = P * 60
+325 ALARM 1
+326 RETURN
 
 0 REM ___________________ U = 10, discovered devices menu
 
 0 REM right left middle
-340 IF $2[2] = 48 THEN 345;
-341 IF $2[3] = 48 THEN 355;
-342 IF $2[12] = 49 THEN 359;
-343 RETURN
+330 IF $2[2] = 48 THEN 335;
+331 IF $2[3] = 48 THEN 344;
+332 IF $2[12] = 49 THEN 348;
+333 RETURN
 
 0 REM right we show the previous device
-345 M = M - 1;
-346 IF M > -2 THEN 349;
-347 IF N = 0 THEN 375
-348 M = N;
-349 $0[0] = 0;
-350 PRINTV $(389+M);
-351 PRINTV "        "
-352 A = lcd $0[13]
-353 RETURN
+335 M = M - 1;
+336 IF M > -2 THEN 339;
+337 IF N = 0 THEN 360
+338 M = N;
+339 $0[0] = 0;
+340 PRINTV $(389+M);
+341 PRINTV "        "
+342 A = lcd $0[13]
+343 RETURN
 
 0 REM left show next device
-355 M = M + 1;
-356 IF M < N THEN 349;
-357 M = -1;
-358 GOTO 349;
+344 M = M + 1;
+345 IF M < N THEN 339;
+346 M = -1;
+347 GOTO 339;
 
 0 REM user choose a device
-359 IF M < 1 THEN 365
-360 A = lcd "SELECTED"
-361 $3=$(389 +M)
-362 U = 3
-363 ALARM 1
-364 RETURN
+348 IF M < 1 THEN 354
+349 A = lcd "SELECTED"
+350 $3=$(389 +M)
+351 U = 3
+352 ALARM 1
+353 RETURN
 
-365 IF M = -1 THEN 368
-366 A = lcd "UNPAIRED"
-367 $3[0]=0
-368 U = 3
-369 ALARM 1
-370 RETURN
+354 IF M = -1 THEN 357
+355 A = lcd "UNPAIRED"
+356 $3[0]=0
+357 U = 3
+358 ALARM 1
+359 RETURN
 
 
 0 REM no devices found
-375 A = lcd "NOTFOUND"
-376 M = 0
-377 U = 10
-378 RETURN
+360 A = lcd "NOTFOUND"
+361 M = 0
+362 U = 10
+363 RETURN
 
 388 CANCEL
 389 UNPAIR
@@ -493,262 +500,291 @@
 
 
 0 REM __________________ U = 5, calibration mode
-449 ALARM 0
-450 $0[0] = 0
-451 PRINTV"           PUT PR"
-452 PRINTV"OBE IN ICEWATER" 
+420 ALARM 0
+421 $0[0] = 0
+422 PRINTV"           PUT PR"
+423 PRINTV"OBE IN ICEWATER" 
 
-453 E = strlen $0
-454 FOR D = 1 TO 2
-455  FOR C = 1 TO E -8
-456   A = lcd$0[C];
-457  NEXT C;
-458  WAIT 1
-459 NEXT D
-460 $0[0] = 0
-461 PRINTV "        STIRR"
-462 PRINTV " FOR 30 SECONDS "
-463 E = strlen $0
-464 FOR C = 1 TO E -8
-465   A = lcd$0[C];
-466 NEXT C;
-467 WAIT 1
+425 E = strlen $0
+426 FOR D = 1 TO 2
+427  FOR C = 1 TO E -8
+428   A = lcd$0[C];
+429  NEXT C;
+430  WAIT 1
+431 NEXT D
+432 $0[0] = 0
+433 PRINTV "        STIRR"
+434 PRINTV " FOR 30 SECONDS "
+435 E = strlen $0
+436 FOR C = 1 TO E -8
+437   A = lcd$0[C];
+438 NEXT C;
+439 WAIT 1
 
-468 D = 30
-469 $0[0] = 0
-470 PRINTV"STIRR "
-471 PRINTV D
-472 PRINTV"    "
-473 A = lcd $0
+440 D = 30
+441 $0[0] = 0
+442 PRINTV"STIRR "
+443 PRINTV D
+444 PRINTV"    "
+445 A = lcd $0
 
 0 REM check buttons because we cannot get PIO interrupts here
 0 REM we do that instead of 1 sec wait
 0 REM 474 WAIT 1 << no can do
 
-474 FOR F = 0 TO 3
-475  A = pioget 12;
-476  IF A = 1 THEN 484;
-477  A = pioget 2;
-478  IF A = 0 THEN 484;
-479  A = pioget 3;
-480  IF A = 0 THEN 484;
-481 NEXT F;
+446 FOR F = 0 TO 3
+447  A = pioget 12;
+448  IF A = 1 THEN 456;
+449  A = pioget 2;
+450  IF A = 0 THEN 456;
+451  A = pioget 3;
+452  IF A = 0 THEN 456;
+453 NEXT F;
 
-482 GOSUB 600
-483 Y = -Y
-484 $0[0] = 0
-485 PRINTV"C "
-486 PRINTV Y
-487 PRINTV"     "
-488 A = lcd $0
+454 GOSUB 545
+455 Y = -Y
+456 $0[0] = 0
+457 PRINTV"C "
+458 PRINTV Y
+459 PRINTV"     "
+460 A = lcd $0
 
-489 D = D - 1
-490 IF D > 0 THEN 469
+461 D = D - 1
+462 IF D > 0 THEN 441
 
 
-491 $0[0] = 0
-492 PRINTV "DONE "
-493 PRINTV Y
-494 PRINTV "   "
-495 A = lcd $0
+463 $0[0] = 0
+464 PRINTV "DONE "
+465 PRINTV Y
+466 PRINTV "   "
+467 A = lcd $0
 
 0 REM store X persistently
-496 $0[0] = 0
-497 PRINTV Y
-498 $9 = $0
-499 U = 0
-500 ALARM 1
-501 X = Y
-502 RETURN
+468 $0[0] = 0
+469 PRINTV Y
+470 $9 = $0
+471 U = 0
+472 ALARM 1
+473 X = Y
+474 RETURN
 
 0 REM ___________________ U = 8, LCD contrast
 0 REM buttons right, left, middle
-510 $0[0] = 0
-511 PRINTV L
-512 PRINTV"  LCD"
+475 $0[0] = 0
+476 PRINTV L
+477 PRINTV"  LCD"
 0 REM show new contrast
-513 A = auxdac L
-514 A = lcd $0
-515 RETURN
+478 A = auxdac L
+479 A = lcd $0
+480 RETURN
 
 0 REM 
 0 REM right left middle
-520 IF $2[2] = 48 THEN 530;
-521 IF $2[3] = 48 THEN 535;
-522 IF $2[12] = 49 THEN 540;
-523 RETURN
+485 IF $2[2] = 48 THEN 490;
+486 IF $2[3] = 48 THEN 495;
+487 IF $2[12] = 49 THEN 500;
+488 RETURN
 
-530 IF L >= 200 THEN 534;
-531 L = L + 10;
-532 GOTO 510;
-533 L = 150
-534 GOTO 510
+490 IF L >= 200 THEN 494;
+491 L = L + 10;
+492 GOTO 475;
+493 L = 150
+494 GOTO 475
 
-535 IF L <= 150 THEN 539;
-536 L = L - 10;
-537 GOTO 510;
-538 L = 200
-539 GOTO 510
+495 IF L <= 150 THEN 499;
+496 L = L - 10;
+497 GOTO 475;
+498 L = 200
+499 GOTO 475
 
 0 REM store L persistent
-540 U = 0
-541 $0[0] = 0
-542 PRINTV L
-543 $10=$0
-545 ALARM 1
-546 RETURN
+500 U = 0
+501 $0[0] = 0
+502 PRINTV L
+503 $10=$0
+504 ALARM 1
+505 RETURN
 
 0 REM contrast timeout, we go back to the value
 0 REM stored in $10
-550 L = atoi $10
-551 A = auxdac L
-552 GOTO 107
+506 L = atoi $10
+507 A = auxdac L
+508 GOTO 107
 
 0 REM type of sensor chooser
-560 V = 0
-561 U = 11
-562 GOTO 587
+510 V = 0
+511 U = 11
+512 GOTO 532
 
 0 REM button handler
 0 REM rigth, left, middle
-565 IF $2[2] = 48 THEN 570;
-566 IF $2[3] = 48 THEN 572;
-567 IF $2[12] = 49 THEN 575;
+515 IF $2[2] = 48 THEN 518;
+516 IF $2[3] = 48 THEN 520;
+517 IF $2[12] = 49 THEN 522;
 
-570 V = V+1
-571 GOTO 585
+518 V = V+1
+519 GOTO 530
 
-572 V = V-1
-573 GOTO 585
+520 V = V-1
+521 GOTO 530
 
-575 $11=$(15+V)
-576 IF V = 0 THEN 449
-577 A = lcd"DONE     "
-578 U = 0
-579 ALARM 2
-580 RETURN
+522 $11=$(15+V)
+523 IF V = 0 THEN 420
+524 A = lcd"DONE     "
+525 U = 0
+526 ALARM 2
+527 RETURN
 
-585 IF V < 0 THEN 592
-586 IF V > 1 THEN 594
-587 $0[0] = 0
-588 PRINTV$(15+V)
-589 PRINTV"              "
-590 A = lcd $0
-591 RETURN
+530 IF V < 0 THEN 540
+531 IF V > 1 THEN 542
+532 $0[0] = 0
+533 PRINTV$(15+V)
+534 PRINTV"              "
+535 A = lcd $0
+536 RETURN
 
-592 V = 1
-593 GOTO 587
+540 V = 1
+541 GOTO 532
 
-594 V = 0
-595 GOTO 587
+542 V = 0
+543 GOTO 532
 
 0 REM I2C sensor reading handler
-600 IF $11[0] = 75 THEN 609
-601 IF $11[0] = 73 THEN 829
-602 Y = 0
-603 RETURN
+545 IF $11[0] = 75 THEN 550
+546 IF $11[0] = 73 THEN 829
+547 Y = 0
+548 RETURN
 
 0 REM sensor connected to MCP3421
-609 A=ring
-610 R = 0;
-611 T = 1;
+550 A=ring
+551 R = 0;
+552 T = 1;
 0 REM slave address is 0xD0
-612 $1[0] = 208;
-613 $1[1] = 143;
-614 A = i2c $1;
-615 $0[0] = 0;
-616 $0[1] = 0;
-617 $0[2] = 0;
-618 $0[3] = 0;
+553 $1[0] = 208;
+554 $1[1] = 143;
+555 A = i2c $1;
+556 $0[0] = 0;
+557 $0[1] = 0;
+558 $0[2] = 0;
+559 $0[3] = 0;
 
-619 $1[0] = 208;
-620 T = 0;
-621 R = 4;
-622 A = i2c $1;
-623 Y = $0[1] * 256;
-624 Y = Y + $0[2];
-625 RETURN
+560 $1[0] = 208;
+561 T = 0;
+562 R = 4;
+563 A = i2c $1;
+564 Y = $0[1] * 256;
+565 Y = Y + $0[2];
+566 RETURN
 
-630 GOSUB 600
-631 IF $11[0] = 73 THEN 640
-632 $0="T "
-633 Y = Y + X
-634 Y = Y / 20
+570 GOSUB 545
+571 IF $11[0] = 73 THEN 580
+572 $0="T "
+573 Y = Y + X
+574 Y = Y / 20
 0 REM should add the ºF thing here
-635 PRINTV Y
-636 PRINTV" %C         "
-637 A = lcd $0
-638 RETURN
+575 PRINTV Y
+576 PRINTV" %C         "
+577 A = lcd $0
+578 RETURN
 
 0 REM IR sensor
-640 $0 ="IR. "
-642 C = Y / 10
-643 PRINTV C
-644 PRINTV"."
-645 D = C * 10
-646 D = Y-D
-647 PRINTV D
-648 A = pioset 1
-649 GOTO 636
+580 $0 ="IR. "
+581 C = Y / 10
+582 PRINTV C
+583 PRINTV"."
+584 D = C * 10
+585 D = Y-D
+586 PRINTV D
+587 A = pioset 1
+588 GOTO 576
 
 
 
 0 REM __________INTERACTIVE MODE_______
-@MASTER 655
-655 A = lcd "WAIT . . ."
-656 U = 2
-657 A = pioset 20
-658 GOTO 670
+@MASTER 560
+560 A = lcd "WAIT . . ."
+561 U = 2
+562 A = pioset 20
+563 GOTO 580
 
 0 REM __interactive mode button handler __
 0 REM $MENU code: right, left, middle
-660 IF $2[2] = 48 THEN 730;
-661 IF $2[3] = 48 THEN 740;
-662 IF $2[12] = 49 THEN 750;
-663 RETURN
+565 IF $2[2] = 48 THEN 730;
+566 IF $2[3] = 48 THEN 740;
+567 IF $2[12] = 49 THEN 750;
+568 RETURN
 
 0 REM __generate menu __
-669 RESERVED
+579 RESERVED
 0 REM __send our current temp__
-670 PRINTM"!"
-671 GOSUB 600
-672 PRINTM Y
-673 PRINTM":"
-674 PRINTM X
-675 PRINTM"#"
-676 PRINTM$11
-677 PRINTM"\n"
+580 PRINTM"!"
+581 GOSUB 545
+582 PRINTM Y
+583 PRINTM":"
+584 PRINTM X
+585 PRINTM"#"
+586 PRINTM$11
+587 PRINTM"\n"
 
 0 REM __ get amount of messages __
-678 TIMEOUTM 5
-679 INPUTM $0
-680 $669 = $0[1]
-681 $0 = $669
+588 TIMEOUTM 5
+589 INPUTM $0
+590 IF $0[0] = 63 THEN 630
+592 IF $0[0] = 37 THEN 600
+593 PRINTM"@@@@\n\r"
+594 WAIT 3
+595 GOTO 580
+
+600 $579 = $0[1]
+601 $0 = $579
 0 REM M amount of options
-682 K = atoi $0
-683 C = 0
-684 IF K > 100 THEN
+602 K = atoi $0
+603 C = 0
+604 IF K > 100 THEN 625
 
 0 REM __get each menu entry __
-685 TIMEOUTM 20
-686 INPUTM $0
-687 $(800+C)=$0[2]
-688 C = C +1
-689 IF C>= K THEN 692
-690 PRINTM"&"
-691 GOTO 693
-692 PRINTM"$"
-693 A = hex8 C
-694 PRINTM$0
-695 PRINTM"\n"
-696 IF C < K THEN 685
+610 TIMEOUTM 20
+611 INPUTM $0
+612 $(800+C)=$0[2]
+613 C = C +1
+614 IF C>= K THEN 617
+615 PRINTM"&"
+616 GOTO 618
+617 PRINTM"$"
+618 A = hex8 C
+619 PRINTM$0
+620 PRINTM"\n"
+621 IF C < K THEN 610
 0 REM V is index
 0 REM K is amout of messages
-697 V = 0
-698 GOTO 705
+622 V = 0
+623 GOTO 705
 
-700 A = lcd"ERROR...    "
-701 RETURN
+625 A = lcd"ERROR...    "
+626 RETURN
+
+0 REM <monitor> handler
+630 A = xtoi $0[1]
+631 S = A
+632 IF A < 4 THEN 639
+0 REM we receive max and min
+633 PRINTM"&MIN\n\r"
+634 INPUTM $20
+635 PRINTM $20
+636 PRINTM"\n\r&MAX\n\r
+637 INPUTM $21
+638 A = A - 4
+639 IF A < 2 THEN 641
+640 A = A -2
+641 IF A < 1 THEN 645
+642 U = 0
+643 GOTO 220
+
+645 U = 2
+646 IF S < 4 THEN 650
+0 REM PLACE TO COMPARE
+650 S = 0
+651 GOTO 580
 
 0 REM clear lcd then display menu
 705 $0=$(800+V)
@@ -782,7 +818,7 @@
 751 PRINTM"@"
 752 A = V+1
 753 PRINTM A
-754 GOTO 670
+754 GOTO 580
 
 0 REM __choose exit, tell NSLU2
 760 PRINTM"\x03"
