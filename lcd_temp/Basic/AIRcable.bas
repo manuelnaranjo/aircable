@@ -165,7 +165,7 @@
 0 REM long press button
 110 IF W = 1 THEN 175
 0 REM doing <monitor>
-112 IF S > 0 THEN 645
+112 IF S > 0 THEN 680
 0 REM clear lcd
 113 A = lcd "           "
 0 REM are we in messaging mode?
@@ -701,90 +701,90 @@
 
 
 0 REM __________INTERACTIVE MODE_______
-@MASTER 560
-560 A = lcd "WAIT . . ."
-561 U = 2
-562 A = pioset 20
-563 GOTO 580
+@MASTER 590
+590 A = lcd "WAIT . . ."
+591 U = 2
+592 A = pioset 20
+593 GOTO 600
 
 0 REM __interactive mode button handler __
 0 REM $MENU code: right, left, middle
-565 IF $2[2] = 48 THEN 730;
-566 IF $2[3] = 48 THEN 740;
-567 IF $2[12] = 49 THEN 750;
-568 RETURN
+594 IF $2[2] = 48 THEN 730;
+595 IF $2[3] = 48 THEN 740;
+596 IF $2[12] = 49 THEN 750;
+597 RETURN
 
 0 REM __generate menu __
-579 RESERVED
+599 RESERVED
 0 REM __send our current temp__
-580 PRINTM"!"
-581 GOSUB 545
-582 PRINTM Y
-583 PRINTM":"
-584 PRINTM X
-585 PRINTM"#"
-586 PRINTM$11
-587 PRINTM"\n"
+600 PRINTM"!"
+601 GOSUB 545
+602 PRINTM Y
+603 PRINTM":"
+604 PRINTM X
+605 PRINTM"#"
+606 PRINTM$11
+607 PRINTM"\n"
 
 0 REM __ get amount of messages __
-588 TIMEOUTM 5
-589 INPUTM $0
-590 IF $0[0] = 63 THEN 630
-592 IF $0[0] = 37 THEN 600
-593 PRINTM"@@@@\n\r"
-594 WAIT 3
-595 GOTO 580
+608 TIMEOUTM 5
+609 INPUTM $0
+610 IF $0[0] = 63 THEN 660
+611 IF $0[0] = 37 THEN 625
+612 PRINTM"@@@@\n\r"
+613 WAIT 3
+614 GOTO 600
 
-600 $579 = $0[1]
-601 $0 = $579
+625 $599 = $0[1]
+626 $0 = $599
 0 REM M amount of options
-602 K = atoi $0
-603 C = 0
-604 IF K > 100 THEN 625
+627 K = atoi $0
+628 C = 0
+629 IF K > 100 THEN 655
 
 0 REM __get each menu entry __
-610 TIMEOUTM 20
-611 INPUTM $0
-612 $(800+C)=$0[2]
-613 C = C +1
-614 IF C>= K THEN 617
-615 PRINTM"&"
-616 GOTO 618
-617 PRINTM"$"
-618 A = hex8 C
-619 PRINTM$0
-620 PRINTM"\n"
-621 IF C < K THEN 610
+630 TIMEOUTM 20
+631 INPUTM $0
+632 $(800+C)=$0[2]
+633 C = C +1
+634 IF C>= K THEN 637
+635 PRINTM"&"
+636 GOTO 638
+637 PRINTM"$"
+638 A = hex8 C
+639 PRINTM$0
+640 PRINTM"\n"
+641 IF C < K THEN 630
 0 REM V is index
 0 REM K is amout of messages
-622 V = 0
-623 GOTO 705
+642 V = 0
+643 GOTO 705
 
-625 A = lcd"ERROR...    "
-626 RETURN
+655 A = lcd"ERROR...    "
+656 RETURN
 
 0 REM <monitor> handler
-630 A = xtoi $0[1]
-631 S = A
-632 IF A < 4 THEN 639
+660 A = xtoi $0[1]
+661 S = A
+662 IF A < 4 THEN 669
 0 REM we receive max and min
-633 PRINTM"&MIN\n\r"
-634 INPUTM $20
-635 PRINTM $20
-636 PRINTM"\n\r&MAX\n\r
-637 INPUTM $21
-638 A = A - 4
-639 IF A < 2 THEN 641
-640 A = A -2
-641 IF A < 1 THEN 645
-642 U = 0
-643 GOTO 220
+663 PRINTM"&MIN\n\r"
+664 INPUTM $20
+665 PRINTM $20
+666 PRINTM"\n\r&MAX\n\r
+667 INPUTM $21
+668 A = A - 4
+669 IF A < 2 THEN 671
+670 A = A -2
+671 IF A < 1 THEN 680
+672 U = 0
+673 GOTO 220
 
-645 U = 2
-646 IF S < 4 THEN 650
+680 U = 2
+681 IF S < 4 THEN 690
 0 REM PLACE TO COMPARE
-650 S = 0
-651 GOTO 580
+690 S = 0
+691 GOTO 580
 
 0 REM clear lcd then display menu
 705 $0=$(800+V)
