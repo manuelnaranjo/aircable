@@ -272,11 +272,11 @@
 256 GOTO 225
 
 0 REM short press handler
-0 REM right, middle, left
+0 REM right, left, middle
 260 W = 0
 261 IF $2[2] = 48 THEN 270;
-262 IF $2[3] = 48 THEN 280;
-263 IF $2[12] = 49 THEN 290;
+262 IF $2[3] = 48 THEN 290;
+263 IF $2[12] = 49 THEN 280;
 264 RETURN
 
 0 REM send current temp
