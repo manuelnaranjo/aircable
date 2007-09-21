@@ -367,8 +367,8 @@
 453 RETURN
 
 0 REM K sensor connected to MCP3421
-460 A=ring
-461 R = 0;
+460 R = 0;
+0 REM 461 A=ring
 462 T = 1;
 0 REM slave address is 0xD0
 463 $1[0] = 208;
@@ -388,8 +388,8 @@
 476 RETURN
 
 0 REM read IR Temp module
-480 A = ring
-481 A = pioout 1
+480 A = pioout 1
+0 REM 481 A = ring
 482 A = pioclr 1
 0 REM temp is in Kelvin
 0 REM substract 273.15 to get Celsius
