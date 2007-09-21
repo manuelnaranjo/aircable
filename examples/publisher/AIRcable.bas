@@ -182,13 +182,9 @@
 206 A = A - B
 207 RETURN
 
-@INQUIRY 217
-217 ALARM 2;
-218 $(L+M) = $0;
-0 REM debug
-219 PRINTU "found "
-220 PRINTU $0
-221 PRINTU "\r\n"
+@INQUIRY 220
+220 ALARM 2;
+221 $(L+M) = $0;
 222 M = M+1;
 223 K = 2;
 224 A = pioset G;
