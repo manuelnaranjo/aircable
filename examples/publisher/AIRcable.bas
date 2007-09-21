@@ -30,37 +30,46 @@
 21 A = baud 1152
 0 REM we must be visible
 22 A = slave 5
-0 REM J stores the pio where the led is attached
-23 J = 20
+0 REM J stores the pio where green the led is attached
+23 J = 9
 0 REM LED output an don
 24 A = pioout J
 25 A = pioset J
-26 A = enable 2
+0 REM G stores the pio where the blue led is attached
+26 G = 20
+27 A = pioout G
+28 A = pioclr G
+0 REM make ftp visible
+29 A = enable 2
 0 REM E is the start line of the hash table
-27 E = 300
+30 E = 300
 0 REM L is the start line of the inq results table
 0 REM M is the index inside the result table
-28 L = 900
-29 M = 0
-30 K = 0
-31 A = zerocnt
+31 L = 900
+32 M = 0
+33 K = 0
+34 A = zerocnt
 0 REM X stores the amount of devices in the hash table
 0 REM w stores the time window.
-33 X = atoi $3
-34 W = atoi $7
-
-35 WAIT 3
+35 X = atoi $3
+36 W = atoi $7
 
 0 REM set name
-36 $0 = $6
-37 PRINTV " "
-38 PRINTV $5
-39 PRINTU $0
-40 A = name $0
+37 $0 = $6
+38 PRINTV " "
+39 PRINTV $5
+40 PRINTU $0
+41 A = name $0
 
-41 ALARM 3
+0 REM start button
+42 A = pioclr 12
+43 A = pioin 12
+44 A = pioirq "P000000000001"
+46 W = 0
 
-42 RETURN
+45 ALARM 3
+
+47 RETURN
 
 @PIN_CODE 50
 50 $0 = $5
@@ -74,7 +83,9 @@
 91 RETURN
 
 
-@ALARM 99
+@ALARM 98
+0 REM handle button press
+98 IF W = 1 THEN 270
 99 GOSUB 230
 
 0 REM K state variable
@@ -134,27 +145,28 @@
 148 A = open $2
 149 $0 = $2
 150 A = bizcard $(L+D)
-151 D = D +1                             
-152 IF D = M THEN 165
-153 ALARM 60
-154 RETURN
+151 D = D +1
+152 A = pioset G
+153 K = 4
+154 ALARM 30
+155 RETURN
 
 160 B = atoi $0(L+D)[13]
 161 IF (B-C) > W THEN 140
 162 GOTO 151
 
-165 K = 4
-166 ALARM 30
-167 RETURN
-
+0 REM check status
 170 A = status
-171 IF A = 0 THEN 175
-172 ALARM 5
-173 RETURN
+171 IF A = 0 THEN 180
+172 A = disconnect 3
+173 A = pioclr J
+174 A = pioset J
+175 GOTO 180
 
-175 K = 0
-176 ALARM 2
-177 RETURN
+180 K = 3
+181 ALARM 2
+182 A = pioclr G
+183 RETURN
 
 0 REM hash calc function
 0 REM Prime number to use $3
@@ -172,7 +184,9 @@
 221 $(L+M) = $0
 222 M = M+1
 223 K = 2
-224 RETURN
+224 A = pioset G
+225 A = pioclr G
+226 RETURN
 
 0 REM update partial counter
 230 A = readcnt
@@ -187,4 +201,29 @@
 @SLAVE 240
 240 A = shell
 241 RETURN
+
+@PIO_IRQ 250
+250 IF $0[12]=49 THEN 260;
+0 REM ignore any other event
+251 W = 0;
+252 RETURN
+
+0 REM button press, save state, start ALARM
+260 $2 = $0;
+261 W = 1;
+262 ALARM 3
+263 RETURN
+
+0 REM as button wasn't released yet, we wait until it's
+0 REM released and turn off the device
+270 ALARM 0
+271 A = pioclr G
+272 A = pioclr J
+273 A = pioget 12
+274 IF A = 1 THEN 273
+275 A = reboot
+276 FOR E = 0 TO 10
+277 WAIT 1
+273 NEXT E
+274 RETURN
 
