@@ -26,13 +26,13 @@
 
 @INIT 20
 0 REM debug
-20 Z = 1
+20 Z = 0
 21 A = baud 1152
 0 REM we must be visible
 22 A = slave 5
 0 REM J stores the pio where green the led is attached
 23 J = 9
-0 REM LED output an don
+0 REM LED output and on
 24 A = pioout J
 25 A = pioset J
 0 REM G stores the pio where the blue led is attached
@@ -65,9 +65,9 @@
 42 A = pioclr 12
 43 A = pioin 12
 44 A = pioirq "P000000000001"
-46 W = 0
 
 45 ALARM 3
+46 W = 0
 
 47 RETURN
 
@@ -76,7 +76,7 @@
 51 RETURN
 
 @IDLE 60
-0 REM 60 A = slave 8
+60 REM A = slave 8
 61 RETURN
 
 90 ALARM 30
@@ -106,7 +106,7 @@
 109 M = 0
 110 A = inquiry 9
 111 K = 1
-112 ALARM 10
+112 ALARM 12
 113 RETURN
 
 114 A = status
@@ -144,12 +144,15 @@
 0 REM obex the file
 148 A = open $2
 149 $0 = $2
-150 A = bizcard $(L+D)
-151 D = D +1
-152 A = pioset G
-153 K = 4
-154 ALARM 30
-155 RETURN
+150 PRINTU "to "
+151 PRINTU $(L+D)
+152 PRINTU "\r\n"
+153 A = bizcard $(L+D)
+154 D = D +1
+155 A = pioset G
+156 K = 4
+157 ALARM 30
+158 RETURN
 
 160 B = atoi $0(L+D)[13]
 161 IF (B-C) > W THEN 140
@@ -179,13 +182,17 @@
 206 A = A - B
 207 RETURN
 
-@INQUIRY 220
-220 ALARM 2
-221 $(L+M) = $0
-222 M = M+1
-223 K = 2
-224 A = pioset G
-225 A = pioclr G
+@INQUIRY 217
+217 ALARM 2;
+218 $(L+M) = $0;
+0 REM debug
+219 PRINTU "found "
+220 PRINTU $0
+221 PRINTU "\r\n"
+222 M = M+1;
+223 K = 2;
+224 A = pioset G;
+225 A = pioclr G;
 226 RETURN
 
 0 REM update partial counter
