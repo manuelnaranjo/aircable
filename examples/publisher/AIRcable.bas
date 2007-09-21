@@ -143,10 +143,10 @@
 
 0 REM obex the file
 148 A = open $2
-149 $0 = $2
-150 PRINTU "to "
-151 PRINTU $(L+D)
-152 PRINTU "\r\n"
+149 PRINTU "to "
+150 PRINTU $(L+D)
+151 PRINTU "\r\n"
+152 $0 = $2
 153 A = bizcard $(L+D)
 154 D = D +1
 155 A = pioset G
