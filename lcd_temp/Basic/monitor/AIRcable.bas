@@ -294,14 +294,33 @@
 
 @SENSOR 300
 300 A = sensor $0
-301 IF U = 100 THEN 310
+301 V = atoi $0[5]
+302 IF V =< 2100 THEN 320
+303 IF U = 100 THEN 310
 0 REM meassure again in 30 minutes
-302 A = nextsns 1800
-303 RETURN
+304 A = nextsns 1800
+305 RETURN
 
 
-310 A = lcd $0
-311 GOTO 302 
+310 A = (V - 2100)
+311 A = A / 9
+312 $0="BATT
+313 PRINTV A
+314 PRINTV"%        
+315 A = lcd $0
+316 WAIT 3
+317 GOTO 304 
+
+320 $0="LOW BATT"
+321 A = lcd $0
+322 WAIT 10
+323 $0 = "#LB"
+324 PRINTV V
+325 A = strlen $3
+326 IF A < 12 THEN 304
+327 A = message $3
+328 WAIT 10
+329 GOTO 304
 
 0 REM display temp handler ------
 400 GOSUB 450
