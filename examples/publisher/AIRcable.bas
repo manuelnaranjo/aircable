@@ -50,7 +50,7 @@
 33 K = 0
 34 A = zerocnt
 0 REM X stores the amount of devices in the hash table
-0 REM w stores the time window.
+0 REM W stores the time window.
 35 X = atoi $3
 36 W = atoi $7
 
@@ -58,22 +58,32 @@
 37 $0 = $6
 38 PRINTV " "
 39 PRINTV $5
-40 PRINTU $0
 41 A = name $0
 
-0 REM start button
-42 A = pioclr 12
-43 A = pioin 12
-44 A = pioirq "P000000000001"
 
-45 ALARM 3
-46 W = 0
+0 REM RS232 POWER ON out and on
+42 A = pioout 3
+43 A = pioset 3
+0 REM RS232 POWER OFF out and on
+44 A = pioout 11
+45 A = pioset 11
+0 REM RS232 DTR pin out and on
+46 A = pioset 5
+47 A = pioout 5
+0 REM PIO12 goes high when pressed, add 
+48 A = pioclr 12
+49 A = pioin 12
+50 A = pioirq "P000000000001"
 
-47 RETURN
+51 PRINTU "STARTUP "
+52 PRINTU $0
+53 PRINTU "\r\n"
 
-@PIN_CODE 50
-50 $0 = $5
-51 RETURN
+54 ALARM 3
+0 REM button status in V
+55 V = 0
+
+56 RETURN
 
 @IDLE 60
 60 REM A = slave 8
@@ -85,7 +95,7 @@
 
 @ALARM 98
 0 REM handle button press
-98 IF W = 1 THEN 270
+98 IF V = 1 THEN 270
 99 GOSUB 230
 
 0 REM K state variable
@@ -94,47 +104,55 @@
 0 REM K = 2 inq with results, need to sort results and send messsages
 0 REM K = 3 sending messages
 0 REM K = 4 file needs to be closed
-100 IF K = 0 THEN 109
+100 IF K = 0 THEN 108
 101 B = status
 102 IF B > 0 THEN 90
 103 IF K = 1 THEN 114
-104 IF K = 2 THEN 122
+104 IF K = 2 THEN 123
 105 IF K = 3 THEN 130
 106 IF K = 4 THEN 170
 107 RETURN
 
+108 PRINTU "INQUIRY\r\n"
 109 M = 0
 110 A = inquiry 9
 111 K = 1
 112 ALARM 12
 113 RETURN
 
+0 REM still inquiring
 114 A = status
 115 IF A > 0 THEN 118
+0 REM found something?
 116 IF M > 0 THEN 120
 117 K = 0
 118 ALARM 2
 119 RETURN
 
-120 K = 2
-121 GOTO 118
+120 PRINTU "NOTHING\r\n"
+121 K = 2
+122 GOTO 118
 
-122 D = 0
-123 K = 3
-124 ALARM 1
-125 FOR A = L TO L+M
-126 PRINTU"\n\rFound: 
-127 PRINTU $A
-128 NEXT A
+0 REM print results
+123 D = 0
+124 K = 3
+125 ALARM 1
+126 FOR A = L TO L+M
+127 PRINTU"\n\rFound: "
+128 PRINTU $A
+129 NEXT A
 
 130 $0 = $(L + D)
+0 REM get hash code in A
 131 GOSUB 200
 0 REM we will forget about collisions
-132 GOSUB 230
+132 REM GOSUB 230
+0 REM store the start of memory in the table
 133 B = strlen $(A+E)
 134 IF B > 0 THEN 160
 135 GOTO 140
 
+0 REM put device into the table
 140 $0[0] = 0
 141 FOR B = 0 TO 11
 142 PRINTV $(L+D)[B]
@@ -151,39 +169,52 @@
 151 PRINTU "\r\n"
 152 $0 = $2
 153 A = bizcard $(L+D)
-154 D = D +1
+
+0 REM next in list
+154 D = D + 1
 155 A = pioset G
+0 REM next state check status of sending in 30 secs
 156 K = 4
 157 ALARM 30
 158 RETURN
 
+0 REM L+D points to the last discovered result
 160 B = atoi $0(L+D)[13]
 161 IF (B-C) > W THEN 140
-162 GOTO 151
+162 GOTO 154
 
 0 REM check status
 170 A = status
-171 IF A = 0 THEN 180
+171 IF A = 0 THEN 181
+0 REM still connected, we disconnect forcefully
 172 A = disconnect 3
-173 A = pioclr J
-174 A = pioset J
-175 GOTO 180
+173 PRINTU "TIMEOUT\r\n"
+174 A = pioclr J
+175 A = pioset J
+176 GOTO 181
 
-180 K = 3
-181 ALARM 2
-182 A = pioclr G
-183 RETURN
+0 REM back to state send message
+181 K = 3
+182 ALARM 2
+183 A = pioclr G
+184 RETURN
+
 
 0 REM hash calc function
-0 REM Prime number to use $3
+0 REM Prime number to use $3 in X
 200 A = 0;
 201 FOR C = 0 TO 11
-202 A = A + $0[C];
+202   A = A + $0[C];
 203 NEXT C
 204 B = A / X
 205 B = B * X
 206 A = A - B
-207 RETURN
+207 PRINTU "hash for "
+208 PRINTU $0
+209 PRINTU " "
+210 PRINTU A
+211 PRINTU "\r\n"
+212 RETURN
 
 @INQUIRY 220
 220 ALARM 2;
@@ -194,6 +225,7 @@
 225 A = pioclr G;
 226 RETURN
 
+0 REM -------- SUB
 0 REM update partial counter
 230 A = readcnt
 231 B = atoi $8
@@ -211,12 +243,12 @@
 @PIO_IRQ 250
 250 IF $0[12]=49 THEN 260;
 0 REM ignore any other event
-251 W = 0;
+251 V = 0;
 252 RETURN
 
 0 REM button press, save state, start ALARM
 260 $2 = $0;
-261 W = 1;
+261 V = 1;
 262 ALARM 3
 263 RETURN
 
@@ -232,4 +264,9 @@
 277 WAIT 1
 273 NEXT E
 274 RETURN
+
+@PIN_CODE 290
+290 $0 = $5
+291 RETURN
+
 
