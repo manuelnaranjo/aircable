@@ -15,12 +15,6 @@
 0 REM visible name
 6 AIRpublisher
 
-0 REM time to resend to same device in minutes 
-7 2
-
-0 REM last counter time.
-8 0
-
 0 REM temp
 19 temp
 
@@ -50,9 +44,7 @@
 33 K = 0
 34 A = zerocnt
 0 REM X stores the amount of devices in the hash table
-0 REM W stores the time window.
 35 X = atoi $3
-36 W = atoi $7
 
 0 REM set name
 37 $0 = $6
@@ -79,11 +71,13 @@
 52 PRINTU $0
 53 PRINTU "\r\n"
 
-54 ALARM 3
 0 REM button status in V
-55 V = 0
+54 V = 0
 
-56 RETURN
+55 A = pioget 12
+56 IF A = 0 THEN 280
+57 ALARM 3
+58 RETURN
 
 @IDLE 60
 60 REM A = slave 8
@@ -96,58 +90,59 @@
 @ALARM 98
 0 REM handle button press
 98 IF V = 1 THEN 270
-99 GOSUB 230
 
 0 REM K state variable
 0 REM K = 0 need inq
 0 REM K = 1 inq in progress
 0 REM K = 2 inq with results, need to sort results and send messsages
 0 REM K = 3 sending messages
-0 REM K = 4 file needs to be closed
-100 IF K = 0 THEN 108
-101 B = status
-102 IF B > 0 THEN 90
-103 IF K = 1 THEN 114
-104 IF K = 2 THEN 123
-105 IF K = 3 THEN 130
-106 IF K = 4 THEN 170
-107 RETURN
+0 REM K = 4 file is beeing sent
+100 IF K = 0 THEN 106
+101 IF K = 1 THEN 112
+102 IF K = 2 THEN 123
+103 IF K = 3 THEN 130
+104 IF K = 4 THEN 170
+105 RETURN
 
-108 PRINTU "INQUIRY\r\n"
-109 M = 0
-110 A = inquiry 9
-111 K = 1
-112 ALARM 12
-113 RETURN
+106 PRINTU "INQUIRY\r\n"
+107 M = 0
+108 A = inquiry 9
+109 K = 1
+110 ALARM 18
+111 RETURN
 
-0 REM still inquiring
-114 A = status
-115 IF A > 0 THEN 118
+0 REM inq finished?
+112 A = status
+113 IF A > 0 THEN 90
 0 REM found something?
-116 IF M > 0 THEN 120
-117 K = 0
-118 ALARM 2
-119 RETURN
+114 IF M > 0 THEN 119
+115 K = 0
+116 ALARM 2
+117 PRINTU"NOTHING\n\r"
+118 RETURN
 
-120 PRINTU "NOTHING\r\n"
-121 K = 2
-122 GOTO 118
+0 REM we might have a winner
+119 PRINTU"FOUND:
+120 PRINTU M 
+121 PRINTU"\r\n"
+122 K = 2
 
 0 REM print results
 123 D = 0
 124 K = 3
 125 ALARM 1
-126 FOR A = L TO L+M
+126 FOR A = 0 TO M-1
 127 PRINTU"\n\rFound: "
-128 PRINTU $A
+128 PRINTU $(A+L)
 129 NEXT A
 
-130 $0 = $(L + D)
-0 REM get hash code in A
-131 GOSUB 200
-0 REM we will forget about collisions
-132 REM GOSUB 230
-0 REM store the start of memory in the table
+0 REM checked all the devices?
+130 IF D = M THEN 165
+
+0 REM generate hash, then check if devices has
+0 REM being serviced or not
+131 $0 = $(L + D)
+132 GOSUB 200
 133 B = strlen $(A+E)
 134 IF B > 0 THEN 160
 135 GOTO 140
@@ -170,34 +165,45 @@
 152 $0 = $2
 153 A = bizcard $(L+D)
 
-0 REM next in list
-154 D = D + 1
-155 A = pioset G
 0 REM next state check status of sending in 30 secs
-156 K = 4
+154 K = 4
+0 REM next in list
+155 D = D + 1
+156 A = pioset G
 157 ALARM 30
 158 RETURN
 
-0 REM L+D points to the last discovered result
-160 B = atoi $0(L+D)[13]
-161 IF (B-C) > W THEN 140
-162 GOTO 154
+160 D = D +1
+161 A = pioclr G
+162 GOTO 130
+
+165 K = 0
+166 PRINTU"Done All\n\r
+167 ALARM 2
+168 RETURN
 
 0 REM check status
 170 A = status
-171 IF A = 0 THEN 181
+171 K = 3
+172 ALARM 3
+173 IF A = 0 THEN 180
 0 REM still connected, we disconnect forcefully
-172 A = disconnect 3
-173 PRINTU "TIMEOUT\r\n"
-174 A = pioclr J
-175 A = pioset J
-176 GOTO 181
+174 A = disconnect 3
+175 PRINTU "TIMEOUT\r\n"
+176 A = pioclr J
+177 A = pioset J
+178 A = pioclr G
+179 RETURN
 
 0 REM back to state send message
-181 K = 3
-182 ALARM 2
-183 A = pioclr G
+180 A = pioclr G
+181 A = success
+182 IF A > 0 THEN 185
+183 PRINTU"FAILED SENDING\n\r"
 184 RETURN
+
+185 PRINTU"FILE SENT\n\r"
+186 RETURN
 
 
 0 REM hash calc function
@@ -225,25 +231,14 @@
 225 A = pioclr G;
 226 RETURN
 
-0 REM -------- SUB
-0 REM update partial counter
-230 A = readcnt
-231 B = atoi $8
-232 C = A + B
-233 $0[0] = 0
-234 PRINTV C
-235 $8 = $0
-236 A = zerocnt
-237 RETURN
-
 @SLAVE 240
 240 A = shell
 241 RETURN
 
 @PIO_IRQ 250
 250 IF $0[12]=49 THEN 260;
+251 V = 0
 0 REM ignore any other event
-251 V = 0;
 252 RETURN
 
 0 REM button press, save state, start ALARM
@@ -264,6 +259,18 @@
 277 WAIT 1
 273 NEXT E
 274 RETURN
+
+280 A = pioclr J; 
+281 PRINTU"Cleaning Table\n\r";
+282 FOR A = 0 TO X;
+283 $(A+E)="";
+284 A = pioset G;
+285 A = pioclr G;
+285 NEXT A;
+286 PRINTU"Done\n\r";
+287 A = pioset J;
+288 ALARM 1
+289 RETURN
 
 @PIN_CODE 290
 290 $0 = $5
