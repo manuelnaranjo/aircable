@@ -67,9 +67,8 @@
 49 A = pioin 12
 50 A = pioirq "P000000000001"
 
-51 PRINTU "STARTUP "
+51 PRINTU "\n\rSTARTUP "
 52 PRINTU $0
-53 PRINTU "\r\n"
 
 0 REM button status in V
 54 V = 0
@@ -104,7 +103,7 @@
 104 IF K = 4 THEN 170
 105 RETURN
 
-106 PRINTU "INQUIRY\r\n"
+106 PRINTU "\n\rINQUIRY"
 107 M = 0
 108 A = inquiry 9
 109 K = 1
@@ -118,14 +117,13 @@
 114 IF M > 0 THEN 119
 115 K = 0
 116 ALARM 2
-117 PRINTU"NOTHING\n\r"
+117 PRINTU"\n\rNOTHING"
 118 RETURN
 
 0 REM we might have a winner
-119 PRINTU"FOUND:
+119 PRINTU"\n\rFOUND:
 120 PRINTU M 
-121 PRINTU"\r\n"
-122 K = 2
+121 K = 2
 
 0 REM print results
 123 D = 0
@@ -159,11 +157,10 @@
 
 0 REM obex the file
 148 A = open $2
-149 PRINTU "to "
+149 PRINTU "\n\rto "
 150 PRINTU $(L+D)
-151 PRINTU "\r\n"
-152 $0 = $2
-153 A = bizcard $(L+D)
+151 $0 = $2
+152 A = bizcard $(L+D)
 
 0 REM next state check status of sending in 30 secs
 154 K = 4
@@ -178,7 +175,7 @@
 162 GOTO 130
 
 165 K = 0
-166 PRINTU"Done All\n\r
+166 PRINTU"\n\rDone All"
 167 ALARM 2
 168 RETURN
 
@@ -189,7 +186,7 @@
 173 IF A = 0 THEN 180
 0 REM still connected, we disconnect forcefully
 174 A = disconnect 3
-175 PRINTU "TIMEOUT\r\n"
+175 PRINTU "\n\rTIMEOUT"
 176 A = pioclr J
 177 A = pioset J
 178 A = pioclr G
@@ -199,10 +196,10 @@
 180 A = pioclr G
 181 A = success
 182 IF A > 0 THEN 185
-183 PRINTU"FAILED SENDING\n\r"
+183 PRINTU"\n\rFAILED SENDING"
 184 RETURN
 
-185 PRINTU"FILE SENT\n\r"
+185 PRINTU"\n\rFILE SENT"
 186 RETURN
 
 
@@ -215,12 +212,11 @@
 204 B = A / X
 205 B = B * X
 206 A = A - B
-207 PRINTU "hash for "
+207 PRINTU "\n\rhash for "
 208 PRINTU $0
 209 PRINTU " "
 210 PRINTU A
-211 PRINTU "\r\n"
-212 RETURN
+211 RETURN
 
 @INQUIRY 220
 220 ALARM 2;
@@ -261,13 +257,13 @@
 274 RETURN
 
 280 A = pioclr J; 
-281 PRINTU"Cleaning Table\n\r";
+281 PRINTU"\n\rCleaning Table";
 282 FOR A = 0 TO X;
 283 $(A+E)="";
 284 A = pioset G;
 285 A = pioclr G;
 285 NEXT A;
-286 PRINTU"Done\n\r";
+286 PRINTU"\n\rDone";
 287 A = pioset J;
 288 ALARM 1
 289 RETURN
