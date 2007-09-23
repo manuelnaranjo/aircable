@@ -54,7 +54,7 @@
 
 0 REM show welcome message
 62 $0[0] = 0
-63 $1="SMART Tempurature Device"
+63 $1="SMART Temperature Device"
 
 65 A = lcd $1
 66 C = strlen$1
@@ -86,43 +86,44 @@
 0 REM display type
 80 $0="TYPE "
 81 PRINTV $7
-82 A = lcd $0
-83 WAIT 3
+82 PRINTV"            "
+83 A = lcd $0
+84 WAIT 3
 
 0 REM button state variable
-84 W = 0
+85 W = 0
 
-85 A = zerocnt
+86 A = zerocnt
 
 0 REM ice water compensation
-86 X = atoi $5[0]
-87 IF X > 700 THEN 90
-88 IF X = 0 THEN 90
-89 GOTO 94
-90 X = 460
-91 $0[0] = 0
-92 PRINTV X
-93 $5 = $0
+87 X = atoi $5[0]
+88 IF X > 700 THEN 91
+89 IF X = 0 THEN 91
+90 GOTO 95
+91 X = 460
+92 $0[0] = 0
+93 PRINTV X
+94 $5 = $0
 
 0 REM reading rate restore
-94 P = atoi $4
-95 IF P > 90 THEN 98
-96 IF P = 0 THEN 98
-97 GOTO 102
-98 P = 0
-99 $0[0] = 0
-100 PRINTV P
-101 $4 = $0
+95 P = atoi $4
+96 IF P > 90 THEN 99
+97 IF P = 0 THEN 99
+98 GOTO 103
+99 P = 0
+100 $0[0] = 0
+101 PRINTV P
+102 $4 = $0
 0 REM turn R into minutes
-102 P = P * 60
+103 P = P * 60
 
 0 REM let's start up
-103 Q = 0;
-104 ALARM 5
+104 Q = 0;
+105 ALARM 5
 0 REM mark we are booting
-105 U = 1000
-106 A = nextsns 10
-107 RETURN
+106 U = 1000
+107 A = nextsns 10
+108 RETURN
 
 
 0 REM buttons and power
@@ -274,8 +275,8 @@
 0 REM short press handler
 0 REM right, left, middle
 260 W = 0
-261 IF $2[2] = 48 THEN 270;
-262 IF $2[3] = 48 THEN 290;
+261 IF $2[2] = 48 THEN 290;
+262 IF $2[3] = 48 THEN 270;
 263 IF $2[12] = 49 THEN 280;
 264 RETURN
 
@@ -294,27 +295,28 @@
 
 @SENSOR 300
 300 A = sensor $0
-301 V = atoi $0[5]
-302 IF V =< 2100 THEN 320
-303 IF U = 100 THEN 310
+301 V = atoi $0
+302 IF U = 100 THEN 310
+303 IF V <= 2100 THEN 320
 0 REM meassure again in 30 minutes
 304 A = nextsns 1800
 305 RETURN
 
 
-310 A = (V - 2100)
-311 A = A / 9
-312 $0="BATT
-313 PRINTV A
-314 PRINTV"%        
-315 A = lcd $0
-316 WAIT 3
-317 GOTO 304 
+310 U = 0
+311 A = (V - 2100)
+312 A = A / 9
+313 $0="BATT
+314 PRINTV A
+315 PRINTV"    
+316 A = lcd $0
+317 WAIT 3
+318 GOTO 303 
 
 320 $0="LOW BATT"
 321 A = lcd $0
-322 WAIT 10
-323 $0 = "#LB"
+322 WAIT 3
+323 $0 = "#LB%"
 324 PRINTV V
 325 A = strlen $3
 326 IF A < 12 THEN 304
@@ -373,7 +375,7 @@
 439 D = Y-D
 440 PRINTV D
 441 A = pioset 1
-442 GOTO 412
+442 GOTO 413
 
 445 $0="ERR READ"
 446 A = lcd $0
