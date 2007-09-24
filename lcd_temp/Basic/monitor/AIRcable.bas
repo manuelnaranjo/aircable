@@ -17,10 +17,11 @@
 
 1 
 2 
-3 
+0 REM 3 0050C2585088
+3
 4 0
 5 540.
-6
+6 200
 7 K
 8 XXXºF
 9 0
@@ -123,7 +124,11 @@
 0 REM mark we are booting
 106 U = 1000
 107 A = nextsns 10
-108 RETURN
+
+0 REM laset pio out and high
+108 A = pioset 4
+109 A = pioout 4
+110 RETURN
 
 
 0 REM buttons and power
@@ -338,12 +343,12 @@
 407 Y = Y / 5
 408 Y = Y + 32
 409 PRINTV Y
-410 PRINTV" %F         "
+410 PRINTV"%F         "
 411 GOTO 415
 
 0 REM display ºC
 412 PRINTV Y
-413 PRINTV" %C         "
+413 PRINTV"%C         "
 
 
 0 REM save temp string. then display
@@ -383,7 +388,7 @@
 
 0 REM I2C sensor reading handler
 450 IF $7[0] = 75 THEN 460
-451 IF $7[0] = 73 THEN 480
+451 IF $7[0] = 73 THEN 479
 452 Y = 0
 453 RETURN
 
@@ -408,6 +413,8 @@
 475 Y = Y + $0[2];
 476 RETURN
 
+0 REM laser on
+479 A = pioclr 4
 0 REM read IR Temp module
 480 A = pioout 1
 0 REM 481 A = ring
@@ -431,14 +438,14 @@
 492 A = i2c $1;
 493 E = E + 1;
 0 REM read until good reading
-494 IF E > 10 THEN 507;
+494 IF E > 10 THEN 508;
 495 IF A <> 6 THEN 485;
 496 IF $0[2] = 255 THEN 485;
 497 IF $0[2] = 0 THEN 485;
 
 0 REM calculate temp, limit 380 C
 498 B = $0[1];
-499 IF B > 127 THEN 507;
+499 IF B > 127 THEN 508;
 500 B = B * 256;
 501 B = B + $0[0];
 502 B = B - 13658;
@@ -446,12 +453,16 @@
 
 504 Y = B
 505 A = pioset 1
-506 RETURN
+0 REM laser off
+506 A = pioset 4
+507 RETURN
 
 0 REM failed reading
-507 A = pioset 1
-508 Y = -32000
-509 RETURN
+508 A = pioset 1
+0 REM laser off
+509 A = pioset 4
+510 Y = -32000
+511 RETURN
 
 
 
