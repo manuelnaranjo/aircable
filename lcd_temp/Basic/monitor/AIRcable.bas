@@ -3,12 +3,14 @@
 0 REM $1 welcome message
 0 REM $2 is for button state
 0 REM $3 is for peer BT address
-0 REM $4 messages rate, default 0
+0 REM $4 messages rate, default 15
 0 REM $5 used for ice water compensation
 0 REM $6 used for LCD contrast storage
 0 REM $7 used for type of sensor
 0 REM $8 last showed message
 0 REM $9 0 for ºF, 1 for ºC
+
+0 REM $15 code version
 
 0 REM $10 - $14 types of sensor
 0 REM $20 min value to compare
@@ -19,7 +21,7 @@
 2 
 0 REM 3 0050C2585088
 3
-4 0
+4 15
 5 540.
 6 200
 7 K
@@ -32,13 +34,16 @@
 13 RESERVED
 14 RESERVED
 
+15 0.1
+
 20 RESERVED
 21 RESERVED
 
-@INIT 48
+@INIT 47
+47 A = uarton
 48 A = baud 1152
 49 Z = 0
-50 A = disable 2
+50 A = disable 3
 0 REM LED output and on
 51 A = pioout 9
 52 A = pioset 9
@@ -68,7 +73,6 @@
 0 REM debug
 0 REM 70 Z = 0
 0 REM 71 A = baud 1152
-71 A = uartoff
 
 72 A = name "AIRautomatic"
 
@@ -83,7 +87,8 @@
 77 A = pioin 3
 78 A = pioset 3
 
-0 REM schedule interrupts
+0 REM schedule interrupts, this fully disables
+0 REM deep sleep
 79 A = pioirq "P011000000001"
 
 0 REM display type
@@ -122,19 +127,23 @@
 
 0 REM let's start up
 104 Q = 0;
-105 ALARM 5
+105 ALARM 10
 0 REM mark we are booting
 106 U = 1000
-107 A = nextsns 10
+107 A = nextsns 15
 
 0 REM laset pio out and high
 108 A = pioset 4
 109 A = pioout 4
-0 REM disable ftp and obex on next reboot
-0 REM 110 $0="@0006 = 0016 0001"
-0 REM 111 PRINTV" 0000 0000"
-0 REM 112 A = psset 4
-113 RETURN
+110 A = uartoff
+111 IF $540[0]<>0 THEN 118
+112 $540="BT ADDR  "
+113 $541="PEER BT  "
+114 $542="CONTRAST "
+115 $543="PROBE    "
+116 $544="CALIBRATE"
+117 $545="MSG RATE "
+118 RETURN
 
 
 0 REM buttons and power
@@ -155,11 +164,12 @@
 
 
 
-@ALARM 150
+@ALARM 149
+149 A = uarton
 0 REM check if we just booted, show temp and message
 150 IF U = 1000 THEN 160
 0 REM contrast timeout, back to preset value.
-151 IF U = 8 THEN 506
+151 IF U<> 0 THEN 550
 
 
 0 REM display temp handler -----
@@ -168,7 +178,7 @@
 152 C = status
 153 IF C = 0 THEN 160
 0 REM in interactive mode check very 10 seconds
-154 ALARM 10
+154 ALARM 20
 155 A = uartoff
 156 RETURN
 
@@ -273,29 +283,30 @@
 
 0 REM combinations handler
 245 IF A = 1 THEN 250
-246 IF C = 0 THEN 258
+246 IF C = 0 THEN 255
 247 GOTO 225
 
 0 REM discoverable for 2 minutes
 250 A = slave 120
 251 A = lcd "VISIBLE     "
-0 REM 253 $0="@0006 = 0012 0001"
-0 REM 254 PRINTV" 0000 0000"
-0 REM 255 A = psset 4
-256 GOTO 225
+252 WAIT 3
+253 GOTO 225
 
-
-258 A = lcd"DEBUG     "
-0 REM implement this
-259 GOTO 225
+0 REM debug mode
+255 A = lcd"DEBUG     "
+256 WAIT 2
+257 U = 10
+258 V = 0
+259 GOTO 550
 
 0 REM short press handler
 0 REM right, left, middle
 260 W = 0
-261 IF $2[2] = 48 THEN 290;
-262 IF $2[3] = 48 THEN 270;
-263 IF $2[12] = 49 THEN 280;
-264 RETURN
+261 IF U <> 0 THEN 560
+262 IF $2[2] = 48 THEN 290;
+263 IF $2[3] = 48 THEN 270;
+264 IF $2[12] = 49 THEN 280;
+265 RETURN
 
 0 REM send current temp
 270 GOSUB 400
@@ -310,7 +321,8 @@
 291 A = nextsns 1
 292 RETURN
 
-@SENSOR 300
+@SENSOR 299
+299 A = uarton
 300 A = sensor $0
 301 V = atoi $0
 302 IF U = 100 THEN 310
@@ -485,6 +497,208 @@
 510 Y = -32000
 511 RETURN
 
+
+0 REM DEBUG MENU
+0 REM 540 to 549 RESERVED!!!
+540 
+541 
+542 
+543 
+
+550 IF V > 5 THEN 555
+551 A = lcd $(540 + V)
+552 RETURN
+
+555 A = lcd"EXIT     "
+556 RETURN
+
+0 REM right left middle
+560 IF U = 20 THEN 626
+561 IF U = 30 THEN 656
+562 IF U = 40 THEN 720
+563 IF $2[2] = 48 THEN 570;
+564 IF $2[3] = 48 THEN 580;
+565 IF $2[12] = 49 THEN 590;
+566 RETURN
+
+570 IF V > 5 THEN 573
+571 V = V + 1
+572 GOTO 550
+
+573 V = 0
+574 GOTO 550
+
+580 IF V < 1 THEN 583
+581 V = V - 1
+582 GOTO 550
+
+583 V = 6
+584 GOTO 550
+
+0 REM option choosen
+590 ALARM 0
+0 REM own addr
+591 IF V = 0 THEN 600
+0 REM peer addr
+592 IF V = 1 THEN 610
+0 REM contrast
+593 IF V = 2 THEN 620
+0 REM probe
+594 IF V = 3 THEN 650
+0 REM calibrate
+595 IF V = 4 THEN 670
+0 REM message rate
+596 IF V = 5 THEN 710
+597 U = 0
+598 ALARM 1
+599 RETURN
+
+0 REM own addr
+600 A = getaddr
+601 FOR B = 0 TO 4
+602 A = lcd $0[B]
+603 WAIT 1
+605 NEXT B
+606 RETURN
+
+0 REM peer addr
+610 A = strlen $3
+611 IF A < 12 THEN 615
+612 $0 = $3
+613 GOTO 601
+
+615 A = lcd"NO PEER "
+616 RETURN
+
+0 REM contrast
+620 $0="TEST 
+621 PRINTV L
+622 A = auxdac L
+623 A = lcd$0
+624 U = 20
+625 RETURN
+
+626 IF $2[2] = 48 THEN 630;
+627 IF $2[3] = 48 THEN 635;
+628 IF $2[12] = 49 THEN 640;
+629 RETURN
+
+630 IF L > 220 THEN 620
+631 L = L + 10
+632 GOTO 620
+
+635 IF L < 160 THEN 620
+636 L = L - 10
+637 GOTO 620
+
+640 U = 10
+641 $0[0]=0
+642 PRINTV L
+643 $6 = $0
+644 ALARM 1
+645 RETURN
+
+650 U = 30
+651 J = 0
+
+652 $0 = $(10+J)
+653 PRINTV"            "
+654 A = lcd $0
+655 RETURN
+
+0 REM probe selector
+656 IF $2[2] = 48 THEN 660;
+657 IF $2[3] = 48 THEN 662;
+658 IF $2[12] = 49 THEN 665;
+659 RETURN
+
+660 J = 0
+661 GOTO 652
+
+662 J = 1
+663 GOTO 652
+
+665 $7 = $11
+666 U = 10
+667 ALARM 1
+668 RETURN
+
+0 REM calibration
+670 IF $7[0] <> 74 THEN 704
+671 ALARM 0
+672 $0[0] = 0
+673 PRINTV"           PUT PR"
+674 PRINTV"OBE IN ICEWATER" 
+
+675 E = strlen $0
+676 FOR D = 1 TO 2
+677  FOR C = 1 TO E -8
+678   A = lcd$0[C];
+679  NEXT C;
+680  WAIT 1
+681 NEXT D
+682 $0[0] = 0
+683 PRINTV "        STIRR"
+684 PRINTV " FOR 30 SECONDS "
+685 E = strlen $0
+686 FOR C = 1 TO E -8
+687   A = lcd$0[C];
+688 NEXT C;
+689 WAIT 1
+
+690 D = 30
+691 $0[0] = 0
+692 PRINTV"STIRR "
+693 PRINTV D
+694 PRINTV"    "
+695 A = lcd $0
+
+0 REM check buttons because we cannot get PIO interrupts here
+0 REM we do that instead of 1 sec wait
+0 REM 474 WAIT 1 << no can do
+
+696 FOR F = 0 TO 3
+697  A = pioget 12;
+698  IF A = 1 THEN 456;
+699  A = pioget 2;
+700  IF A = 0 THEN 456;
+701  A = pioget 3;
+702  IF A = 0 THEN 456;
+703 NEXT F;
+
+704 ALARM 1
+705 RETURN
+
+0 REM message rate
+710 U = 40
+711 P = P / 60
+
+712 $0[0] = 0
+713 PRINTV P
+714 PRINTV" MIN         "
+715 A = lcd $0
+716 RETURN
+
+720 IF $2[2] = 48 THEN 725;
+721 IF $2[3] = 48 THEN 730;
+722 IF $2[12] = 49 THEN 735;
+723 RETURN
+
+725 IF P > 55 THEN 712
+726 P = P + 5
+727 GOTO 712
+
+730 IF P < 5 THEN 712
+731 P = P - 10
+732 GOTO 712
+
+735 U = 10
+736 $0[0]=0
+737 PRINTV P
+738 $4 = $0
+739 P = P * 60
+740 ALARM 1
+741 RETURN
 
 
 0 REM do we need this at all???
