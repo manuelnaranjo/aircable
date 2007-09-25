@@ -35,7 +35,9 @@
 20 RESERVED
 21 RESERVED
 
-@INIT 50
+@INIT 48
+48 A = baud 1152
+49 Z = 0
 50 A = disable 2
 0 REM LED output and on
 51 A = pioout 9
@@ -64,7 +66,7 @@
 69 NEXT B
 
 0 REM debug
-70 Z = 0
+0 REM 70 Z = 0
 0 REM 71 A = baud 1152
 71 A = uartoff
 
@@ -128,7 +130,11 @@
 0 REM laset pio out and high
 108 A = pioset 4
 109 A = pioout 4
-110 RETURN
+0 REM disable ftp and obex on next reboot
+0 REM 110 $0="@0006 = 0016 0001"
+0 REM 111 PRINTV" 0000 0000"
+0 REM 112 A = psset 4
+113 RETURN
 
 
 0 REM buttons and power
@@ -163,7 +169,8 @@
 153 IF C = 0 THEN 160
 0 REM in interactive mode check very 10 seconds
 154 ALARM 10
-155 RETURN
+155 A = uartoff
+156 RETURN
 
 160 U = 0;
 0 REM blink
@@ -266,16 +273,21 @@
 
 0 REM combinations handler
 245 IF A = 1 THEN 250
-246 IF C = 0 THEN 255
+246 IF C = 0 THEN 258
 247 GOTO 225
 
 0 REM discoverable for 2 minutes
 250 A = slave 120
-251 GOTO 225
-
-255 A = lcd"DEBUG     "
-0 REM implement this
+251 A = lcd "VISIBLE     "
+0 REM 253 $0="@0006 = 0012 0001"
+0 REM 254 PRINTV" 0000 0000"
+0 REM 255 A = psset 4
 256 GOTO 225
+
+
+258 A = lcd"DEBUG     "
+0 REM implement this
+259 GOTO 225
 
 0 REM short press handler
 0 REM right, left, middle
@@ -302,32 +314,41 @@
 300 A = sensor $0
 301 V = atoi $0
 302 IF U = 100 THEN 310
-303 IF V <= 2100 THEN 320
+303 IF V <= 2100 THEN 330
 0 REM meassure again in 30 minutes
 304 A = nextsns 1800
-305 RETURN
+305 A = uartoff
+306 RETURN
 
 
-310 U = 0
-311 A = (V - 2100)
-312 A = A / 9
-313 $0="BATT
-314 PRINTV A
-315 PRINTV"    
-316 A = lcd $0
-317 WAIT 3
-318 GOTO 303 
+310 U = 0;
+311 J = 0;
+312 IF V < 3000 THEN 314;
+313 J = J + 20;
+314 IF V < 2820 THEN 316;
+315 J = J + 20;
+316 IF V < 2640 THEN 318;
+317 J = J + 20;
+318 IF V < 2460 THEN 320;
+319 J = J + 20;
+320 $0="BAT  
+321 PRINTV J
+322 PRINTV"    
+323 A = lcd $0
+324 WAIT 3
+325 GOTO 303 
 
-320 $0="LOW BATT"
-321 A = lcd $0
-322 WAIT 3
-323 $0 = "#LB%"
-324 PRINTV V
-325 A = strlen $3
-326 IF A < 12 THEN 304
-327 A = message $3
-328 WAIT 10
-329 GOTO 304
+330 $0="LOW BATT"
+331 A = lcd $0
+332 A = ring
+333 WAIT 1
+334 $0 = "#LB%"
+335 PRINTV V
+336 A = strlen $3
+337 IF A < 12 THEN 304
+338 A = message $3
+339 WAIT 10
+340 GOTO 304
 
 0 REM display temp handler ------
 400 GOSUB 450
@@ -484,19 +505,19 @@
 
 0 REM slave for 60 seconds after boot
 0 REM then stop FTP too
-@IDLE 981
-981 A = pioclr 9
-982 A = pioset 9
-983 REM IF Q = 1 THEN 992
-984 REM IF Q = 2 THEN 996
-985 A = slave 30
-986 Q = 1
+@IDLE 980
+980 A = pioclr 9
+981 A = pioset 9
+982 IF Q = 1 THEN 992
+983 IF Q = 2 THEN 996
+984 A = slave -1
+985 Q = 1
 0 REM startup the automatic again
-987 IF U = 2 THEN 991
-988 U = 0
-989 W = 0
-990 ALARM 2
-991 RETURN
+986 IF U = 2 THEN 991
+987 U = 0
+988 W = 0
+989 ALARM 2
+990 RETURN
 
 0 REM after some time disable FTP
 992 A = disable 3
