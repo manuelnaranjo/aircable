@@ -1,6 +1,6 @@
 @ERASE
 
-0 REM $1 welcome message
+0 REM $1 reserved for i2c
 0 REM $2 is for button state
 0 REM $3 is for peer BT address
 0 REM $4 messages rate, default 15
@@ -11,6 +11,9 @@
 0 REM $9 0 for ºF, 1 for ºC
 
 0 REM $15 code version
+0 REM $16 device name
+0 REM $17 Welcome message
+0 REM $18 reserved
 
 0 REM $10 - $14 types of sensor
 0 REM $20 min value to compare
@@ -35,6 +38,8 @@
 14 RESERVED
 
 15 0.1
+16 SMARTauto
+17 SMART
 
 20 RESERVED
 21 RESERVED
@@ -62,88 +67,81 @@
 
 0 REM show welcome message
 62 $0[0] = 0
-63 $1="SMART Temperature Device"
+63 PRINTV $17
+64 PRINTV" "
+65 PRINTV $7
+66 PRINTV"         "
+67 A = lcd $0
 
-65 A = lcd $1
-66 C = strlen$1
-67 FOR B = 0 TO C - 8
-68 A = lcd $1[B]
-69 NEXT B
-
-0 REM debug
-0 REM 70 Z = 0
-0 REM 71 A = baud 1152
-
-72 A = name "AIRautomatic"
+0 REM set name
+69 A = getuniq $18
+70 $0 = $16
+71 PRINTV " "
+72 PRINTV $18
+73 A = name $0
 
 0 REM initialize buttons 
 0 REM PIO2 right, PIO3 left, PIO12 middle
 0 REM PIO12 goes high when pressed, add 
-73 A = pioin 12
-74 A = pioclr 12
+74 A = pioin 12
+75 A = pioclr 12
 0 REM right button
-75 A = pioin 2
-76 A = pioset 2
-77 A = pioin 3
-78 A = pioset 3
+76 A = pioin 2
+77 A = pioset 2
+78 A = pioin 3
+79 A = pioset 3
 
 0 REM schedule interrupts, this fully disables
 0 REM deep sleep
-79 A = pioirq "P011000000001"
-
-0 REM display type
-80 $0="TYPE "
-81 PRINTV $7
-82 PRINTV"            "
-83 A = lcd $0
-84 WAIT 3
+80 A = pioirq "P011000000001"
 
 0 REM button state variable
-85 W = 0
+81 W = 0
 
-86 A = zerocnt
+82 A = zerocnt
 
 0 REM ice water compensation
-87 X = atoi $5[0]
-88 IF X > 700 THEN 91
-89 IF X = 0 THEN 91
-90 GOTO 95
-91 X = 460
-92 $0[0] = 0
-93 PRINTV X
-94 $5 = $0
+83 X = atoi $5[0]
+84 IF X > 700 THEN 87
+85 IF X = 0 THEN 87
+86 GOTO 91
+87 X = 460
+88 $0[0] = 0
+89 PRINTV X
+90 $5 = $0
 
 0 REM reading rate restore
-95 P = atoi $4
-96 IF P > 90 THEN 99
-97 IF P = 0 THEN 99
-98 GOTO 103
-99 P = 0
-100 $0[0] = 0
-101 PRINTV P
-102 $4 = $0
+91 P = atoi $4
+92 IF P > 90 THEN 95
+93 IF P = 0 THEN 95
+94 GOTO 99
+95 P = 0
+96 $0[0] = 0
+97 PRINTV P
+98 $4 = $0
 0 REM turn R into minutes
-103 P = P * 60
+99 P = P * 60
 
 0 REM let's start up
-104 Q = 0;
-105 ALARM 10
+100 Q = 0;
+101 ALARM 10
 0 REM mark we are booting
-106 U = 1000
-107 A = nextsns 15
+102 U = 1000
+103 A = nextsns 15
 
 0 REM laset pio out and high
-108 A = pioset 4
-109 A = pioout 4
-110 A = uartoff
-111 IF $540[0]<>0 THEN 118
-112 $540="BT ADDR  "
-113 $541="PEER BT  "
-114 $542="CONTRAST "
-115 $543="PROBE    "
-116 $544="CALIBRATE"
-117 $545="MSG RATE "
-118 RETURN
+104 A = pioset 4
+105 A = pioout 4
+106 A = uartoff
+107 IF $540[0]<>0 THEN 114
+108 $540="BT ADDR  "
+109 $541="PEER BT  "
+110 $542="CONTRAST "
+111 $543="PROBE    "
+112 $544="CALIBRATE"
+113 $545="MSG RATE "
+114 $546="%F \ %C  "
+115 RETURN
 
 
 0 REM buttons and power
@@ -505,23 +503,25 @@
 542 
 543 
 
-550 IF V > 5 THEN 555
+550 IF V > 6 THEN 555
 551 A = lcd $(540 + V)
 552 RETURN
 
 555 A = lcd"EXIT     "
 556 RETURN
 
-0 REM right left middle
+0 REM debug mode handler
 560 IF U = 20 THEN 626
 561 IF U = 30 THEN 656
-562 IF U = 40 THEN 720
-563 IF $2[2] = 48 THEN 570;
-564 IF $2[3] = 48 THEN 580;
-565 IF $2[12] = 49 THEN 590;
-566 RETURN
+562 IF U = 40 THEN 737
+563 IF U = 50 THEN 770
+0 REM right left middle
+564 IF $2[2] = 48 THEN 570;
+565 IF $2[3] = 48 THEN 580;
+566 IF $2[12] = 49 THEN 590;
+567 RETURN
 
-570 IF V > 5 THEN 573
+570 IF V > 6 THEN 573
 571 V = V + 1
 572 GOTO 550
 
@@ -532,15 +532,15 @@
 581 V = V - 1
 582 GOTO 550
 
-583 V = 6
+583 V = 7
 584 GOTO 550
 
 0 REM option choosen
 590 ALARM 0
 0 REM own addr
-591 IF V = 0 THEN 600
+591 IF V = 0 THEN 605
 0 REM peer addr
-592 IF V = 1 THEN 610
+592 IF V = 1 THEN 611
 0 REM contrast
 593 IF V = 2 THEN 620
 0 REM probe
@@ -548,24 +548,26 @@
 0 REM calibrate
 595 IF V = 4 THEN 670
 0 REM message rate
-596 IF V = 5 THEN 710
-597 U = 0
-598 ALARM 1
-599 RETURN
+596 IF V = 5 THEN 730
+0 REM ºF / ºC
+597 IF V = 6 THEN 760
+598 U = 0
+599 ALARM 1
+600 RETURN
 
 0 REM own addr
-600 A = getaddr
-601 FOR B = 0 TO 4
-602 A = lcd $0[B]
-603 WAIT 1
-605 NEXT B
-606 RETURN
+605 A = getaddr
+606 FOR B = 0 TO 4
+607 A = lcd $0[B]
+608 WAIT 1
+609 NEXT B
+610 RETURN
 
 0 REM peer addr
-610 A = strlen $3
-611 IF A < 12 THEN 615
-612 $0 = $3
-613 GOTO 601
+611 A = strlen $3
+612 IF A < 12 THEN 615
+613 $0 = $3
+614 GOTO 606
 
 615 A = lcd"NO PEER "
 616 RETURN
@@ -618,13 +620,13 @@
 662 J = 1
 663 GOTO 652
 
-665 $7 = $11
+665 $7 = $(10+J)
 666 U = 10
 667 ALARM 1
 668 RETURN
 
 0 REM calibration
-670 IF $7[0] <> 74 THEN 704
+670 IF $7[0] <> 75 THEN 720
 671 ALARM 0
 672 $0[0] = 0
 673 PRINTV"           PUT PR"
@@ -659,47 +661,91 @@
 
 696 FOR F = 0 TO 3
 697  A = pioget 12;
-698  IF A = 1 THEN 456;
+698  IF A = 1 THEN 712;
 699  A = pioget 2;
-700  IF A = 0 THEN 456;
+700  IF A = 0 THEN 712;
 701  A = pioget 3;
-702  IF A = 0 THEN 456;
+702  IF A = 0 THEN 712;
 703 NEXT F;
 
-704 ALARM 1
-705 RETURN
+704 D = D -1
+705 IF D > 0 THEN 691
+
+712 $0 = "DONE "
+713 PRINTV Y
+714 PRINTV"          "
+715 A = lcd $0
+
+0 REM store X persistently
+716 $0[0] = 0
+717 PRINTV Y
+718 $5 = $0
+719 X = Y
+720 U = 10
+721 ALARM 1
+722 RETURN
 
 0 REM message rate
-710 U = 40
-711 P = P / 60
+730 U = 40
+731 P = P / 60
 
-712 $0[0] = 0
-713 PRINTV P
-714 PRINTV" MIN         "
-715 A = lcd $0
-716 RETURN
+732 $0[0] = 0
+733 PRINTV P
+734 PRINTV" MIN         "
+735 A = lcd $0
+736 RETURN
 
-720 IF $2[2] = 48 THEN 725;
-721 IF $2[3] = 48 THEN 730;
-722 IF $2[12] = 49 THEN 735;
-723 RETURN
+737 IF $2[2] = 48 THEN 741;
+738 IF $2[3] = 48 THEN 744;
+739 IF $2[12] = 49 THEN 747;
+740 RETURN
 
-725 IF P > 55 THEN 712
-726 P = P + 5
-727 GOTO 712
+741 IF P > 55 THEN 732
+742 P = P + 5
+743 GOTO 732
 
-730 IF P < 5 THEN 712
-731 P = P - 10
-732 GOTO 712
+744 IF P < 5 THEN 732
+745 P = P - 10
+746 GOTO 732
 
-735 U = 10
-736 $0[0]=0
-737 PRINTV P
-738 $4 = $0
-739 P = P * 60
-740 ALARM 1
-741 RETURN
+747 U = 10
+748 $0[0]=0
+749 PRINTV P
+750 $4 = $0
+751 P = P * 60
+752 ALARM 1
+753 RETURN
 
+0 REM ºF / ºC changer
+760 U = 50
+761 J = 0
+
+762 IF J > 0 THEN 766
+763 A = lcd "%F              "
+764 ALARM 0
+765 RETURN
+
+766 A = lcd "%C              "
+767 GOTO 764
+
+0 REM right left middle
+770 IF $2[2] = 48 THEN 775;
+771 IF $2[3] = 48 THEN 777;
+772 IF $2[12] = 49 THEN 779; 
+773 RETURN
+
+775 J = 0
+776 GOTO 762
+
+777 J = 1
+778 GOTO 762
+
+779 $0[0] = 0
+780 PRINTV J
+781 $9=$0
+782 U = 10
+783 ALARM 1
+784 RETURN
 
 0 REM do we need this at all???
 @CONTROL 910
