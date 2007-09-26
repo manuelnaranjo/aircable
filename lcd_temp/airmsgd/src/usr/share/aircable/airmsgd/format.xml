@@ -2,10 +2,10 @@
     <gmt>GMT</gmt>
     <record>
 	<nodeid>ID</nodeid>
-	<tempurature>
+	<temperature>
 	    <celsius>CELCIUS</celsius>
 	    <fahrenheit>FAHRENHEIT</fahrenheit>
-	</tempurature>
+	</temperature>
 	<datetime>DATETIME</datetime>
 	<type>TYPE</type>
     </record>

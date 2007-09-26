@@ -262,14 +262,14 @@
 283 $(A+E)="";
 284 A = pioset G;
 285 A = pioclr G;
-285 NEXT A;
-286 PRINTU"\n\rDone";
-287 A = pioset J;
-288 ALARM 1
-289 RETURN
+286 NEXT A;
+287 PRINTU"\n\rDone";
+288 A = pioset J;
+289 ALARM 1
+290 RETURN
 
-@PIN_CODE 290
-290 $0 = $5
-291 RETURN
+@PIN_CODE 295
+295 $0 = $5
+296 RETURN
 
 

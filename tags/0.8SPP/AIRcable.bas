@@ -943,7 +943,7 @@
 600 PRINTS "Bye!!\n\r
 601 GOSUB 136;
 602 $3[3] = 48;
-603 A = slave -1
+603 K = 1
 604 A = disconnect 0
 605 A = zerocnt
 606 A = pioset($8[1]-48);

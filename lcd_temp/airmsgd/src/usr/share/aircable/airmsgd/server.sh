@@ -16,18 +16,20 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 kill_obex(){
-    OPUSH=$(sdptool browse --uuid 0x1105 local | grep "Service RecHandle:" | sed -e "s/Service RecHandle: 0x//g")
-    FTP=$(sdptool browse --uuid 0x1106 local | grep "Service RecHandle:" | sed -e "s/Service RecHandle: 0x//g")
+    OPUSH=$(sdptool browse --uuid 0x1105 local | grep "Service RecHandle:" \
+    		| sed -e "s/Service RecHandle: 0x//g")
+    FTP=$(sdptool browse --uuid 0x1106 local | grep "Service RecHandle:" \
+    		| sed -e "s/Service RecHandle: 0x//g")
     
-    echo $(date) "deregistering services" >> $LOG_FILE
+    echo $(date) "deregistering services"
     sdptool del $OPUSH
     sdptool del $FTP
         
-    echo $(date) "killing obexftpd" >> $LOG_FILE
+    echo $(date) "killing obexftpd"
     PID=$(cat $OBEX_PID) 
     kill $PID
     
-    echo $(date) "stoping daemon" >> $LOG_FILE
+    echo $(date) "stoping daemon"
     
     exit 0
 }
@@ -42,17 +44,16 @@ OBEX_PID=$PID_DIR/obexftpd
 LOG_DIR="/var/log/airmsgd"
 MSG_DIR="/tmp/airmsgd/msg"
 
-##TIME:VALUE!CORRECTION
+##TIME:VALUE!CORRECTION#TYPE
 
 mkdir -p $LOG_DIR
 mkdir -p $MSG_DIR
 
-LOG_FILE="$LOG_DIR/obex.log"
 OBEX_LOG="$LOG_DIR/obexftpd.log"
 
 trap kill_obex SIGHUP SIGINT SIGTERM TERM
 
-obexftpd -b > $OBEX_LOG &
+obexftpd -c $MSG_DIR -b > /dev/null &
 
 echo $! > $OBEX_PID
 
@@ -84,8 +85,10 @@ do
 	    IFS='|'
 	    VAL=(${TOKEN})
 	    	    
-	    echo "VALUE: ${VAL[1]}, TIME: ${VAL[0]}, CORR: ${VAL[2]}, TYPE: ${VAL[3]}"
-	    echo "VALUE: ${VAL[1]}, TIME: ${VAL[0]}, CORR: ${VAL[2]}, TYPE: ${VAL[3]}" >> $LOG_FILE
+	    echo "VALUE: ${VAL[1]}, TIME: ${VAL[0]}, CORR: ${VAL[2]}, \
+	    	TYPE: ${VAL[3]}"
+	    echo "VALUE: ${VAL[1]}, TIME: ${VAL[0]}, CORR: ${VAL[2]}, \ 
+	    	TYPE: ${VAL[3]}" >> $LOG_FILE
 	
 	    echo "SENDING...."
 	    echo "SENDING...." >> $LOG_FILE
