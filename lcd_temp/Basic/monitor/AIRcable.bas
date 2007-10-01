@@ -286,9 +286,10 @@
 
 0 REM discoverable for 2 minutes
 250 A = slave 120
-251 A = lcd "VISIBLE     "
-252 WAIT 3
-253 GOTO 225
+251 A = disable 3
+252 A = lcd "VISIBLE     "
+253 WAIT 3
+254 GOTO 225
 
 0 REM debug mode
 255 A = lcd"DEBUG     "
@@ -770,22 +771,10 @@
 @IDLE 980
 980 A = pioclr 9
 981 A = pioset 9
-982 IF Q = 1 THEN 992
-983 IF Q = 2 THEN 996
-984 A = slave -1
-985 Q = 1
-0 REM startup the automatic again
-986 IF U = 2 THEN 991
-987 U = 0
-988 W = 0
-989 ALARM 2
-990 RETURN
-
-0 REM after some time disable FTP
-992 A = disable 3
-993 WAIT 3
-994 A = slave -1
-995 Q = 2
-996 RETURN
-
+982 A = slave -1
+983 A = disable 3
+984 U = 0
+985 W = 0
+986 ALARM 2
+981 RETURN
 
