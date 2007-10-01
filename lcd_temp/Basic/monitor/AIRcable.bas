@@ -286,7 +286,7 @@
 
 0 REM discoverable for 2 minutes
 250 A = slave 120
-251 A = disable 3
+251 A = enable 1
 252 A = lcd "VISIBLE     "
 253 WAIT 3
 254 GOTO 225
