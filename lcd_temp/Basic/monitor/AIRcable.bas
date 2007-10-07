@@ -19,6 +19,8 @@
 0 REM $20 min value to compare
 0 REM $21 max value to compare
 
+0 REM $22 deep sleep irqs
+0 REM $23 non deep sleep irqs
 
 1 
 2 
@@ -43,6 +45,10 @@
 
 20 RESERVED
 21 RESERVED
+
+
+22 "P000000000001"
+23 "P011000000001"
 
 @INIT 47
 47 A = uarton
@@ -93,7 +99,7 @@
 
 0 REM schedule interrupts, this fully disables
 0 REM deep sleep
-80 A = pioirq "P011000000001"
+80 A = pioirq$23
 
 0 REM button state variable
 81 W = 0
@@ -127,21 +133,24 @@
 101 ALARM 10
 0 REM mark we are booting
 102 U = 1000
-103 A = nextsns 15
+0 REM mark first battery meassure in a minute
+103 A = nextsns 60
+104 N = 1
+
 
 0 REM laset pio out and high
-104 A = pioset 4
-105 A = pioout 4
-106 A = uartoff
-107 IF $540[0]<>0 THEN 114
-108 $540="BT ADDR  "
-109 $541="PEER BT  "
-110 $542="CONTRAST "
-111 $543="PROBE    "
-112 $544="CALIBRATE"
-113 $545="MSG RATE "
-114 $546="%F \ %C  "
-115 RETURN
+105 A = pioset 4
+106 A = pioout 4
+107 A = uartoff
+108 IF $540[0]<>0 THEN 115
+109 $540="BT ADDR  "
+110 $541="PEER BT  "
+111 $542="CONTRAST "
+112 $543="PROBE    "
+113 $544="CALIBRATE"
+114 $545="MSG RATE "
+115 $546="%F \ %C  "
+116 RETURN
 
 
 0 REM buttons and power
@@ -317,20 +326,25 @@
 
 0 REM show batteries level
 290 U = 100
-291 A = nextsns 1
-292 RETURN
+291 N = 1
+292 A = nextsns 1
+293 RETURN
 
-@SENSOR 299
+@SENSOR 298
+298 IF N <> 0 THEN 308
 299 A = uarton
 300 A = sensor $0
 301 V = atoi $0
 302 IF U = 100 THEN 310
 303 IF V <= 2100 THEN 330
 0 REM meassure again in 30 minutes
-304 A = nextsns 1800
-305 A = uartoff
-306 RETURN
+304 N = 1
+305 A = nextsns 1800
+306 A = uartoff
+307 RETURN
 
+308 N = N -1
+309 RETURN
 
 310 U = 0;
 311 J = 0;
