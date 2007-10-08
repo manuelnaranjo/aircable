@@ -784,10 +784,9 @@
 @IDLE 980
 980 A = pioclr 9
 981 A = pioset 9
-982 A = slave -1
-983 A = disable 3
-984 U = 0
-985 W = 0
-986 ALARM 2
-981 RETURN
+982 A = disable 3
+983 U = 0
+984 W = 0
+985 ALARM 2
+986 RETURN
 
