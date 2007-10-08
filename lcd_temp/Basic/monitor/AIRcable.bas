@@ -47,8 +47,8 @@
 21 RESERVED
 
 
-22 "P000000000001"
-23 "P011000000001"
+22 P000000000001
+23 P011000000001
 
 @INIT 47
 47 A = uarton
@@ -97,8 +97,7 @@
 78 A = pioin 3
 79 A = pioset 3
 
-0 REM schedule interrupts, this fully disables
-0 REM deep sleep
+0 REM schedule interrupts for deep sleep
 80 A = pioirq$23
 
 0 REM button state variable
