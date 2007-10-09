@@ -1,5 +1,23 @@
 @ERASE
 
+0 REM PIO LIST:
+0 REM 1 IR OFF
+0 REM 2 RIGHT BUTTON
+0 REM 3 LEFT BUTTON
+0 REM 4 LASER
+0 REM 9 GREEN LED
+0 REM 12 MIDDLE BUTTON
+0 REM 20 BLUE LED
+
+0 REM Y used for reading
+0 REM X used for calibration
+0 REM W used for button
+0 REM V used for debug menu
+0 REM U used for lcd state
+0 REM T, R used for i2c
+0 REM S shows deep sleep state
+0 REM ABCDEFGHIJKLMNOPQ
+
 0 REM $1 reserved for i2c
 0 REM $2 is for button state
 0 REM $3 is for peer BT address
@@ -27,7 +45,7 @@
 0 REM 3 0050C2585088
 3
 4 15
-5 540.
+5 540
 6 200
 7 K
 8 XXXºF
@@ -39,7 +57,7 @@
 13 RESERVED
 14 RESERVED
 
-15 0.1
+15 0.1.1
 16 SMARTauto
 17 SMART
 
@@ -98,7 +116,7 @@
 79 A = pioset 3
 
 0 REM schedule interrupts for deep sleep
-80 A = pioirq$23
+80 A = pioirq$22
 
 0 REM button state variable
 81 W = 0
@@ -132,50 +150,65 @@
 101 ALARM 10
 0 REM mark we are booting
 102 U = 1000
-0 REM mark first battery meassure in a minute
-103 A = nextsns 60
+0 REM mark first battery meassure in half a minute
+103 A = nextsns 30
 104 N = 1
 
 
 0 REM laset pio out and high
 105 A = pioset 4
 106 A = pioout 4
-107 A = uartoff
-108 IF $540[0]<>0 THEN 115
-109 $540="BT ADDR  "
-110 $541="PEER BT  "
-111 $542="CONTRAST "
-112 $543="PROBE    "
-113 $544="CALIBRATE"
-114 $545="MSG RATE "
-115 $546="%F \ %C  "
-116 RETURN
+
+0 REM S = 0 deep sleep
+0 REM S = 1 non-deep sleep
+108 S = 0
+109 IF $540[0]<>0 THEN 117
+110 $540="BT ADDR  "
+111 $541="PEER BT  "
+112 $542="CONTRAST "
+113 $543="PROBE    "
+114 $544="CALIBRATE"
+115 $545="MSG RATE "
+116 $546="%F \ %C  "
+117 ALARM 1
+118 RETURN
 
 
 0 REM buttons and power
-@PIO_IRQ 130
+@PIO_IRQ 128
+128 IF S = 0 THEN 130;
+129 ALARM 30;
 0 REM press button starts alarm for long press recognition
 130 IF $0[2]=48 THEN 136;
 131 IF $0[3]=48 THEN 136;
 132 IF $0[12]=49 THEN 136;
 0 REM was it a release, handle it
-133 IF W <> 0 THEN 260;
+133 IF W <> 0 THEN 261;
 134 RETURN
 
 0 REM button press, save state, start ALARM
 136 $2 = $0;
 137 W = 1;
-138 ALARM 3
-139 RETURN
+138 IF S = 0 THEN 141
+139 ALARM 3
+140 RETURN
+
+141 S = 1;
+142 A = pioirq $23;
+143 ALARM 30;
+144 A = pioset 9;
+145 GOSUB 400;
+146 RETURN
 
 
 
-@ALARM 149
-149 A = uarton
+@ALARM 148
+148 A = pioset 9;
+149 A = uarton;
 0 REM check if we just booted, show temp and message
-150 IF U = 1000 THEN 160
+150 IF U = 1000 THEN 160;
 0 REM contrast timeout, back to preset value.
-151 IF U<> 0 THEN 550
+151 IF U<> 0 THEN 550;
 
 
 0 REM display temp handler -----
@@ -185,63 +218,66 @@
 153 IF C = 0 THEN 160
 0 REM in interactive mode check very 10 seconds
 154 ALARM 20
-155 A = uartoff
-156 RETURN
+155 GOTO 1000
 
 160 U = 0;
-0 REM blink
-161 A = pioset 20;
-162 A = pioclr 20
 0 REM long press button recognition
-163 IF W = 1 THEN 220
+161 IF W = 1 THEN 220
 
 0 REM update temp then display
-164 GOSUB 400
+162 IF S = 1 THEN 169
+163 GOSUB 400;
 0 REM are we in messaging mode
-165 IF P > 0 THEN 170
+164 IF P > 0 THEN 172
 0 REM not messaging mode, only show temp, allow deep sleep
-166 ALARM 60
-167 A = uartoff
-168 RETURN
+165 ALARM 60
+166 GOSUB 1000
+167 RETURN
+
+169 S = 0
+171 GOTO 165
 
 0 REM we just booted?
-170 IF U = 1000 THEN 173
+172 IF U = 1000 THEN 175
 0 REM check timer then
-171 A = readcnt
-172 IF P > A THEN 166
+173 A = readcnt
+174 IF P > A THEN 168
 
 0 REM get a reading, put it on LCD
-173 U = 0
-174 A = zerocnt
-175 WAIT 2
+175 U = 0
+176 A = zerocnt
+177 WAIT 2
 0 REM are we paired?
-176 A = strlen $3
-177 IF A < 12 THEN 166
+178 A = strlen $3
+179 IF A < 12 THEN 168
 
 0 REM message handler ------
 0 REM prepare OBEX message
-180 GOSUB 450
-181 $0[0]=0
-182 PRINTV"$"
-183 PRINTV A
-184 PRINTV ":"
-185 PRINTV Y
-186 PRINTV"!"
-187 PRINTV X
-188 PRINTV"#"
-189 PRINTV $7
+180 GOSUB 450;
+181 $0[0]=0;
+182 PRINTV"$";
+183 PRINTV A;
+184 PRINTV ":";
+185 PRINTV Y;
+186 PRINTV"!";
+187 PRINTV X;
+188 PRINTV"#";
+189 PRINTV $7;
 
-190 A = message $3
-191 A = zerocnt
-192 A = lcd " MESSAGE"
-193 WAIT 2
+190 A = pioset 20
+
+191 A = message $3;
+192 A = zerocnt
+193 A = lcd " MESSAGE"
+194 WAIT 2
 
 0 REM check message transmission
-194 C = status
-195 IF C < 1000 THEN 200
-196 WAIT 2
-197 GOTO 194
+195 C = status
+196 IF C < 1000 THEN 199
+197 WAIT 2
+198 GOTO 195
 
+199 A = pioclr 20
 200 A = success
 201 IF A > 0 THEN 204
 202 A = lcd " FAILED "
@@ -255,73 +291,78 @@
 0 REM falls to sleep
 206 A = lcd $8
 0 REM next reading in P seconds
-207 GOTO 166
+207 GOTO 168
 
 
 
 0 REM button handlers -----------------
 
 0 REM long button press
-220 A = pioget 12
-221 B = pioget 2
-222 C = pioget 3
+220 A = pioget 12;
+221 B = pioget 2;
+222 C = pioget 3;
 0 REM M = power off
 0 REM M + R = visible
 0 REM R + L = debug panel
-223 IF B = 0 THEN 245
-224 IF A = 1 THEN 230
+223 IF B = 0 THEN 245;
+224 IF A = 1 THEN 230;
 0 REM ignore other long presses
-225 W = 0
-226 ALARM 1
-227 RETURN
+225 W = 0;
+226 ALARM 1;
+227 GOTO 1000
+
 
 0 REM long button press
-230 A = lcd "GOOD BYE"
+230 A = lcd "GOOD BYE";
 231 ALARM 0;
 232 A = pioget 12;
 233 IF A = 1 THEN 232;
-234 A = lcd;
-235 A = reboot;
-236 FOR E = 0 TO 10
-237   WAIT 1
-238 NEXT E
-239 RETURN
+234 A = pioclr 9;
+235 A = lcd;
+236 A = reboot;
+237 FOR E = 0 TO 10;
+238   WAIT 1;
+239 NEXT E;
+240 RETURN
 
 0 REM combinations handler
-245 IF A = 1 THEN 250
-246 IF C = 0 THEN 255
+245 IF A = 1 THEN 250;
+246 IF C = 0 THEN 255;
 247 GOTO 225
 
 0 REM discoverable for 2 minutes
-250 A = slave 120
-251 A = enable 1
-252 A = lcd "VISIBLE     "
-253 WAIT 3
+250 A = slave 120;
+251 A = enable 1;
+252 A = lcd "VISIBLE     ";
+253 WAIT 20;
 254 GOTO 225
 
 0 REM debug mode
-255 A = lcd"DEBUG     "
-256 WAIT 2
-257 U = 10
-258 V = 0
-259 GOTO 550
+255 A = lcd"MENU        ";
+256 WAIT 2;
+257 U = 10;
+258 V = 0;
+259 $2="00000000000000"
+260 GOTO 550
 
 0 REM short press handler
 0 REM right, left, middle
-260 W = 0
-261 IF U <> 0 THEN 560
-262 IF $2[2] = 48 THEN 290;
-263 IF $2[3] = 48 THEN 270;
-264 IF $2[12] = 49 THEN 280;
-265 RETURN
+261 W = 0
+262 IF U <> 0 THEN 560;
+263 IF $2[2] = 48 THEN 290;
+264 IF $2[3] = 48 THEN 270;
+265 IF $2[12] = 49 THEN 280;
+266 GOTO 1000
 
 0 REM send current temp
 270 GOSUB 400
-271 GOTO 176
+271 GOTO 178
 
 0 REM show current temp
 280 GOSUB 400
 281 RETURN
+
+0 REM long press 
 
 0 REM show batteries level
 290 U = 100
@@ -329,21 +370,18 @@
 292 A = nextsns 1
 293 RETURN
 
-@SENSOR 298
-298 IF N <> 0 THEN 308
-299 A = uarton
-300 A = sensor $0
-301 V = atoi $0
-302 IF U = 100 THEN 310
-303 IF V <= 2100 THEN 330
+@SENSOR 297
+297 IF N <> 0 THEN 350;
+298 A = pioset 9;
+299 A = uarton;
+300 A = sensor $0;
+301 V = atoi $0;
+302 IF U = 100 THEN 310;
+303 IF V <= 2100 THEN 330;
 0 REM meassure again in 30 minutes
-304 N = 1
-305 A = nextsns 1800
-306 A = uartoff
-307 RETURN
-
-308 N = N -1
-309 RETURN
+304 N = 1;
+305 A = nextsns 1800;
+306 GOTO 1000;
 
 310 U = 0;
 311 J = 0;
@@ -357,86 +395,96 @@
 319 J = J + 20;
 320 IF V < 2100 THEN 322;
 321 J = J + 20;
-322 $0="BAT  
-323 PRINTV J
+322 $0="BAT 
+323 PRINTV J;
 324 PRINTV"    
-325 A = lcd $0
-326 WAIT 3
-327 GOTO 303 
+325 A = lcd $0;
+326 WAIT 20;
+327 GOTO 304; 
 
-330 $0="LOW BATT"
-331 A = lcd $0
-332 A = ring
-333 WAIT 1
-334 $0 = "#LB%"
-335 PRINTV V
-336 A = strlen $3
-337 IF A < 12 THEN 304
-338 A = message $3
-339 WAIT 10
-340 GOTO 304
+330 $0="LOW BATT";
+331 A = lcd $0;
+332 A = ring;
+333 WAIT 1;
+334 $0 = "#LB%";
+335 PRINTV V;
+336 A = strlen $3;
+337 IF A < 12 THEN 340;
+338 A = pioset 20;
+339 A = message $3;
+340 WAIT 20
+341 A = status;
+342 IF A < 100 THEN 344
+343 A = disconnect 3;
+344 A = pioclr 20
+345 GOTO 304;
+
+350 N = N -1;
+351 RETURN;
 
 0 REM display temp handler ------
 400 GOSUB 450
-401 IF $7[0] = 73 THEN 420
-402 $0="T "
-403 Y = Y + X
-404 Y = Y / 20
+401 IF $7[0] = 73 THEN 420;
+402 $0="T ";
+403 Y = Y + X;
+404 Y = Y / 20;
 
 0 REM show in ºF or ºC?
-405 IF $9[0]=49 THEN 412
+405 IF $9[0]=49 THEN 412;
 0 REM convert to ºF
-406 Y = Y * 9
-407 Y = Y / 5
-408 Y = Y + 32
-409 PRINTV Y
-410 PRINTV"%F         "
-411 GOTO 415
+406 Y = Y * 9;
+407 Y = Y / 5;
+408 Y = Y + 32;
+409 PRINTV Y;
+410 PRINTV"%F         ";
+411 GOTO 415;
 
 0 REM display ºC
-412 PRINTV Y
-413 PRINTV"%C         "
+412 PRINTV Y;
+413 PRINTV"%C         ";
 
 
 0 REM save temp string. then display
-415 $8 = $0
-416 A = lcd $8
-417 RETURN
+415 $8 = $0;
+416 A = lcd $8;
+417 IF S = 1 THEN 419
+418 WAIT 5
+419 RETURN
 
 0 REM IR sensor
-420 $0 ="IR. "
-421 IF Y  <= -32000 THEN 445
+420 $0 ="IR. ";
+421 IF Y  <= -32000 THEN 445;
 0 REM ºF or ºC?
-422 IF $9[0]=49 THEN 435
-423 Y = Y * 9
-424 Y = Y / 5
-425 Y = Y + 320
-426 C = Y / 10
-427 PRINTV C
-428 PRINTV"."
-429 D = C * 10
-430 D = Y-D
-431 PRINTV D
-432 A = pioset 1
-433 GOTO 410
+422 IF $9[0]=49 THEN 435;
+423 Y = Y * 9;
+424 Y = Y / 5;
+425 Y = Y + 320;
+426 C = Y / 10;
+427 PRINTV C;
+428 PRINTV".";
+429 D = C * 10;
+430 D = Y-D;
+431 PRINTV D;
+432 A = pioset 1;
+433 GOTO 410;
 
-435 C = Y / 10
-436 PRINTV C
-437 PRINTV"."
-438 D = C * 10
-439 D = Y-D
-440 PRINTV D
-441 A = pioset 1
-442 GOTO 413
+435 C = Y / 10;
+436 PRINTV C;
+437 PRINTV".";
+438 D = C * 10;
+439 D = Y-D;
+440 PRINTV D;
+441 A = pioset 1;
+442 GOTO 413;
 
-445 $0="ERR READ"
-446 A = lcd $0
+445 $0="ERR READ";
+446 A = lcd $0;
 447 RETURN
 
 0 REM I2C sensor reading handler
-450 IF $7[0] = 75 THEN 460
-451 IF $7[0] = 73 THEN 479
-452 Y = 0
+450 IF $7[0] = 75 THEN 460;
+451 IF $7[0] = 73 THEN 479;
+452 Y = 0;
 453 RETURN
 
 0 REM K sensor connected to MCP3421
@@ -461,16 +509,16 @@
 476 RETURN
 
 0 REM laser on
-479 A = pioclr 4
+479 A = pioclr 4;
 0 REM read IR Temp module
-480 A = pioout 1
+480 A = pioout 1;
 0 REM 481 A = ring
-482 A = pioclr 1
+482 A = pioclr 1;
 0 REM temp is in Kelvin
 0 REM substract 273.15 to get Celsius
 0 REM temp / 0.02 is K
 0 REM F = address: 6 is ambient, 7 object
-483 F = 7
+483 F = 7;
 0 REM E is repeat limit
 484 E = 0;
 485 $0[0] = 0;
@@ -498,17 +546,17 @@
 502 B = B - 13658;
 503 B = B / 5;
 
-504 Y = B
-505 A = pioset 1
+504 Y = B;
+505 A = pioset 1;
 0 REM laser off
-506 A = pioset 4
+506 A = pioset 4;
 507 RETURN
 
 0 REM failed reading
-508 A = pioset 1
+508 A = pioset 1;
 0 REM laser off
-509 A = pioset 4
-510 Y = -32000
+509 A = pioset 4;
+510 Y = -32000;
 511 RETURN
 
 
@@ -519,12 +567,12 @@
 542 
 543 
 
-550 IF V > 6 THEN 555
-551 A = lcd $(540 + V)
-552 RETURN
+550 IF V > 6 THEN 555;
+551 A = lcd $(540 + V);
+552 RETURN;
 
-555 A = lcd"EXIT     "
-556 RETURN
+555 A = lcd"EXIT     ";
+556 RETURN;
 
 0 REM debug mode handler
 560 IF U = 20 THEN 626
@@ -569,7 +617,7 @@
 597 IF V = 6 THEN 760
 598 U = 0
 599 ALARM 1
-600 RETURN
+600 GOTO 1000
 
 0 REM own addr
 605 A = getaddr
@@ -782,11 +830,23 @@
 0 REM slave for 60 seconds after boot
 0 REM then stop FTP too
 @IDLE 980
-980 A = pioclr 9
-981 A = pioset 9
-982 A = disable 3
-983 U = 0
-984 W = 0
-985 ALARM 2
-986 RETURN
+980 A = pioset 9;
+981 A = disable 3;
+982 U = 0;
+983 W = 0;
+984 ALARM 2;
+985 A = pioclr 9;
+986 RETURN;
+
+0 REM go into deep sleep again
+1000 IF S = 1 THEN 1006;
+1001 A = lcd ;
+1002 A = uartoff;
+1003 A = pioirq $22;
+1004 A = pioclr 9;
+1005 RETURN
+
+1006 ALARM 30
+1007 RETURN
+
 
