@@ -767,7 +767,7 @@
 
 0 REM message rate
 730 U = 40
-731 P = P / 60
+731 P = P * 5
 
 732 $0[0] = 0
 733 PRINTV P
