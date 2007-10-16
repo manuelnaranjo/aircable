@@ -388,7 +388,8 @@
 289 RETURN
 
 
-@SENSOR 297
+@SENSOR 296
+296 ALARM 0
 297 IF N <> 0 THEN 350;
 298 A = pioset 9;
 299 A = uarton;
@@ -399,7 +400,8 @@
 0 REM meassure again in 30 minutes
 304 N = 1;
 305 A = nextsns 1800;
-306 RETURN
+306 ALARM 20
+307 RETURN
 
 310 U = 0;
 311 J = 0;
@@ -427,18 +429,19 @@
 334 $0 = "#LB%";
 335 PRINTV V;
 336 A = strlen $3;
-337 IF A < 12 THEN 340;
+337 IF A < 12 THEN 304;
 338 A = pioset 20;
 339 A = message $3;
-340 WAIT 20
+340 WAIT 30
 341 A = status;
-342 IF A < 100 THEN 344
+342 IF A < 100 THEN 304;
 343 A = disconnect 3;
 344 A = pioclr 20
 345 GOTO 304;
 
-350 N = N -1;
-351 RETURN;
+350 ALARM 10
+351 N = N -1;
+352 RETURN;
 
 0 REM display temp handler ------
 400 GOSUB 450
