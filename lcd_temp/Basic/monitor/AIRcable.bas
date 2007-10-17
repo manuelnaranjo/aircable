@@ -229,7 +229,7 @@
 
 0 REM deep sleep, check timers
 161 A = readcnt
-162 IF A > 300 THEN 173
+162 IF A > 300 THEN 172
 163 ALARM 10
 164 A = pioclr 9
 165 A = lcd
@@ -248,7 +248,7 @@
 0 REM show temp for at least 10 secs
 0 REM leave deep sleep for 10 secs
 172 S = 1
-172 A = pioirq $23
+173 A = pioirq $23
 174 GOSUB 400
 175 ALARM 10
 176 A = zerocnt
@@ -432,12 +432,11 @@
 337 IF A < 12 THEN 304;
 338 A = pioset 20;
 339 A = message $3;
-340 WAIT 30
+340 WAIT 10
 341 A = status;
-342 IF A < 100 THEN 304;
-343 A = disconnect 3;
-344 A = pioclr 20
-345 GOTO 304;
+342 IF A > 10 THEN 340;
+343 A = pioclr 20
+344 GOTO 304;
 
 350 ALARM 10
 351 N = N -1;
