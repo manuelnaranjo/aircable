@@ -15,8 +15,7 @@
 0 REM V used for debug menu
 0 REM U used for lcd state
 0 REM T, R used for i2c
-0 REM S shows deep sleep state
-0 REM ABCDEFGHIJKLMNO
+0 REM ABCDEFGHIJKLMNOs
 
 0 REM $1 reserved for i2c
 0 REM $2 is for button state
@@ -38,7 +37,7 @@
 0 REM $20 min value to compare
 0 REM $21 max value to compare
 
-0 REM $22 wake up interrupt
+0 REM $22 wake up interrupt (not used)
 0 REM $23 non deep sleep interrupts
 
 
@@ -72,7 +71,7 @@
 @INIT 47
 47 A = uarton
 48 A = baud 1152
-49 Z = 1
+49 Z = 0
 50 A = disable 3
 0 REM LED output and on
 51 A = pioout 9
@@ -116,8 +115,8 @@
 78 A = pioin 3
 79 A = pioset 3
 
-0 REM schedule wake up interrupt.
-80 A = pioirq $22
+0 REM schedule interrupts.
+80 A = pioirq $23
 
 0 REM button state variable
 81 W = 0
@@ -137,8 +136,7 @@
 91 A = strlen $3
 92 IF A >= 12 THEN 100
 93 $0[0]=0
-94 PRINTV"NOT PAIRED, I CAN'T "
-95 PRINTV"DO MY DUTY"
+94 PRINTV"NOT PAIRED
 96 A = strlen $0
 97 FOR B = 0 TO A-8
 98 C = lcd$0[0]
@@ -155,7 +153,7 @@
 0 REM laset pio out and high
 104 A = pioset 4
 105 A = pioout 4
-106 A = lcd
+
 107 A = uartoff
 108 IF $480[0]<>0 THEN 117
 109 $480="BT ADDR  "
@@ -166,12 +164,14 @@
 114 $486="%F \ %C  "
 115 $487="INQUIRY  "
 116 $488="PAIR     "
-117 S = 0
+
+117 A = zerocnt
 118 RETURN
 
 
 0 REM buttons and power
-@PIO_IRQ 120
+@PIO_IRQ 119
+119 A = zerocnt
 0 REM press button starts alarm for long press recognition
 120 IF $0[2]=48 THEN 130;
 121 IF $0[3]=48 THEN 130;
@@ -181,19 +181,11 @@
 124 RETURN
 
 0 REM button press, save state, start ALARM
-130 IF S = 0 THEN 140
-131 $2 = $0;
-132 W = 1;
-133 ALARM 3
-134 RETURN
+130 $2 = $0;
+131 W = 1;
+132 ALARM 3
+133 RETURN
 
-140 A = pioirq $23
-141 S = 1
-142 A = uarton
-143 A = lcd"PRESS     "
-144 ALARM 60
-145 N = -1
-146 RETURN
 
 0 REM button handlers -----------------
 
@@ -244,8 +236,7 @@
 
 0 REM short press handler
 0 REM right, left, middle
-200 A = uarton
-201 W = 0
+200 W = 0
 202 IF U <> 0 THEN 495
 203 A = status
 204 IF A > 1 THEN 208
@@ -262,7 +253,6 @@
 213 U = 10
 214 ALARM 20
 215 A = lcd"WAIT. . . "
-216 A = uarton
 217 RETURN
 
 220 A = lcd"NOT PAIRED"
@@ -291,28 +281,21 @@
 242 IF U >= 200 THEN 250
 243 IF U <> 0 THEN 245
 244 IF W = 1 THEN 150
+245 A = lcd"READY        "
+246 A = readcnt
+247 IF A >= 180 THEN 160
 
-245 S = 0
-246 A = lcd
-247 A = pioirq $22
-248 A = uartoff
+248 ALARM 30
 249 N = 1
 250 RETURN
 
-@SENSOR 296
-296 ALARM 0
-297 IF N <> 0 THEN 350;
-298 A = pioset 9;
-299 A = uarton;
+@SENSOR 299
+299 IF N = 2 THEN 335
 300 A = sensor $0;
 301 V = atoi $0;
 302 IF U = 100 THEN 310;
 303 IF V <= 2100 THEN 330;
-0 REM meassure again in 30 minutes
-304 N = 1;
-305 A = nextsns 1800;
-306 ALARM 20
-307 RETURN
+304 RETURN
 
 310 U = 0;
 311 J = 0;
@@ -330,29 +313,17 @@
 323 PRINTV J;
 324 PRINTV"    
 325 A = lcd $0;
-326 ALARM 30;
-327 GOTO 304; 
+326 ALARM 20
+327 RETURN
 
 330 $0="LOW BATT";
 331 A = lcd $0;
 332 A = ring;
-333 WAIT 1;
-334 $0 = "#LB%";
-335 PRINTV V;
-336 A = strlen $3;
-337 IF A < 12 THEN 304;
-338 A = pioset 20;
-339 A = message $3;
-340 WAIT 20
-341 A = status;
-342 IF A < 100 THEN 304;
-343 A = disconnect 3;
-344 A = pioclr 20
-345 GOTO 304;
+333 ALARM 10
+334 RETURN
 
-350 ALARM 10
-351 N = N -1;
-352 RETURN;
+335 N = 1
+336 RETURN
 
 0 REM display temp handler ------
 360 GOSUB 410
@@ -783,7 +754,7 @@
 0 REM M amount of options
 727 K = atoi $0
 728 C = 0
-729 IF K > 100 THEN 745
+729 IF K > 45 THEN 745
 
 0 REM __get each menu entry __
 730 TIMEOUTM 20
@@ -831,25 +802,32 @@
 
 0 REM clear lcd then display menu
 790 $0=$(900+V)
-791 A = strlen $0
-792 PRINTV"          "
-793 A = lcd $0
-794 RETURN
+791 O = 0
+792 E = strlen $0
+793 PRINTV"           "
+794 IF E < 8 THEN 800
+795 FOR B = 0 TO E-5
+796 C = lcd $0[B]
+797 NEXT B
+798 O = O+1
+799 IF O < 2 THEN 795
+800 A = lcd $0
+801 RETURN
 
 0 REM if line is empty then we show the
 0 REM exit option
-795 A = lcd "EXIT     "
-796 V = -1
-797 RETURN
+805 A = lcd "EXIT     "
+806 V = -1
+807 RETURN
 
 0 REM __right button pressed
 810 V = V + 1
-811 IF V = K THEN 795
+811 IF V = K THEN 805
 812 GOTO 790
 
 0 REM __left button pressed
 820 IF V =-1 THEN 824
-821 IF V = 0 THEN 795
+821 IF V = 0 THEN 805
 822 V = V-1
 823 GOTO 790
 
@@ -868,7 +846,8 @@
 841 A = lcd"Finished"
 842 ALARM 3
 843 U = 0
-844 RETURN
+844 A = pioclr 20
+845 RETURN
 
 
 @SLAVE 950
