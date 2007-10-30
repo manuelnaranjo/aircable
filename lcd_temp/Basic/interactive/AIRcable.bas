@@ -15,7 +15,12 @@
 0 REM V used for debug menu
 0 REM U used for lcd state
 0 REM T, R used for i2c
-0 REM ABCDEFGHIJKLMNOs
+0 REM S used for <monitor> (state)
+0 REM O used for <monitor> (probe)
+0 REM N used for <monitor> (reading)
+0 REM M used for <monitor> (max val)
+0 REM L used for <monitor> (min val)
+0 REM ABCDEFGHIJK
 
 0 REM $1 reserved for i2c
 0 REM $2 is for button state
@@ -164,21 +169,21 @@
 114 $486="%F \ %C  "
 115 $487="INQUIRY  "
 116 $488="PAIR     "
-
-117 A = zerocnt
-118 RETURN
+117 $489="BATT    "
+118 A = zerocnt
+119 RETURN
 
 
 0 REM buttons and power
-@PIO_IRQ 119
-119 A = zerocnt
+@PIO_IRQ 120
+120 A = zerocnt
 0 REM press button starts alarm for long press recognition
-120 IF $0[2]=48 THEN 130;
-121 IF $0[3]=48 THEN 130;
-122 IF $0[12]=49 THEN 130;
+121 IF $0[2]=48 THEN 130;
+122 IF $0[3]=48 THEN 130;
+123 IF $0[12]=49 THEN 130;
 0 REM was it a release, handle it
-123 IF W <> 0 THEN 200;
-124 RETURN
+124 IF W <> 0 THEN 200;
+125 RETURN
 
 0 REM button press, save state, start ALARM
 130 $2 = $0;
@@ -252,34 +257,33 @@
 212 A = master $3
 213 U = 10
 214 ALARM 20
-215 A = lcd"WAIT. . . "
+215 A = lcd"CONNECTING"
 217 RETURN
 
 220 A = lcd"NOT PAIRED"
 221 ALARM 60
 222 RETURN
 
-0 REM show batteries level
+0 REM show current temp on IR
 225 A = lcd"WAIT. . ."
-226 U = 100
-227 A = nextsns 1
-228 ALARM 60
-229 N = 1
-230 RETURN
+226 GOSUB 440
+227 ALARM 30
+228 GOTO 380
 
-0 REM show current temp
+0 REM show current temp on K
 235 A = lcd"WAIT. . ."
-236 GOSUB 360
-237 ALARM 60
-238 RETURN
+236 GOSUB 420
+237 ALARM 30
+238 GOTO 362 
+
 
 
 @ALARM 240
 240 A = pioset 9
 241 A = uarton
 
-242 IF U >= 200 THEN 250
-243 IF U <> 0 THEN 245
+242 IF U >= 200 THEN 251
+243 IF U <> 0 THEN 248
 244 IF W = 1 THEN 150
 245 A = lcd"READY        "
 246 A = readcnt
@@ -289,32 +293,30 @@
 249 N = 1
 250 RETURN
 
-@SENSOR 299
-299 IF N = 2 THEN 335
-300 A = sensor $0;
-301 V = atoi $0;
-302 IF U = 100 THEN 310;
-303 IF V <= 2100 THEN 330;
-304 RETURN
+251 IF U = 301 THEN 793
+252 RETURN
 
-310 U = 0;
-311 J = 0;
-312 IF V < 3000 THEN 314;
+@SENSOR 300
+300 IF N = 2 THEN 335
+301 A = sensor $0;
+302 V = atoi $0;
+303 J = 0;
+304 IF V < 3000 THEN 306;
+305 J = J + 20;
+306 IF V < 2820 THEN 308;
+307 J = J + 20;
+308 IF V < 2640 THEN 310;
+309 J = J + 20;
+310 IF V < 2460 THEN 312;
+311 J = J + 20;
+312 IF V < 2100 THEN 314;
 313 J = J + 20;
-314 IF V < 2820 THEN 316;
-315 J = J + 20;
-316 IF V < 2640 THEN 318;
-317 J = J + 20;
-318 IF V < 2460 THEN 320;
-319 J = J + 20;
-320 IF V < 2100 THEN 322;
-321 J = J + 20;
-322 $0="BAT 
-323 PRINTV J;
-324 PRINTV"    
-325 A = lcd $0;
-326 ALARM 20
-327 RETURN
+314 $0="BAT 
+315 PRINTV J;
+316 PRINTV"    
+317 A = lcd $0;
+318 ALARM 20
+319 RETURN
 
 330 $0="LOW BATT";
 331 A = lcd $0;
@@ -328,7 +330,7 @@
 0 REM display temp handler ------
 360 GOSUB 410
 361 IF $7[0] = 73 THEN 380
-362 $0="T "
+362 $0="K "
 363 Y = Y + X
 364 Y = Y / 20
 
@@ -715,7 +717,7 @@
 
 0 REM __________INTERACTIVE MODE_______
 @MASTER 699
-699 A = nextsns 18000
+699 ALARM 0
 700 A = lcd "WAIT . . ."
 701 U = 200
 702 A = pioset 20
@@ -723,10 +725,11 @@
 
 0 REM __interactive mode button handler __
 0 REM $MENU code: right, left, middle
-704 IF $2[2] = 48 THEN 810;
-705 IF $2[3] = 48 THEN 820;
-706 IF $2[12] = 49 THEN 830;
-707 RETURN
+704 IF U >= 300 THEN 759;
+705 IF $2[2] = 48 THEN 815;
+706 IF $2[3] = 48 THEN 818;
+707 IF $2[12] = 49 THEN 830;
+708 RETURN
 
 0 REM __generate menu __
 709 RESERVED
@@ -745,7 +748,7 @@
 719 INPUTM $0
 720 IF $0[0] = 63 THEN 750
 721 IF $0[0] = 37 THEN 725
-722 PRINTM"@@@@\n\r"
+722 PRINTM"@@@@\n"
 723 WAIT 3
 724 GOTO 710
 
@@ -772,74 +775,125 @@
 0 REM V is index
 0 REM K is amout of messages
 742 V = 0
-743 GOTO 790
+743 GOTO 800
 
 745 A = lcd"ERROR...    "
 746 RETURN
 
 0 REM <monitor> handler
 750 A = xtoi $0[1]
-751 S = A
-752 IF A < 4 THEN 759
+751 PRINTM $0
+752 PRINTM"\n"
+0 REM FDISPLAY_TEMP 	1
+0 REM FRETURN_TEMP	2
+0 REM FCOMPAR_TEMP	4
+753 S = A
+754 U = 300
+755 GOTO 765
+0 REM 754 IF A < 4 THEN 762
 0 REM we receive max and min
-753 PRINTM"&MIN\n\r"
-754 INPUTM $20
-755 PRINTM $20
-756 PRINTM"\n\r&MAX\n\r
-757 INPUTM $21
-758 A = A - 4
-759 IF A < 2 THEN 761
-760 A = A -2
-761 IF A < 1 THEN 770
-762 U = 0
-763 GOTO 220
+0 REM 755 PRINTM"&MIN\n"
+0 REM 756 TIMEOUTM 5
+0 REM 757 INPUTM $20
+0 REM 758 L = atoi $20
+0 REM 759 PRINTM"&MAX\n
+0 REM 760 TIMEOUTM 5
+0 REM 761 INPUTM $21
+0 REM 762 M = atoi $21
+0 REM 763 U = 300
+0 REM 764 GOTO 775
 
-770 U = 2
-771 IF S < 4 THEN 788
-0 REM PLACE TO COMPARE
-788 S = 0
-789 GOTO 710
+0 REM <monitor> button handler
+0 REM right, left, middle
+0 REM right show temp in IR probe
+0 REM left show temp in K probe
+0 REM middle send temp, make compare
+759 IF U = 301 THEN 793;
+760 IF $2[2] = 48 THEN 765;
+761 IF $2[3] = 48 THEN 767;
+762 IF $2[12] = 49 THEN 770;
+763 RETURN
+
+0 REM O = 1 using IR
+0 REM O = 2 using K
+0 REM O = 3 comparing
+
+0 REM show IR
+765 O = 1 
+766 GOTO 225
+
+767 O = 2
+768 GOTO 235
+
+0 REM send to the server, he knows what to do
+770 IF S < 2 THEN 793
+771 PRINTM"!"
+772 IF O = 1 THEN 775
+773 GOSUB 420
+774 GOTO 776
+775 GOSUB 440
+776 PRINTM Y
+777 PRINTM ":"
+778 PRINTM X 
+779 PRINTM "#"
+780 IF O = 1 THEN 783
+781 PRINTM"K"
+782 GOTO 784
+783 PRINTM"IR"
+784 PRINTM"\n"
+785 IF S < 4 THEN 793
+786 INPUTM $0
+787 A = lcd $0[1]
+788 IF $0[0] = 0 THEN 790
+789 A = ring
+790 ALARM 30
+791 U = 301
+792 RETURN
+
+793 U = 200
+794 GOTO 710
 
 0 REM clear lcd then display menu
-790 $0=$(900+V)
-791 O = 0
-792 E = strlen $0
-793 PRINTV"           "
-794 IF E < 8 THEN 800
-795 FOR B = 0 TO E-5
-796 C = lcd $0[B]
-797 NEXT B
-798 O = O+1
-799 IF O < 2 THEN 795
-800 A = lcd $0
-801 RETURN
+800 $0=$(900+V)
+801 O = 0
+802 E = strlen $0
+803 PRINTV"           "
+804 IF E < 8 THEN 810
+805 FOR B = 0 TO E-5
+806 C = lcd $0[B]
+807 NEXT B
+808 O = O+1
+809 IF O < 2 THEN 805
+810 A = lcd $0
+811 RETURN
 
 0 REM if line is empty then we show the
 0 REM exit option
-805 A = lcd "EXIT     "
-806 V = -1
-807 RETURN
+812 A = lcd "EXIT     "
+813 V = -1
+814 RETURN
 
 0 REM __right button pressed
-810 V = V + 1
-811 IF V = K THEN 805
-812 GOTO 790
+815 V = V + 1
+816 IF V = K THEN 812
+817 GOTO 800
 
 0 REM __left button pressed
-820 IF V =-1 THEN 824
-821 IF V = 0 THEN 805
-822 V = V-1
-823 GOTO 790
+818 IF V =-1 THEN 822
+819 IF V = 0 THEN 812
+820 V = V-1
+821 GOTO 800
 
-824 V = K-1
-825 GOTO 790
+822 V = K-1
+823 GOTO 800
 
 0 REM __middle button pressed
 830 IF V = -1 THEN 840
-831 PRINTM"@"
-832 A = V+1
-833 PRINTM A
-834 GOTO 710
+831 A = lcd"WAIT . . ."
+832 PRINTM"@"
+833 A = V+1
+834 PRINTM A
+835 GOTO 710
 
 0 REM __choose exit, tell NSLU2
 840 PRINTM"\x03"
