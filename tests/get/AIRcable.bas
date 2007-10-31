@@ -1,0 +1,72 @@
+@ERASE
+
+
+0 REM GETU, GETS, GETM tester
+@INIT 10
+10 Z = 1
+11 A = baud 1152
+12 A = pioout 20
+13 A = pioclr 20
+14 A = pioout 9
+15 A = pioset 9
+16 ALARM 5
+17 RETURN
+
+@IDLE 50
+50 RETURN
+
+
+@ALARM 100
+100 PRINTU"Type 5 chars to the 
+101 PRINTU"UART\n\r"
+102 GETU 5
+103 PRINTU "You wrote:  
+104 PRINTU $0
+105 PRINTU"\n\r
+106 PRINTU "Enable Slave? \n\r"
+107 GETU 1
+108 IF $0[0] = 79 THEN 120
+109 PRINTU "Test Master?\n\r"
+110 GETU 1
+111 IF $0[0] = 79 THEN 130
+112 PRINTU"All tests were made
+113 PRINTU"\n\r"
+114 ALARM 30
+115 RETURN
+
+120 A = slave 30
+121 PRINTU"Slave for 30 secs
+122 PRINTU"\n\r
+123 ALARM 35
+124 RETURN
+
+130 PRINTU"Enter BT ADDR: "
+131 GETU 12
+132 A = master $0
+133 ALARM 30
+134 PRINTU"Connecting\n\r
+135 RETURN
+
+@SLAVE 200
+200 ALARM 0
+201 PRINTS"Welcome\n\r
+202 PRINTS"Input 5 chars
+203 GETS 5
+204 PRINTS $0
+205 PRINTS"\n\rThanks\n\r
+206 ALARM 10
+207 A = disconnect 0
+208 RETURN
+
+@MASTER 300
+300 ALARM 0
+301 PRINTM"Welcome\n\r
+302 PRINTM"Input 5 chars
+303 GETM 5
+304 PRINTM $0
+305 PRINTM"\n\rThanks\n\r
+306 ALARM 10
+307 A = disconnect 1
+308 RETURN
+
+
