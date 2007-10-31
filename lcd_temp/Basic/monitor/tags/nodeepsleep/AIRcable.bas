@@ -117,8 +117,8 @@
 78 A = pioin 3
 79 A = pioset 3
 
-0 REM schedule interrupts for deep sleep
-80 A = pioirq$22
+0 REM schedule interrupts for non deep sleep
+80 A = pioirq$23
 
 0 REM button state variable
 81 W = 0
@@ -164,7 +164,7 @@
 
 0 REM S = 0 deep sleep
 0 REM S = 1 non-deep sleep
-108 S = 0
+108 S = 1
 109 IF $540[0]<>0 THEN 117
 110 $540="BT ADDR  "
 111 $541="PEER BT  "
@@ -208,7 +208,7 @@
 
 @ALARM 150
 150 A = pioset 9
-151 A = uarton
+0 REM  151 A = uarton
 
 0 REM we just boot?
 152 IF U = 1000 THEN 172
@@ -221,36 +221,28 @@
 155 IF A = 0 THEN 160
 156 ALARM 20
 157 A = pioclr 9
-158 A = uartoff
+0 REM 158 A = uartoff
 159 RETURN
 
-0 REM deep sleeping?
-160 IF S = 1 THEN 169
+0 REM long press detection
+160 IF W = 1 THEN 220
 
 0 REM deep sleep, check timers
 161 A = readcnt
 162 IF A > 300 THEN 172
-163 ALARM 10
+163 ALARM 30
 164 A = pioclr 9
-165 A = lcd
-166 A = uartoff
-167 A = pioirq $22
+165 A = lcd $8
+167 A = pioirq $23
 168 RETURN
 
-0 REM non-deep sleep
-0 REM long press detection
-169 IF W = 1 THEN 220
-
-0 REM if non long press, then it's a timeout
-170 S = 0
-171 GOTO 163
 
 0 REM show temp for at least 10 secs
 0 REM leave deep sleep for 10 secs
 172 S = 1
 173 A = pioirq $23
 174 GOSUB 400
-175 ALARM 10
+175 ALARM 30
 176 A = zerocnt
 177 IF U = 1000 THEN 183
 178 IF P > 0 THEN 180
@@ -392,7 +384,7 @@
 296 ALARM 0
 297 IF N <> 0 THEN 350;
 298 A = pioset 9;
-299 A = uarton;
+0 REM 299 A = uarton;
 300 A = sensor $0;
 301 V = atoi $0;
 302 IF U = 100 THEN 310;
