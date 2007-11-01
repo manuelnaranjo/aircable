@@ -22,6 +22,14 @@
 
 #include "node.h"
 
+double cel2fah(double in){
+	return (9/5)*in+32;
+}
+
+double fah2cel(double in){
+	return (5/9)*(in-32);
+}
+
 int calcTemp(NODE* node, int val, int calib){
 	switch (node->type){
 		case 'K':
@@ -69,7 +77,7 @@ int isTagPresent(NODE * node, char *tag){
 	
 	temp = mxml_iterator_scan_node( &iter, tag );
 		
-	if (temp && temp->name){		
+	if (temp!=NULL && temp->name!=NULL){		
 		ret = TAG_FOUND;
 		node->tag = mxml_node_clone_tree(temp);
 	}
@@ -92,20 +100,14 @@ int sendCompare(NODE * node, const int min, const int max){
 	
 	sprintf(out, "%d", min);
 	sppWriteLine(node->socket, out);
-	sppReadLine(node->socket, in, 12);
-	if (strncmp(in, out, strlen(out)))			
-		goto error;
-	
+
 	sppReadLine(node->socket, in, 12);
 	if (strncmp(in, "&MAX", 4))
 		goto error;
 	
 	sprintf(out, "%d", max);
 	sppWriteLine(node->socket, out);
-	sppReadLine(node->socket, in, 12);
-	if (strncmp(in, out, strlen(out)))			
-		goto error;
-	
+
 	goto end;
 error:
 	ret = ERROR;
@@ -121,6 +123,7 @@ int workMonitor(NODE *node){
 	unsigned int flags = 0;
 	int min, max, cnt;
 	char * out, *in;
+	double readed;
 
 	if (isTagPresent(node, TAG_DISPLAY_TEMP)==TAG_FOUND){
 		flags += FDISPLAY_TEMP;
@@ -162,39 +165,54 @@ int workMonitor(NODE *node){
 		
 		sppReadLine(node->socket, in, 12);
 		
-		if (!strncmp(in, out+1, 4))
+		if (!strncmp(in, out, 5))
 			break;
 		
 		cnt++;
 	}
-	
-	free(in);
-	free(out);
-	
-	if (cnt == 3)
+
+	if (cnt == 3){
+		free (in);
+		free (out);
 		return ERROR;
+	}
+	
+	//wait until the user press the middle button
+	sppReadLine(node->socket, in, 12);
+	ret = parseTemp(node, in);
+	
+	if (ret != OK) {
+		free(in); free(out);
+		return ret;
+	}
+	
+	if (in != NULL)
+		free(in); 
+	
+	if (out != NULL) 
+		free(out);
+	
+	readed = cel2fah(node->temperature);
 	
 	if (flags & FCOMPARE_TEMP) {
-		cnt = 0;
 		
-		while (cnt < 3) {
-			ret = sendCompare(node, min, max);
-			if (ret == OK)
-				break;
-			cnt++;
+		//check if in range
+		if (min < readed && readed < max){
+			sppWriteLine(node->socket, "0Passed  ");			
+		} else if (readed < min) {
+			sppWriteLine(node->socket, "1Too Cold  ");
+		} else if (readed > max) {
+			sppWriteLine(node->socket, "2Too Hot   ");
 		}
 	}
 	
-	if (cnt == 3)
-		return ERROR;
+	in = calloc (17, sizeof(char));
 	
-	in = calloc (30, sizeof(char));
+	sppReadLine(node->socket, in, 16);
 	
-	sppReadLine(node->socket, in, 30);
+	free(in);
 	
-	parseTemp(node, in);
-	
-	return ret;
+	return OK;
 }
 
 char* getReturnVars(NODE *node){
@@ -239,7 +257,7 @@ char * generateXML(NODE * node) {
 	
 	format  = 	"<?xml  version='1.0' ?>\n"
 				"<content>\n"
-				"<function>%s</function>\n"
+				//"<function>%s</function>\n"
 				"<nodeid>%s</nodeid>\n"
 				"<selectedvalue>%s</selectedvalue>\n"
 				"<currentTemp>%.2f</currentTemp>\n"
@@ -247,8 +265,8 @@ char * generateXML(NODE * node) {
 				"</content>\n";
 
 	len = strlen ( format );
-	if (node->function)
-		len+=strlen(node->function);
+	//if (node->function)
+	//	len+=strlen(node->function);
 	
 	if (node->nodeId)
 		len+=strlen(node->nodeId);
@@ -256,11 +274,11 @@ char * generateXML(NODE * node) {
 	if (node->value)
 		len+=strlen(node->value);
 	
-	if (node->lastReply){
+	/*if (node->lastReply){
 		optional = getReturnVars(node);
 		if (optional)
 			len+=strlen(optional);
-	}
+	}*/
 	
 	len+=1;
 			
@@ -268,11 +286,11 @@ char * generateXML(NODE * node) {
 	
 	len = sprintf(out, 
 			format, 
-			node->function, 
+			//node->function, 
 			node->nodeId, 
 			(node->value ? node->value : ""), 
-			node->temperature, //temp,
-			(optional ? optional : "")
+			cel2fah(node->temperature),//convert to °F as LCD works in °C
+			""//(optional ? optional : "")
 	);
 	
 	if (optional)
@@ -632,7 +650,7 @@ int doWork(NODE * node){
 			if (ret != OK)			
 						break;
 					
-			ret = getResponseFunction(node);
+			//ret = getResponseFunction(node);
 
 		}
 		
@@ -702,10 +720,10 @@ void simulate(){
 	
 	socket = (sppSocket*) malloc(sizeof(sppSocket));
 	
-	dup2((int)stdin, (int)stdout);
+	dup2(fileno(stdin), fileno(stdout));
 
-	socket->SPPclient = (int)stdin;
-	socket->SPPsocket = (int)stdin;
+	socket->SPPclient = fileno(stdin);
+	socket->SPPsocket = fileno(stdin);
 	
 	node->socket=socket;
 	
@@ -718,7 +736,7 @@ void simulate(){
 	
 	initConnection(node);
 	
-	getResponseFunction(node);
+	//getResponseFunction(node);
 	workMenu(node);
 		
 	postCleanUP();
@@ -740,7 +758,7 @@ int isAccepted(NODE * node){
 }
 
 void nodemain(int channel){
-	const char addr[] = "http://www.smart-tms.com/xmlengine/transaction.cfm";	
+	const char addr[] = "http://www.smart-tms.com/xml/index.cfm";	
 	
 	postSetURL(addr);
 	
@@ -760,17 +778,17 @@ void nodemain(int channel){
 	node->socket = socket;
 	
 #define DEBUG
-#ifndef DEBUG
+//#ifndef DEBUG
 #include <bluetooth/bluetooth.h>
 	char *t = calloc(18, sizeof(char));	
     ba2str( &socket->SPPpeer, t );
     t[17]=0;
     
-#else
+/*#else
 	char *t = calloc(21, sizeof(char)); 
 	sprintf(t, "1234-1234-1234-1234");
 	t[20]=0;
-#endif
+#endif*/
 	node->nodeId=t;
 	
 	node->function=TAG_AUTHENTICATE;
@@ -781,7 +799,7 @@ void nodemain(int channel){
 	
 	if (isAccepted(node) == OK){
 	
-		getResponseFunction(node);
+		//getResponseFunction(node);
 		doWork(node);
 	}
 	

@@ -30,9 +30,9 @@
 
 struct sppSocket{
 	/* RFcomm socket */
-	int SPPsocket;
+	uint32_t SPPsocket;
 	/* Listening socket, opened once we get connected. */
-	int SPPclient;
+	uint32_t SPPclient;
 	/* Bluetooth address of our peer */
 	bdaddr_t SPPpeer;
 

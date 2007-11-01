@@ -108,7 +108,7 @@ int post(const char * content, char* out, const int maxlen){
 	{
 		if (!out)
 			printf("%s", line);
-		else if (line){
+		else if (line[0]!=0){
 			len = strlen(line);
 			if (len + count < maxlen){
 				strcat(out, line);
