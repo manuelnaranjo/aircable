@@ -480,6 +480,9 @@ int getSelected(NODE * node, menu_entry * menu, menu_entry * reply){
 		
 	printf("Selected: index:%02hX\ttext:%s\tvalue:%s\n", rep, menu->text, menu->value);
 	
+	if (menu->value == NULL)
+		return OK;
+	
 	reply->index = menu->index;
 	reply->next  = NULL;
 	
@@ -572,6 +575,42 @@ int sendMenu(sppSocket *socket, menu_entry * menu){
 	free(rec);
 	
 	return OK;
+}
+
+int workDenied(NODE * node) {
+	menu_entry * entries, *reply;
+	int ret, count;
+	
+	entries = menu_entry_new();
+	
+	ret = parseEntries(node, entries);
+	if (ret != OK){
+		fprintf(stderr, "Failed to get options, can't send menu to LCD\n");
+		return ret;
+	}
+	
+	ret = sendMenu(node->socket, entries);
+	if (ret != OK){
+		fprintf(stderr, "Couldn't send menu\n");
+		menu_entry_destroy(entries);
+		return ret;
+	}
+	
+	
+	
+	fprintf(stderr, "Node will close connection\n");
+
+	if (reply->text)
+		free(reply->text);
+	
+	if (reply->value)
+		free(reply->value);
+	
+	menu_entry_destroy(reply);
+	
+	menu_entry_destroy(entries);
+	
+	return ret;
 }
 
 int workMenu(NODE * node){
@@ -751,6 +790,7 @@ int isAccepted(NODE * node){
 	if (isTagPresent(node, TAG_ACCEPT)!=TAG_FOUND){
 		ret = NOT_ACCEPTED;
 		printf("Node wasn't authenticated\n");
+		workDenied(node);
 	} else
 		printf("Authentication completed\n");
 		
