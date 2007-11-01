@@ -177,12 +177,13 @@
 0 REM buttons and power
 @PIO_IRQ 120
 120 A = zerocnt;
+
 0 REM press button starts alarm for long press recognition
 121 IF $0[2]=48 THEN 130;
 122 IF $0[3]=48 THEN 130;
 123 IF $0[12]=49 THEN 130;
 0 REM was it a release, handle it
-124 IF W <> 0 THEN 200;
+124 IF W <> 0 THEN 140;
 125 RETURN
 
 0 REM button press, save state, start ALARM
@@ -191,6 +192,14 @@
 132 ALARM 3
 133 RETURN
 
+
+140 IF U < 200 THEN 200
+141 A = status
+142 IF A > 9 THEN 121
+143 A = lcd"Disconnected"
+144 U = 0
+145 ALARM 10
+146 RETURN
 
 0 REM button handlers -----------------
 
@@ -282,19 +291,26 @@
 240 A = pioset 9
 241 A = uarton
 
-242 IF U >= 200 THEN 251
-243 IF U <> 0 THEN 248
-244 IF W = 1 THEN 150
-245 A = lcd"READY        "
-246 A = readcnt
-247 IF A >= 180 THEN 160
+242 IF U >= 200 THEN 264
+243 IF U = 10 THEN 270
+244 IF U <> 0 THEN 260
+245 IF W = 1 THEN 150
+246 A = lcd"READY        "
+247 A = readcnt
+248 IF A >= 180 THEN 160
 
-248 ALARM 30
-249 N = 1
-250 RETURN
+260 ALARM 30
+261 N = 1
+262 A = pioclr 20
+263 RETURN
 
-251 IF U = 301 THEN 795
-252 RETURN
+264 IF U = 301 THEN 795
+265 RETURN
+
+270 A = lcd "Failed    "
+271 U = 0
+272 ALARM 10
+273 RETURN
 
 @SENSOR 300
 300 IF N = 2 THEN 335
@@ -476,7 +492,7 @@
 494 RETURN
 
 0 REM menu handler
-495 IF U > 199 THEN 704
+495 IF U > 199 THEN 700
 496 IF U = 20 THEN 546
 497 IF U = 30 THEN 576
 498 IF U = 40 THEN 650
@@ -714,20 +730,20 @@
 694 RETURN
 
 0 REM __________INTERACTIVE MODE_______
-@MASTER 699
-699 ALARM 0
-700 A = lcd "WAIT . . ."
-701 U = 200
-702 A = pioset 20
-703 GOTO 710
+@MASTER 695
+695 ALARM 0
+696 A = lcd "WAIT . . ."
+697 U = 200
+698 A = pioset 20
+699 GOTO 710
 
 0 REM __interactive mode button handler __
 0 REM $MENU code: right, left, middle
-704 IF U >= 300 THEN 759;
-705 IF $2[2] = 48 THEN 815;
-706 IF $2[3] = 48 THEN 818;
-707 IF $2[12] = 49 THEN 830;
-708 RETURN
+700 IF U >= 300 THEN 759;
+701 IF $2[2] = 48 THEN 815;
+702 IF $2[3] = 48 THEN 818;
+703 IF $2[12] = 49 THEN 830;
+704 RETURN
 
 0 REM __generate menu __
 709 RESERVED
@@ -746,17 +762,17 @@
 719 TIMEOUTM 5;
 720 INPUTM $0;
 721 IF $0[0] = 63 THEN 750;
-722 IF $0[0] = 37 THEN 726;
-723 PRINTM"@@@@\n";
-724 WAIT 3
-725 GOTO 710
+722 IF $0[0] = 37 THEN 724;
+0 REM check if still connected
+723 GOTO 1000
 
-726 $709 = $0[1]
-727 $0 = $709
+724 $709 = $0[1]
+725 $0 = $709
 0 REM M amount of options
-728 K = atoi $0
-729 C = 0
-730 IF K > 45 THEN 745
+726 K = atoi $0
+727 C = 0
+728 IF K > 45 THEN 745
+729 IF K = 0 THEN 745
 
 0 REM __get each menu entry __
 731 TIMEOUTM 20
@@ -777,7 +793,10 @@
 744 GOTO 800
 
 745 A = lcd"ERROR...    "
-746 RETURN
+746 A = disconnect 1
+747 U = 0
+748 ALARM 10
+749 RETURN
 
 0 REM <monitor> handler
 0 REM so far there's no need for hexa
@@ -790,18 +809,6 @@
 753 S = A
 754 U = 300
 755 GOTO 767
-0 REM 754 IF A < 4 THEN 762
-0 REM we receive max and min
-0 REM 755 PRINTM"&MIN\n"
-0 REM 756 TIMEOUTM 5
-0 REM 757 INPUTM $20
-0 REM 758 L = atoi $20
-0 REM 759 PRINTM"&MAX\n
-0 REM 760 TIMEOUTM 5
-0 REM 761 INPUTM $21
-0 REM 762 M = atoi $21
-0 REM 763 U = 300
-0 REM 764 GOTO 775
 
 0 REM <monitor> button handler
 0 REM right, left, middle
@@ -945,5 +952,19 @@
 994 A = slave -1
 995 Q = 2
 996 RETURN
+
+
+0 REM check if we still connected before
+0 REM telling the server we need to resync
+1000 A = status;
+1001 IF A > 9 THEN 1006;
+1002 U = 0;
+1003 A = lcd"Disconnected;
+1004 ALARM 10;
+1005 RETURN
+
+1006 PRINTM"@@@@\n";
+1007 WAIT 3;
+1008 GOTO 710;
 
 
