@@ -195,11 +195,12 @@
 
 140 IF U < 200 THEN 200
 141 A = status
-142 IF A > 9 THEN 121
+142 IF A > 9 THEN 200
 143 A = lcd"Disconnected"
 144 U = 0
 145 ALARM 10
-146 RETURN
+146 W = 0
+147 RETURN
 
 0 REM button handlers -----------------
 
