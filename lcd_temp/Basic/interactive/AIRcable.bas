@@ -760,7 +760,7 @@
 
 0 REM __ get amount of messages __
 718 ALARM 0;
-719 TIMEOUTM 5;
+719 TIMEOUTM 60;
 720 INPUTM $0;
 721 IF $0[0] = 63 THEN 750;
 722 IF $0[0] = 37 THEN 724;
@@ -809,7 +809,7 @@
 0 REM FCOMPAR_TEMP	4
 753 S = A
 754 U = 300
-755 GOTO 767
+755 GOTO 766
 
 0 REM <monitor> button handler
 0 REM right, left, middle
@@ -817,9 +817,9 @@
 0 REM left show temp in K probe
 0 REM middle send temp, make compare
 759 IF U = 301 THEN 795;
-760 IF $2[2] = 48 THEN 765;
-761 IF $2[3] = 48 THEN 767;
-762 IF $2[12] = 49 THEN 770;
+760 IF $2[2] = 48 THEN 764;
+761 IF $2[3] = 48 THEN 766;
+762 IF $2[12] = 49 THEN 769;
 763 RETURN
 
 0 REM O = 1 using IR
@@ -827,15 +827,16 @@
 0 REM O = 3 comparing
 
 0 REM show IR
-765 O = 1 
-766 GOTO 225
+764 O = 1 
+765 GOTO 225
 
 0 REM show K
-767 O = 2
-768 GOTO 235
+766 O = 2
+767 GOTO 235
 
 0 REM send to the server, he knows what to do
-770 IF S < 2 THEN 794
+769 IF S < 2 THEN 795
+770 ALARM 0
 771 A = lcd "WAIT . . ."
 772 PRINTM"!"
 773 IF O = 1 THEN 776
@@ -958,14 +959,9 @@
 0 REM check if we still connected before
 0 REM telling the server we need to resync
 1000 A = status;
-1001 IF A > 9 THEN 1006;
+1001 IF A > 9 THEN 745;
 1002 U = 0;
 1003 A = lcd"Disconnected;
 1004 ALARM 10;
 1005 RETURN
-
-1006 PRINTM"@@@@\n";
-1007 WAIT 3;
-1008 GOTO 710;
-
 
