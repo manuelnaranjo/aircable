@@ -22,12 +22,32 @@
 
 #include "node.h"
 
+#define DEBUG
+
 double cel2fah(double in){
-	return (9/5)*in+32;
+	double out;
+	
+	out = in * 9 / 5 + 32;
+	
+	
+#ifdef DEBUG
+	fprintf(stdout, "Temp: %.2f °C,  %.2f °F\n",in, out);
+#endif
+	
+	return out;
 }
 
 double fah2cel(double in){
-	return (5/9)*(in-32);
+	double out;
+	
+	out = in - 32;
+	out = out * 5 / 9;
+
+#ifdef DEBUG
+	fprintf(stdout, "Temp: %.2f °C,  %.2f °F\n",in, out);
+#endif
+	
+	return out;
 }
 
 int calcTemp(NODE* node, int val, int calib){
@@ -138,11 +158,27 @@ int workMonitor(NODE *node){
 			mnode = node->tag->child;
 			
 			if (strcmp("min", mnode->name)==0){
-				min = atoi(mnode->data);
-				max = atoi(mnode->next->data);
+				if (mnode->data!=NULL)
+					min = atoi(mnode->data);
+				else
+					min = -10000;
+				
+				if (mnode->next->data!=NULL)
+					max = atoi(mnode->next->data);
+				else
+					max = 10000;
+				
 			} else {
-				max = atoi(mnode->data);
-				min = atoi(mnode->next->data);
+				if (mnode->data!=NULL)
+					max = atoi(mnode->data);
+				else
+					max = 10000;
+				
+				if (mnode->next->data!=NULL)
+					min = atoi(mnode->next->data);
+				else
+					min = -10000;
+
 			}
 		}
 	}
@@ -155,7 +191,7 @@ int workMonitor(NODE *node){
 	out = calloc(12, sizeof(char));
 	in  = calloc(12, sizeof(char));
 	
-	sprintf(out, "?%04X", flags);
+	sprintf(out, "?%04X\n\r", flags);
 	
 	cnt = 0;
 	
@@ -198,12 +234,30 @@ int workMonitor(NODE *node){
 		
 		//check if in range
 		if (min < readed && readed < max){
-			sppWriteLine(node->socket, "0Passed  ");			
+			sppWriteLine(node->socket, "0Passed    \n\r");			
 		} else if (readed < min) {
-			sppWriteLine(node->socket, "1Too Cold  ");
+			sppWriteLine(node->socket, "1Too Cold     \n\r");
 		} else if (readed > max) {
-			sppWriteLine(node->socket, "2Too Hot   ");
+			sppWriteLine(node->socket, "2Too Hot      \n\r");
 		}
+	}
+	
+	if (flags & FRETURN_TEMP) {
+		char * temp;
+		int count;
+		
+		temp = calloc(sizeof(char), 30);
+		count = sprintf(temp, "%.2f", readed);
+		temp[count+1] = 0;
+		
+		node->value = realloc(node->value, count+1);
+		sprintf(node->value, "%s", temp);
+		
+		node->monitorProbe = node->type;
+		
+		node->value[count+1]=0;
+		
+		free(temp);
 	}
 	
 	in = calloc (17, sizeof(char));
@@ -246,6 +300,7 @@ char* getReturnVars(NODE *node){
 char * generateXML(NODE * node) {
 	char* out = NULL;	
 	int len = 0;
+	char * temp = NULL;
 	
 	if (!node){
 		fprintf(stderr, "Can't generate xml file out of a null node\n");
@@ -253,11 +308,9 @@ char * generateXML(NODE * node) {
 	}
 	
 	char * format;
-	char * optional = 0;
 	
 	format  = 	"<?xml  version='1.0' ?>\n"
 				"<content>\n"
-				//"<function>%s</function>\n"
 				"<nodeid>%s</nodeid>\n"
 				"<selectedvalue>%s</selectedvalue>\n"
 				"<currentTemp>%.2f</currentTemp>\n"
@@ -265,8 +318,6 @@ char * generateXML(NODE * node) {
 				"</content>\n";
 
 	len = strlen ( format );
-	//if (node->function)
-	//	len+=strlen(node->function);
 	
 	if (node->nodeId)
 		len+=strlen(node->nodeId);
@@ -274,11 +325,15 @@ char * generateXML(NODE * node) {
 	if (node->value)
 		len+=strlen(node->value);
 	
-	/*if (node->lastReply){
-		optional = getReturnVars(node);
-		if (optional)
-			len+=strlen(optional);
-	}*/
+	if (node->monitorProbe != 0){
+		temp = calloc(sizeof(char), 100);
+		sprintf(temp, "<type> %s </type>\n", 
+				(node->monitorProbe=='K'? "K" :
+					(node->monitorProbe =='I' ? "IR" : "NOT KNOWN")
+				)
+			);
+		len+=strlen(temp) + 2;
+	}
 	
 	len+=1;
 			
@@ -286,16 +341,12 @@ char * generateXML(NODE * node) {
 	
 	len = sprintf(out, 
 			format, 
-			//node->function, 
 			node->nodeId, 
-			(node->value ? node->value : ""), 
-			cel2fah(node->temperature),//convert to °F as LCD works in °C
-			""//(optional ? optional : "")
+			(node->value!=NULL ? node->value : ""), 
+			cel2fah(node->temperature),//convert to °F as LCD works in °C,
+			(temp != NULL ? temp : "")
 	);
-	
-	if (optional)
-		free(optional);
-	
+		
 	return out;
 }
 
@@ -439,11 +490,12 @@ int getResponseFunction(NODE * node){
 }
 
 int getSelected(NODE * node, menu_entry * menu, menu_entry * reply){
-	char *buf;	
+	char *buf, *temp;
+	char type;
 	unsigned short int rep;	
 	float cal, val;
 		
-	buf = calloc(30, sizeof(char));
+	buf = calloc(35, sizeof(char));
 	
 	if (!buf){
 		perror("Couldn't allocate buffer at getSelected()\n");
@@ -461,14 +513,17 @@ int getSelected(NODE * node, menu_entry * menu, menu_entry * reply){
 		free(buf);
 		return CONNECTION_CLOSE;
 	}
-		
-	if ( sscanf(buf, "@%02hX!%f:%f#%s", &rep, &val, &cal, &node->type) != 4 ){
+	
+	temp = buf;
+	
+	if ( sscanf(buf, "@%02hX!%f:%f#%s", &rep, &val, &cal, &type) != 4 ){
 		perror("Wrong content");
 		free(buf);
 		return WRONG_REPLY;
-	}					
+	}				
 	
-	free(buf);
+	if (temp!=NULL)
+		free(temp);
 	
 	while (menu && menu->index != rep)
 		menu = menu->next;
@@ -485,6 +540,9 @@ int getSelected(NODE * node, menu_entry * menu, menu_entry * reply){
 	
 	reply->index = menu->index;
 	reply->next  = NULL;
+	
+	node->type = type;
+	calcTemp(node, val, cal);
 	
 	if (strlen(menu->text)){
 		reply->text = realloc(reply->text, strlen(menu->text)+1);
@@ -579,7 +637,7 @@ int sendMenu(sppSocket *socket, menu_entry * menu){
 
 int workDenied(NODE * node) {
 	menu_entry * entries, *reply;
-	int ret, count;
+	int ret;
 	
 	entries = menu_entry_new();
 	
@@ -683,6 +741,7 @@ free:
 int doWork(NODE * node){
 	int ret;
 	while (1){
+		node->monitorProbe = 0;
 		if (isTagPresent(node, TAG_MONITOR)!=TAG_FOUND){
 			ret = workMenu(node);
 			
@@ -817,18 +876,19 @@ void nodemain(int channel){
 	
 	node->socket = socket;
 	
-#define DEBUG
 //#ifndef DEBUG
 #include <bluetooth/bluetooth.h>
 	char *t = calloc(18, sizeof(char));	
     ba2str( &socket->SPPpeer, t );
     t[17]=0;
     
-/*#else
+/*
+#else
 	char *t = calloc(21, sizeof(char)); 
 	sprintf(t, "1234-1234-1234-1234");
 	t[20]=0;
-#endif*/
+#endif
+*/
 	node->nodeId=t;
 	
 	node->function=TAG_AUTHENTICATE;

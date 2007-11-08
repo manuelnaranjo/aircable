@@ -73,7 +73,7 @@ struct node {
 	MXML_DOCUMENT *lastReply;
 	sppSocket 	  *socket;
 	MXML_NODE	  *tag;
-	
+	char		  monitorProbe; //probe used for the monitor result 
 };
 
 typedef struct node NODE;
