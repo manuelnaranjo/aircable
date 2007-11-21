@@ -531,7 +531,7 @@
 0 REM calibrate
 520 IF V = 4 THEN 590
 0 REM message rate
-521 IF V = 5 THEN 640
+521 IF V = 5 THEN 642
 0 REM ºF / ºC
 522 IF V = 6 THEN 670
 523 U = 0
@@ -609,7 +609,7 @@
 588 RETURN
 
 0 REM calibration
-590 IF $7[0] <> 75 THEN 634
+590 IF $7[0] <> 75 THEN 639
 591 ALARM 0
 592 $0[0] = 0
 593 PRINTV"           PUT PR"
@@ -644,52 +644,59 @@
 
 616 FOR F = 0 TO 3
 617  A = pioget 12;
-618  IF A = 1 THEN 626;
+618  IF A = 1 THEN 631;
 619  A = pioget 2;
-620  IF A = 0 THEN 626;
+620  IF A = 0 THEN 631;
 621  A = pioget 3;
-622  IF A = 0 THEN 626;
+622  IF A = 0 THEN 631;
 623 NEXT F;
 
-624 D = D -1
-625 IF D > 0 THEN 611
-
-626 $0 = "DONE "
+0 REM read probe, or we will never calibrate anything
+624 GOSUB 420
+625 Y = -Y
+626 $0="C "
 627 PRINTV Y
 628 PRINTV"          "
-629 A = lcd $0
+
+629 D = D -1
+630 IF D > 0 THEN 611
+
+631 $0 = "DONE "
+632 PRINTV Y
+633 PRINTV"          "
+634 A = lcd $0
 
 0 REM store X persistently
-630 $0[0] = 0
-631 PRINTV Y
-632 $5 = $0
-633 X = Y
-634 U = 10
-635 ALARM 1
-636 RETURN
+635 $0[0] = 0
+636 PRINTV Y
+637 $5 = $0
+638 X = Y
+639 U = 10
+640 ALARM 1
+641 RETURN
 
 0 REM message rate
-640 U = 40
-641 P = P / 60
+642 U = 40
+643 P = P / 60
 
-642 $0[0] = 0
-643 PRINTV P
-644 PRINTV" MIN         "
-645 A = lcd $0
-646 RETURN
+644 $0[0] = 0
+645 PRINTV P
+646 PRINTV" MIN         "
+647 A = LCD $0
+648 RETURN
 
 650 IF $2[2] = 48 THEN 654;
 651 IF $2[3] = 48 THEN 657;
 652 IF $2[12] = 49 THEN 660;
 653 RETURN
 
-654 IF P > 55 THEN 642
+654 IF P > 55 THEN 644
 655 P = P + 5
-656 GOTO 642
+656 GOTO 644
 
-657 IF P < 5 THEN 642
+657 IF P < 5 THEN 644
 658 P = P - 5
-659 GOTO 642
+659 GOTO 644
 
 660 U = 10
 661 $0[0]=0
