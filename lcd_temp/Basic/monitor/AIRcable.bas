@@ -232,7 +232,7 @@
 162 IF A > 300 THEN 172
 163 ALARM 10
 164 A = pioclr 9
-165 A = lcd
+0 REM 165 A = lcd
 166 A = uartoff
 167 A = pioirq $22
 168 RETURN
@@ -750,8 +750,14 @@
 702  IF A = 0 THEN 712;
 703 NEXT F;
 
-704 D = D -1
-705 IF D > 0 THEN 691
+704 GOSUB 460                      
+705 Y = -Y
+706 $0="C "
+707 PRINTV Y
+708 PRINTV"          "
+
+709 D = D -1
+710 IF D > 0 THEN 691
 
 712 $0 = "DONE "
 713 PRINTV Y
