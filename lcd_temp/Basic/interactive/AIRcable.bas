@@ -73,52 +73,57 @@
 22 P000000000001
 23 P011000000001
 
-@INIT 47
-47 A = uarton
-48 A = baud 1152
-49 Z = 0
-50 A = disable 3
+@INIT 45
+45 A = uarton
+46 A = baud 1152
+47 Z = 0
+48 A = disable 3
 0 REM LED output and on
-51 A = pioout 9
-52 A = pioset 9
+49 A = pioout 9
+50 A = pioset 9
 
 0 REM LCD contrast between 100 and 200
-53 L = atoi $6
-54 IF L > 200 THEN 57
-55 IF L = 0 THEN 57
-56 GOTO 61
-57 L = 160
-58 $0[0] = 0
-59 PRINTV L
-60 $6 = $0
+51 L = atoi $6
+52 IF L > 200 THEN 55
+53 IF L = 0 THEN 55
+54 GOTO 59
+55 L = 160
+56 $0[0] = 0
+57 PRINTV L
+58 $6 = $0
 0 REM LCD bias
-61 A = auxdac L
+59 A = auxdac L
 
 0 REM show welcome message
-62 $0[0] = 0
-63 PRINTV $17
-64 PRINTV" "
-65 PRINTV $7
-66 PRINTV"         "
-67 A = lcd $0
+60 $0[0] = 0
+61 PRINTV $17
+62 PRINTV" "
+63 PRINTV $7
+64 PRINTV"         "
+65 A = lcd $0
 
 0 REM set name
-69 A = getuniq $18
-70 $0 = $16
-71 PRINTV " "
-72 PRINTV $18
-73 A = name $0
+66 A = getuniq $18
+67 $0 = $16
+68 PRINTV " "
+69 PRINTV $18
+70 A = name $0
 
 0 REM initialize buttons 
 0 REM PIO2 right, PIO3 left, PIO12 middle
 0 REM PIO12 goes high when pressed, add 
-74 A = pioin 12
-75 A = pioclr 12
+71 A = pioin 12
+72 A = pioclr 12
 0 REM right button
-76 A = pioin 2
-77 A = pioset 2
-78 A = pioin 3
-79 A = pioset 3
+73 A = pioin 2
+74 A = pioset 2
+0 REM left button
+75 A = pioin 3
+76 A = pioset 3
+
+0 REM IR sensor
+77 A = pioout 1
+78 A = pioclr 1
 
 0 REM schedule interrupts.
 80 A = pioirq $23
@@ -406,32 +411,39 @@
 413 RETURN
 
 0 REM K sensor connected to MCP3421
+
+0 REM tell the MCP4321 to take a reading
 420 R = 0;
-0 REM 461 A=ring
 421 T = 1;
 0 REM slave address is 0xD0
 422 $1[0] = 208;
 423 $1[1] = 143;
 424 A = i2c $1;
+
+0 REM read
 425 $0[0] = 0;
 426 $0[1] = 0;
 427 $0[2] = 0;
 428 $0[3] = 0;
-
 429 $1[0] = 208;
 430 T = 0;
 431 R = 4;
 432 A = i2c $1;
-433 Y = $0[1] * 256;
-434 Y = Y + $0[2];
-435 RETURN
+433 IF $0[3] >= 128 THEN 437
+434 Y = $0[1] * 256;
+435 Y = Y + $0[2];
+436 RETURN
+
+437 A = lcd"NOT READY"
+438 WAIT 1
+439 GOTO 425
 
 0 REM laser on
 440 A = pioclr 4
 0 REM read IR Temp module
 441 A = pioout 1
 0 REM 481 A = ring
-442 A = pioclr 1
+0 REM 442 A = pioclr 1
 0 REM temp is in Kelvin
 0 REM substract 273.15 to get Celsius
 0 REM temp / 0.02 is K
@@ -465,13 +477,14 @@
 463 B = B / 5;
 
 464 Y = B
-465 A = pioset 1
+0 REM 465 A = pioset 1
 0 REM laser off
 466 A = pioset 4
 467 RETURN
 
 0 REM failed reading
-468 A = pioset 1
+468 
+0 REM 468 A = pioset 1
 0 REM laser off
 469 A = pioset 4
 470 Y = -32000
