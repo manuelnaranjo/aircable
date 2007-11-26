@@ -388,7 +388,7 @@
 389 D = C * 10
 390 D = Y-D
 391 PRINTV D
-392 A = pioset 1
+0 REM 392 A = pioset 1
 393 GOTO 370
 
 395 C = Y / 10
@@ -397,7 +397,7 @@
 398 D = C * 10
 399 D = Y-D
 400 PRINTV D
-401 A = pioset 1
+0 REM 401 A = pioset 1
 402 GOTO 373
 
 405 $0="ERR READ"
