@@ -34,7 +34,11 @@ kill_obex(){
     exit 0
 }
 
+LOG_FILE="/dev/null"
+
 APP_DIR="/usr/share/aircable/airmsgd"
+
+#APP_DIR="."
 
 PID_DIR="/var/run/airmsgd"
 
@@ -43,17 +47,26 @@ echo $$ > $PID_DIR/pid
 OBEX_PID=$PID_DIR/obexftpd
 LOG_DIR="/var/log/airmsgd"
 MSG_DIR="/tmp/airmsgd/msg"
+TEMPERATURE_DIR="/tmp/airmsgd/temperature"
+BATT_DIR="/tmp/airmsgd/batt"
+UPDATE_DIR="/tmp/airmsgd/update"
 
-##TIME:VALUE!CORRECTION#TYPE
+rm -rf $MSG_DIR
+rm -rf $TEMPERATURE_DIR
+rm -rf $BATT_DIR
+rm -rf $UPDATE_DIR
 
 mkdir -p $LOG_DIR
 mkdir -p $MSG_DIR
+mkdir -p $TEMPERATURE_DIR
+mkdir -p $BATT_DIR
+mkdir -p $UPDATE_DIR
 
 OBEX_LOG="$LOG_DIR/obexftpd.log"
 
 trap kill_obex SIGHUP SIGINT SIGTERM TERM
 
-obexftpd -c $MSG_DIR -b > /dev/null &
+obexftpd -c $MSG_DIR -b -B 10 > /dev/null &
 
 echo $! > $OBEX_PID
 
@@ -74,58 +87,30 @@ do
 	echo -e "$FILE" >> $LOG_FILE;
 	echo -e "$FILE"
 	
-	##call parser	
-	TOKEN=$( $APP_DIR/parse.sh $FILEN )
+	BODY=$( echo -n $FILE | grep "BODY:" );
+	TEMPERATURE=$( echo $BODY | grep -E \
+		'BODY:\$(+|-)?[0-9]+:(+|-)?[0-9]+!(+|-)?[0-9]+\#[A-Z]$' );
+	BATT=$( echo $BODY | grep -E 'BODY:#*' );
+	UPDATE=$( echo $BODY | grep -E 'BODY:\?UPDATE' );
 	
-	if [ $? -gt 0 ]; then
-	    echo -e "$TOKEN" >> $LOG_FILE
-	    echo -e "$TOKEN"
-	    rm -rf $FILEN
-	else
-	    IFS='|'
-	    VAL=(${TOKEN})
-	    	    
-	    echo "VALUE: ${VAL[1]}, TIME: ${VAL[0]}, CORR: ${VAL[2]}, \
-	    	TYPE: ${VAL[3]}"
-	    echo "VALUE: ${VAL[1]}, TIME: ${VAL[0]}, CORR: ${VAL[2]}, \ 
-	    	TYPE: ${VAL[3]}" >> $LOG_FILE
-	
-	    echo "SENDING...."
-	    echo "SENDING...." >> $LOG_FILE
-	
-	    TRUE_VAL=$( echo "(125/2566.4)*(${VAL[1]}+ ${VAL[2]})" | bc -l )
-	
-	    ## TRUE_VAL is not truncated, generate.sh does that for us
-	
-	    echo "TRUE VALUE: $TRUE_VAL"
-	    echo "TRUE VALUE: $TRUE_VAL" >> $LOG_FILE
-	
-	    ## we consider ID as the BT addr, we need to get this from the file name
-	
-	    LOW=$(expr index "$FILEN" _ );	
-	    let LOW=$LOW-1	
-	    NAME=$(expr substr "$FILEN" 1 $LOW);
-	
-	    XML=$($APP_DIR/generate.sh $NAME $TRUE_VAL ${VAL[3]})
-	
-	    echo "XML FILE: $XML"
-	    echo "XML FILE: $XML" >> $LOG_FILE
-	
-	    REPLY=$($APP_DIR/send.sh "$XML")
-	
-	    ## if reply contains nodeid then we have submmited the info correctly
-	    INDEX=$(expr index "$REPLY" "<nodeid>")
-
-	    if [ $INDEX -gt 0 ]
-	    then
-		echo "SUCCESS"
-	        echo "SUCCESS" >> $LOG_FILE
-		rm $FILEN
-	    else
-		echo "FAILED, we try again in 1 second"
-		echo "FAILED, we try again in 1 second" >> $LOG_FILE
+	if [ -n $TEMPERATURE  ]; then
+	    echo "Temperature Reading"
+	    PARSE=$( bash $APP_DIR/temperature/parse.sh $MSG_DIR $i )
+	    echo $PARSE > $TEMPERATURE_DIR/reading.$RANDOM
+	    echo "Reading generated"
+	else 
+	    if [ -n $BATT ]; then
+		echo "Battery Reading"
+	    else 
+		if [ -n $UPDATE ]; then
+		    echo "Update Ready"
+		fi
 	    fi
 	fi
+	
+	rm $MSG_DIR/$i
+	
     done
-    sleep 1
+    
+    sleep 10
 done

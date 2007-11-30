@@ -1,5 +1,6 @@
-#!/bin/bash
-# Parses the received message
+#!/bin/sh
+#
+# AIRmsgd: generate xml (temperature) file.
 # Copyright (C) 2007 Wireless Cables Inc.
 # Copyright (C) 2007 Naranjo, Manuel <manuel@aircable.net>
 #
@@ -15,31 +16,29 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-if [ -z $1 ]; then
-    echo "Usage: $0 file [log file]"
-    exit 0
+APP_PATH="/usr/share/aircable/airmsgd/temperature"
+
+#APP_PATH="./temperature"
+
+if [ -z "$1" ]
+then
+    echo usage $0 "Path"
+    exit 1;
 fi
 
-if [ ! -z $2 ]; then
-    LOG_FILE="$2"
-fi
+GMT=$(date +%z)
 
-##check if it's a message for us
-## FORMAT $TIME:VAL!CORR#TYPE
-BODY=$( grep -E 'BODY:\$(+|-)?[0-9]+:(+|-)?[0-9]+!(+|-)?[0-9]+\#[A-Z]$' $1 )
-	
-if [ -z "$BODY" ]; then    
-    echo "Wrong file"
-    FILE=$( cat $1 )
-    echo -e "$FILE"    
-    exit 1
-fi
+echo "<records>"
+echo -e "\t<gmt>$GMT</gmt>"
+for file in $(ls $1); do
+    
+    echo -e "\t<record>"
 
-##PARSE MESSAGE $TIME:VAL!CORR#TYPE
-	    
-##first suppress BODY:
-TOKEN=$( echo "$BODY" | sed 's/BODY:\$//g' | tr -cs '\+\-[:digit:][:alpha:]' '|' | grep . )
+    awk -f $APP_PATH/xml.awk $1/$file
+    
+    echo -e "\t</record>"
+    
+done
 
-echo $TOKEN
+echo -e "</records>"
 
-exit 0

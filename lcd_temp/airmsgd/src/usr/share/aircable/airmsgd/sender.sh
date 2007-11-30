@@ -1,5 +1,5 @@
-#! /bin/sh
-# AIRmsgd do transaction
+#!/bin/bash
+# AIRmsgd daemon
 # Copyright (C) 2007 Wireless Cables Inc.
 # Copyright (C) 2007 Naranjo, Manuel <manuel@aircable.net>
 #
@@ -15,22 +15,38 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+LOG_FILE="/dev/null"
 
-TEMP="/tmp/airmsgd/tmp"
+APP_DIR="/usr/share/aircable/airmsgd/"
 
-mkdir -p $TEMP
+#APP_DIR="."
 
-URL="http://www.smart-tms.com/xmlengine/transaction.cfm"
+LOG_DIR="/var/log/airmsgd"
+TEMPERATURE_DIR="/tmp/airmsgd/temperature"
+BATT_DIR="/tmp/airmsgd/batt"
 
-FILE="reply.xml.$RANDOM"
-FILE2="reply2.xml.$RANDOM"
+while [ 1 ];
+do
+    FILES=$( ls $TEMPERATURE_DIR )
+    
+    if [ -n "$FILES" ]; then
+	XML=$($APP_DIR/temperature/genxml.sh $TEMPERATURE_DIR)
+	echo -e "$XML"
 
-curl -d "xml=$1" $URL -o $TEMP/$FILE -s -S
-
-cat $TEMP/$FILE
-
-sed -e '/^[\n\r \x09]*$/d' $TEMP/$FILE > $TEMP/$FILE2
-mv $TEMP/$FILE2 $TEMP/$FILE
-
-cat $TEMP/$FILE
-rm -f $TEMP/$FILE
+	REPLY=$($APP_DIR/send.sh "$XML")
+	echo -e "$REPLY"
+	CONT=$( echo "$REPLY" | grep "<recorded>" ) ;
+	
+	if [ -n $CONT ]; then
+	    echo "Server got readings"
+	    for i in $FILES
+	    do
+		rm $TEMPERATURE_DIR/$i
+	    done
+	else
+	    echo "Server didn't got readings"
+	fi
+    fi
+    
+    exit 1
+done

@@ -1,5 +1,5 @@
-#! /bin/sh
-# AIRmsgd do transaction
+#!/bin/bash
+# Parses the received temperature message
 # Copyright (C) 2007 Wireless Cables Inc.
 # Copyright (C) 2007 Naranjo, Manuel <manuel@aircable.net>
 #
@@ -15,22 +15,33 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+LOG_FILE="/dev/null";
 
-TEMP="/tmp/airmsgd/tmp"
+APP_DIR="/usr/share/aircable/airmsgd/temperature"
 
-mkdir -p $TEMP
+#APP_DIR="./temperature"
 
-URL="http://www.smart-tms.com/xmlengine/transaction.cfm"
+if [ -z $1 ] || [ -z $2 ]; then
+    echo "Usage: $0 dir file [log file]"
+    exit 0
+fi
 
-FILE="reply.xml.$RANDOM"
-FILE2="reply2.xml.$RANDOM"
+if [ ! -z $3 ]; then
+    LOG_FILE="$3"
+fi
 
-curl -d "xml=$1" $URL -o $TEMP/$FILE -s -S
+CONTENT=$(cat $1/$2)
 
-cat $TEMP/$FILE
+echo $CONTENT > $LOG_FILE
 
-sed -e '/^[\n\r \x09]*$/d' $TEMP/$FILE > $TEMP/$FILE2
-mv $TEMP/$FILE2 $TEMP/$FILE
+BODY=$(cat $1/$2 | grep "BODY" );
 
-cat $TEMP/$FILE
-rm -f $TEMP/$FILE
+# Get temperature and type of node
+TEMP=$(echo $BODY | awk -f $APP_DIR/parse1.awk | awk -f $APP_DIR/parse2.awk );
+
+ADDR=${2:0:17}
+
+DATE=$(date +"%m/%d/%Y %H:%M:%S")
+
+echo $DATE $ADDR $TEMP
+
