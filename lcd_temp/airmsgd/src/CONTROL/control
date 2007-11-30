@@ -1,8 +1,8 @@
 Package: airmsgd
 Priority: optional
 Section: misc
-Version: 0.13b
+Version: 0.2
 Architecture: armeb
 Maintainer: Manuel Naranjo <manuel@aircable.net>
-Depends: obexftp, curl, bc, update-rc.d, grep, coreutils, bash
+Depends: obexftp, curl, awk, update-rc.d, coreutils, bash
 Description: AIRcable Message Daemon.
