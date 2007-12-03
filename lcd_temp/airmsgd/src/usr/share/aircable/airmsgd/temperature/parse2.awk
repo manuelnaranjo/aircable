@@ -9,6 +9,6 @@ END {
 	#round too one decimal
 	val = int(val*10) / 10
 
-	print $4 " " val
+	print $4 "*" val
 }
 

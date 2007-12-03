@@ -17,9 +17,9 @@
 
 LOG_FILE="/dev/null"
 
-APP_DIR="/usr/share/aircable/airmsgd/"
+#APP_DIR="/usr/share/aircable/airmsgd/"
 
-#APP_DIR="."
+APP_DIR="."
 
 LOG_DIR="/var/log/airmsgd"
 TEMPERATURE_DIR="/tmp/airmsgd/temperature"
@@ -35,9 +35,9 @@ do
 
 	REPLY=$($APP_DIR/send.sh "$XML")
 	echo -e "$REPLY"
-	CONT=$( echo "$REPLY" | grep "<recorded>" ) ;
+	CONT=$( echo "$REPLY" | grep "\<recorded\>" ) ;
 	
-	if [ -n $CONT ]; then
+	if [ -n "$CONT" ]; then
 	    echo "Server got readings"
 	    for i in $FILES
 	    do
@@ -48,5 +48,23 @@ do
 	fi
     fi
     
-    exit 1
+    FILES=$( ls $BATT_DIR )
+    
+    if [ -n "$FILES" ]; then
+	XML=$($APP_DIR/battery/genxml.sh $BATT_DIR)
+	echo -e "$XML"
+
+	REPLY=$($APP_DIR/send.sh "$XML")
+	echo -e "$REPLY"
+	CONT=$( echo "$REPLY" ) ;
+	
+
+	echo "Server got readings"
+	for i in $FILES
+	do
+	    rm $BATT_DIR/$i
+	done
+    fi
+    
+    sleep 60
 done

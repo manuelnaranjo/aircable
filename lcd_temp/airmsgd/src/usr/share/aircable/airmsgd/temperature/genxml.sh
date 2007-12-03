@@ -16,9 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-APP_PATH="/usr/share/aircable/airmsgd/temperature"
+#APP_PATH="/usr/share/aircable/airmsgd/temperature"
 
-#APP_PATH="./temperature"
+APP_PATH="./temperature"
 
 if [ -z "$1" ]
 then
@@ -26,15 +26,12 @@ then
     exit 1;
 fi
 
-GMT=$(date +%z)
-
 echo "<records>"
-echo -e "\t<gmt>$GMT</gmt>"
 for file in $(ls $1); do
     
     echo -e "\t<record>"
 
-    awk -f $APP_PATH/xml.awk $1/$file
+    awk -F\* -f $APP_PATH/xml.awk $1/$file
     
     echo -e "\t</record>"
     

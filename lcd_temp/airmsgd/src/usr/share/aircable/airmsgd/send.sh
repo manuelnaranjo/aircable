@@ -20,14 +20,12 @@ TEMP="/tmp/airmsgd/tmp"
 
 mkdir -p $TEMP
 
-URL="http://www.smart-tms.com/xmlengine/transaction.cfm"
+URL="http://www.smart-tms.com/xml/index.cfm"
 
 FILE="reply.xml.$RANDOM"
 FILE2="reply2.xml.$RANDOM"
 
 curl -d "xml=$1" $URL -o $TEMP/$FILE -s -S
-
-cat $TEMP/$FILE
 
 sed -e '/^[\n\r \x09]*$/d' $TEMP/$FILE > $TEMP/$FILE2
 mv $TEMP/$FILE2 $TEMP/$FILE

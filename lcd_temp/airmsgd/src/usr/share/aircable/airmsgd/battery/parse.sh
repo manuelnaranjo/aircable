@@ -17,9 +17,9 @@
 
 LOG_FILE="/dev/null";
 
-#APP_DIR="/usr/share/aircable/airmsgd/temperature"
+#APP_DIR="/usr/share/aircable/airmsgd/battery"
 
-APP_DIR="./temperature"
+APP_DIR="./battery"
 
 if [ -z $1 ] || [ -z $2 ]; then
     echo "Usage: $0 dir file [log file]"
@@ -37,11 +37,9 @@ echo $CONTENT > $LOG_FILE
 BODY=$(cat $1/$2 | grep "BODY" );
 
 # Get temperature and type of node
-TEMP=$( echo $BODY | awk -f $APP_DIR/parse1.awk | LC_ALL=en_us awk -f $APP_DIR/parse2.awk );
+BATT=$( echo $BODY | awk -f $APP_DIR/parse1.awk | awk -f $APP_DIR/parse2.awk);
 
 ADDR=${2:0:17}
 
-DATE=$( LC_ALL=en_us date -u )
-
-echo $DATE*$ADDR*$TEMP
+echo $ADDR ${BATT[0]} ${BATT[1]}
 

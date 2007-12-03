@@ -1,5 +1,6 @@
-#!/bin/bash
-# Parses the received temperature message
+#!/bin/sh
+#
+# AIRmsgd: generate xml (temperature) file.
 # Copyright (C) 2007 Wireless Cables Inc.
 # Copyright (C) 2007 Naranjo, Manuel <manuel@aircable.net>
 #
@@ -15,33 +16,26 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-LOG_FILE="/dev/null";
+#APP_PATH="/usr/share/aircable/airmsgd/battery"
 
-#APP_DIR="/usr/share/aircable/airmsgd/temperature"
+APP_PATH="./battery"
 
-APP_DIR="./temperature"
-
-if [ -z $1 ] || [ -z $2 ]; then
-    echo "Usage: $0 dir file [log file]"
-    exit 0
+if [ -z "$1" ]
+then
+    echo usage $0 "Path"
+    exit 1;
 fi
 
-if [ ! -z $3 ]; then
-    LOG_FILE="$3"
-fi
+echo "<messages>"
+for file in $(ls $1); do
+    
+    echo -e "\t<message>"
 
-CONTENT=$(cat $1/$2)
+    awk -f $APP_PATH/xml.awk $1/$file
+    
+    echo -e "\t</message>"
+    
+done
 
-echo $CONTENT > $LOG_FILE
-
-BODY=$(cat $1/$2 | grep "BODY" );
-
-# Get temperature and type of node
-TEMP=$( echo $BODY | awk -f $APP_DIR/parse1.awk | LC_ALL=en_us awk -f $APP_DIR/parse2.awk );
-
-ADDR=${2:0:17}
-
-DATE=$( LC_ALL=en_us date -u )
-
-echo $DATE*$ADDR*$TEMP
+echo -e "</messages>"
 

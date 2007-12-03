@@ -27,24 +27,28 @@ kill_obex(){
         
     echo $(date) "killing obexftpd"
     PID=$(cat $OBEX_PID) 
-    kill $PID
+    kill -9 $PID
+    
+    PID=$(cat $SENDER_PID)
+    kill -9 $PID
     
     echo $(date) "stoping daemon"
     
     exit 0
 }
 
-LOG_FILE="/dev/null"
+LOG_FILE="/dev/stdout"
 
-APP_DIR="/usr/share/aircable/airmsgd"
+#APP_DIR="/usr/share/aircable/airmsgd"
 
-#APP_DIR="."
+APP_DIR="."
 
 PID_DIR="/var/run/airmsgd"
 
 echo $$ > $PID_DIR/pid
 
 OBEX_PID=$PID_DIR/obexftpd
+SENDER_PID=$PID_DIR/sender
 LOG_DIR="/var/log/airmsgd"
 MSG_DIR="/tmp/airmsgd/msg"
 TEMPERATURE_DIR="/tmp/airmsgd/temperature"
@@ -66,13 +70,17 @@ OBEX_LOG="$LOG_DIR/obexftpd.log"
 
 trap kill_obex SIGHUP SIGINT SIGTERM TERM
 
-obexftpd -c $MSG_DIR -b -B 10 > /dev/null &
+/opt/obexftp/bin/obexftpd -c $MSG_DIR -b -B 10 > /dev/null &
 
 echo $! > $OBEX_PID
 
 sdptool add --channel 10 OPUSH
 
 echo $(date) "Obex Server Running" >> $LOG_FILE
+
+$APP_DIR/sender.sh >>$LOG_FILE  &
+
+echo $! > $SENDER_PID
 
 while [ 1 ];
 do
@@ -87,22 +95,28 @@ do
 	echo -e "$FILE" >> $LOG_FILE;
 	echo -e "$FILE"
 	
-	BODY=$( echo -n $FILE | grep "BODY:" );
-	TEMPERATURE=$( echo $BODY | grep -E \
-		'BODY:\$(+|-)?[0-9]+:(+|-)?[0-9]+!(+|-)?[0-9]+\#[A-Z]$' );
-	BATT=$( echo $BODY | grep -E 'BODY:#*' );
-	UPDATE=$( echo $BODY | grep -E 'BODY:\?UPDATE' );
-	
-	if [ -n $TEMPERATURE  ]; then
+	BODY=$( echo -e "$FILE" | grep "BODY:" );
+	TEMPERATURE=$( echo -e "$BODY" | grep -E \
+		'BODY:\$(+|-)?[0-9]+:(+|-)?[0-9]+!(+|-)?[0-9]+\#(K|IR)+$' );
+	echo "TEMPERATURE" $TEMPERATURE
+	BATT=$( echo -e "$BODY" | grep -E 'BODY:\#.*\%.*' );
+	echo "BATT" $BATT
+	UPDATE=$( echo -e "$BODY" | grep -E 'BODY:\?UPDATE' );
+	echo "UPDATE" $UPDATE
+
+	if [ -n "$TEMPERATURE"  ]; then
 	    echo "Temperature Reading"
 	    PARSE=$( bash $APP_DIR/temperature/parse.sh $MSG_DIR $i )
 	    echo $PARSE > $TEMPERATURE_DIR/reading.$RANDOM
-	    echo "Reading generated"
+	    echo "Reading generated: " $PARSE
 	else 
-	    if [ -n $BATT ]; then
+	    if [ -n "$BATT" ]; then
 		echo "Battery Reading"
+		PARSE=$( bash $APP_DIR/battery/parse.sh $MSG_DIR $i )
+		echo $PARSE > $BATT_DIR/reading.$RANDOM
+		echo "Battery generated: " $PARSE
 	    else 
-		if [ -n $UPDATE ]; then
+		if [ -n "$UPDATE" ]; then
 		    echo "Update Ready"
 		fi
 	    fi
