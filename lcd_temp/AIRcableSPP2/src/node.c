@@ -874,6 +874,8 @@ void nodemain(int channel){
 	sppListen(socket);
 	sppWaitConnection(socket);
 	
+	sppUnregister(socket);
+	
 	node->socket = socket;
 	
 //#ifndef DEBUG
@@ -907,7 +909,7 @@ void nodemain(int channel){
 		
 	
 	
-	sppUnregister(node->socket);
+	//sppUnregister(node->socket);
 	
 	
 	
