@@ -63,7 +63,7 @@
 13 RESERVED
 14 RESERVED
 
-15 0.1.2
+15 0.1.1
 16 SMARTauto
 17 SMART
 
@@ -890,19 +890,37 @@
 0 REM prepare for updates
 940 $24="!";
 941 A = strlen $3;
-942 IF A < 12 THEN 960;
+942 IF A < 12 THEN 980;
 943 A = pioset 9;
 944 A = uarton;
 945 A = lcd "UPDATE  ";
-946 $0="?UPDATE";
-947 A = enable 3;
-948 A = message $3;
-949 ALARM 60;
-950 O = 0;
-951 U = 1001
-952 RETURN
+946 $0="?UPDATE|";
+948 PRINTV $3
+949 PRINTV "|"
+950 PRINTV $4
+951 PRINTV "|"
+952 PRINTV $5
+953 PRINTV "|"
+954 PRINTV $6
+955 PRINTV "|"
+956 PRINTV $7
+957 PRINTV "|"
+958 PRINTV $9
+959 PRINTV "|"
+960 PRINTV $15
+961 PRINTV "|"
+962 PRINTV $16
+963 PRINTV "|"
+964 PRINTV $17
 
-960 A = lcd "not paired"
-961 ALARM 1
-962 RETURN
+965 A = enable 3;
+966 A = message $3;
+967 ALARM 60;
+968 O = 0;
+969 U = 1001
+970 RETURN
+
+980 A = lcd "not paired"
+981 ALARM 1
+982 RETURN
 
