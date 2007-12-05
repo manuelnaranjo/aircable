@@ -1,5 +1,5 @@
 #!/bin/bash
-# Parses the received temperature message
+# Parses the received batery message
 # Copyright (C) 2007 Wireless Cables Inc.
 # Copyright (C) 2007 Naranjo, Manuel <manuel@aircable.net>
 #

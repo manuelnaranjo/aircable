@@ -96,13 +96,11 @@ do
 	echo -e "$FILE"
 	
 	BODY=$( echo -e "$FILE" | grep "BODY:" );
+	echo "BODY: $BODY"
 	TEMPERATURE=$( echo -e "$BODY" | grep -E \
 		'BODY:\$(+|-)?[0-9]+:(+|-)?[0-9]+!(+|-)?[0-9]+\#(K|IR)+$' );
-	echo "TEMPERATURE" $TEMPERATURE
 	BATT=$( echo -e "$BODY" | grep -E 'BODY:\#.*\%.*' );
-	echo "BATT" $BATT
 	UPDATE=$( echo -e "$BODY" | grep -E 'BODY:\?UPDATE' );
-	echo "UPDATE" $UPDATE
 
 	if [ -n "$TEMPERATURE"  ]; then
 	    echo "Temperature Reading"
@@ -118,6 +116,7 @@ do
 	    else 
 		if [ -n "$UPDATE" ]; then
 		    echo "Update Ready"
+		    $APP_DIR/update/update.sh ${i:0:17} "$UPDATE" $LOG_FILE
 		fi
 	    fi
 	fi

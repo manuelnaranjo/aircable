@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# AIRmsgd: generate xml (temperature) file.
+# AIRmsgd: generate xml (battery) file.
 # Copyright (C) 2007 Wireless Cables Inc.
 # Copyright (C) 2007 Naranjo, Manuel <manuel@aircable.net>
 #

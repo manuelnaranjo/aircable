@@ -20,7 +20,7 @@ TEMP="/tmp/airmsgd/tmp"
 
 mkdir -p $TEMP
 
-URL="http://www.smart-tms.com/xml/index.cfm"
+URL="http://www.smart-temps.com/xml/index.cfm"
 
 FILE="reply.xml.$RANDOM"
 FILE2="reply2.xml.$RANDOM"
