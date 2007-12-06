@@ -63,7 +63,7 @@
 13 RESERVED
 14 RESERVED
 
-15 0.1.2
+15 0.1.3
 16 SMARTauto
 17 SMART
 
@@ -172,13 +172,14 @@
 0 REM S = 1 non-deep sleep
 108 S = 0
 109 IF $540[0]<>0 THEN 117
-110 $540="BT ADDR  "
-111 $541="PEER BT  "
-112 $542="CONTRAST "
-113 $543="PROBE    "
-114 $544="CALIBRATE"
-115 $545="MSG RATE "
-116 $546="%F \ %C  "
+110 $540="BT ADDR "
+111 $541="PEER BT "
+112 $542="CONTRAST"
+113 $543="PROBE   "
+114 $544="CALIBRAT"
+115 $545="MSG RATE"
+116 $546="%F \ %C "
+117 $547="UPDATE N"
 
 0 REM reset prescalled counter
 118 Q = 0
@@ -611,7 +612,7 @@
 542 
 543 
 
-550 IF V > 6 THEN 555;
+550 IF V > 7 THEN 555;
 551 A = lcd $(540 + V);
 552 RETURN;
 
@@ -629,7 +630,7 @@
 566 IF $2[12] = 49 THEN 590;
 567 RETURN
 
-570 IF V > 6 THEN 573
+570 IF V > 7 THEN 573
 571 V = V + 1
 572 GOTO 550
 
@@ -640,7 +641,7 @@
 581 V = V - 1
 582 GOTO 550
 
-583 V = 7
+583 V = 8
 584 GOTO 550
 
 0 REM option choosen
@@ -659,9 +660,11 @@
 596 IF V = 5 THEN 730
 0 REM ºF / ºC
 597 IF V = 6 THEN 760
-598 U = 0
-599 ALARM 1
-600 RETURN
+0 REM launch update
+598 IF V = 7 THEN 940
+599 U = 0
+560 ALARM 1
+601 RETURN
 
 0 REM own addr
 605 A = getaddr
@@ -912,13 +915,14 @@
 962 PRINTV $16
 963 PRINTV "|"
 964 PRINTV $17
-
-965 A = enable 3;
-966 A = message $3;
-967 ALARM 60;
-968 O = 0;
-969 U = 1001
-970 RETURN
+965 PRINTV "|"
+966 PRINTV $7
+970 A = enable 3;
+971 A = message $3;
+972 ALARM 60;
+973 O = 0;
+974 U = 1001
+975 RETURN
 
 980 A = lcd "not paired"
 981 ALARM 1
