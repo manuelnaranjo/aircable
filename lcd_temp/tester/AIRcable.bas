@@ -139,7 +139,7 @@
 221 IF A = 0 THEN 240
 222 A = lcd "BYE             "
 223 A = pioget 12
-224 IF A = 0 THEN 230
+224 IF A = 1 THEN 230
 225 WAIT 1
 226 GOTO 223
 
@@ -183,19 +183,20 @@
 
 360 GOSUB 410
 361 IF $7[0] = 73 THEN 380
-362 $0="K "
-363 Y = Y + 540
-364 Y = Y / 20
+362 IF Y <= -32000 THEN 370
+363 $0="K "
+364 Y = Y + 540
+365 Y = Y / 20
 
 0 REM display ºC
-365 PRINTV Y
-366 PRINTV"%C         "
+366 PRINTV Y
+367 PRINTV"%C         "
 
 
 0 REM save temp string. then display
-367 $8 = $0
-368 A = lcd $8
-369 RETURN
+368 $8 = $0
+369 A = lcd $8
+370 RETURN
 
 0 REM IR sensor
 380 $0 ="IR. "
@@ -243,9 +244,9 @@
 435 Y = Y + $0[2];
 436 RETURN
 
-437 A = lcd"NOT READY"
-438 WAIT 1
-439 GOTO 425
+437 A = lcd"ADC ERR"
+438 Y = -32000
+439 RETURN
 
 0 REM laser on
 440 A = pioclr 4
@@ -304,7 +305,7 @@
 500 A = sensor $0
 501 A = atoi $0
 502 $0="BATT "
-503 A = PRINTV A
+503 PRINTV A
 504 A = lcd $0
 505 X = 0
 506 W = 0
@@ -314,4 +315,6 @@
 @SLAVE 600
 600 A = shell
 601 RETURN
+
+
 
