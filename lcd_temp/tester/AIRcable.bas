@@ -95,24 +95,24 @@
 164 GOTO 151
 
 0 REM test buzzer and leds
-170 A = pioirq"P0000000000000"
+170 0 REM A = pioirq"P0000000000000"
 171 A = lcd "TESTING    "
 172 A = beep
 173 A = pioset 9
 174 A = pioset 20
 175 A = pioclr 9
 176 A = pioclr 20
-177 A = pioset 9
 
 0 REM test lcd segments
 178 $0=$10
 179 PRINTV $11
-180 C = strlen $0
-181 FOR B = 0 TO C
-182 A = lcd $0[B]
-183 NEXT B
-184 A = pioirq"P011000000001"
-185 X = 1
+180 PRINTV"         "
+181 C = strlen $0
+182 FOR B = 0 TO C
+183 A = lcd $0[B]
+184 NEXT B
+185 0 REM A = pioirq"P011000000001"
+186 X = 1
 
 190 $7="IR"
 191 GOSUB 360
@@ -153,16 +153,19 @@
 254 ALARM 0
 255 RETURN
 
-260 A = lcd "RIGHT     "
-261 RETURN
+260 A = lcd "RIGHT     ";
+261 WAIT 1
+262 RETURN
 
-265 A = lcd"LEFT       "
-266 RETURN
+265 A = lcd"LEFT       ";
+266 WAIT 1
+267 RETURN
 
 270 A = lcd"MIDDLE    "
 271 X = 4
 272 ALARM 3
-273 RETURN
+273 WAIT 1
+274 RETURN
 
 
 360 GOSUB 410
@@ -282,4 +285,16 @@
 469 A = pioset 4
 470 Y = -32000
 471 RETURN
+
+
+@SENSOR 500
+500 A = sensor $0
+501 A = atoi $0
+502 $0="BATT "
+503 A = PRINTV A
+504 A = lcd $0
+505 X = 0
+506 Y = 0
+507 ALARM 1
+508 RETURN
 
