@@ -13,8 +13,8 @@
 0 REM 12 MIDDLE BUTTON
 0 REM 20 BLUE LED
 
-10 ABCDEFGHIJKLMNOPQRSTUVWXYZ
-11 0123456789.,
+10 ABCDEFGHIJKLMNOPQRSTUVWXYZ.
+11 0,123456789
 
 @INIT 50
 50 A = uarton
@@ -23,7 +23,7 @@
 
 0 REM turn on green led
 54 A = pioout 9
-55 A = pioset 9
+55 A = pioclr 9
 
 0 REM test contrast
 56 A = auxdac 200
@@ -70,7 +70,8 @@
 77 A = pioout 20
 78 A = pioclr 20
 79 A = slave 1200
-80 RETURN
+80 A = pioin 10
+81 RETURN
 
 @IDLE 100
 100 A = slave 1200
@@ -101,11 +102,11 @@
 172 A = beep
 173 A = pioset 9
 174 A = pioset 20
-175 A = pioin 10
-176 A = pioclr 9
-177 A = pioclr 20
-178 A = pioout 10
-179 A = pioclr 10
+175 A = pioout 10
+176 A = pioclr 10
+177 A = pioclr 9
+178 A = pioclr 20
+179 A = pioin 10
 
 0 REM test lcd segments
 180 $0=$10
@@ -162,17 +163,22 @@
 
 260 A = lcd "RIGHT     ";
 261 WAIT 1
-262 RETURN
+262 GOTO 280
 
 265 A = lcd"LEFT       ";
 266 WAIT 1
-267 RETURN
+267 GOTO 280
 
 270 A = lcd"MIDDLE    "
 271 X = 4
 272 ALARM 3
 273 WAIT 1
-274 RETURN
+274 GOTO 280
+
+280 $0=$10
+281 PRINTV $11
+282 PRINTV"                        "
+283 RETURN
 
 
 360 GOSUB 410
@@ -304,4 +310,8 @@
 506 Y = 0
 507 ALARM 1
 508 RETURN
+
+@SLAVE 600
+600 A = shell
+601 RETURN
 
