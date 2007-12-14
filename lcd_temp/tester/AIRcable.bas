@@ -26,15 +26,22 @@
 55 A = pioset 9
 
 0 REM test contrast
-56 A = auxdac 160
+56 A = auxdac 200
 57 A = lcd "INIT1234    "
 
-58 B = 160
-59 A = auxdac B
-60 B = B + 10
-61 IF B < 200 THEN 59
+0 REM state variable X
+0 REM X = 0 testing beep, leds, lcd
+0 REM X = 1 testing K
+0 REM X = 2 testing IR
+0 REM X = 3 testing battery
+0 REM X = 4 turn off
+0 REM semaphore Y
+0 REM Y = 0 running
+0 REM Y = 1 stopped
+58 Y = 0;
+59 X = 0;
 
-62 A = auxdac 160
+62 A = auxdac 200
 63 A = getuniq $1
 64 $0="LCD "
 65 PRINTV $1
@@ -62,58 +69,100 @@
 
 77 A = pioout 20
 78 A = pioclr 20
-79 RETURN
+79 A = slave 1200
+80 ALARM 1
+81 RETURN
 
-@PIO_IRQ 200
-200 IF $0[2] = 48 THEN 219
-201 IF $0[3] = 48 THEN 219
-202 IF $0[12] = 49 THEN 210
-203 RETURN
+@IDLE 100
+100 A = slave 1200
+101 GOTO 150
 
-0 REM middle button makes visible
-210 A = slave 120
-211 A = lcd "VISIBLE  "
-212 RETURN
+@ALARM 150
+150 IF Y = 1 THEN 200
+151 IF X = 0 THEN 170
+152 IF X = 1 THEN 190
+153 IF X = 2 THEN 160
+154 IF X = 3 THEN 210
+155 IF X = 4 THEN 220
+156 X = 0
+157 ALARM 1
+158 RETURN
+
+160 $7="IR"
+161 GOSUB 360
+162 A = beep
+163 X = 0
+164 GOTO 151
 
 0 REM test buzzer and leds
-219 A = pioirq"P0000000000000"
-220 A = lcd "TESTING    "
-221 A = beep
-222 A = pioset 9
-223 A = pioset 20
-224 A = pioclr 9
-225 A = pioclr 20
-226 A = pioset 9
+170 A = pioirq"P0000000000000"
+171 A = lcd "TESTING    "
+172 A = beep
+173 A = pioset 9
+174 A = pioset 20
+175 A = pioclr 9
+176 A = pioclr 20
+177 A = pioset 9
 
 0 REM test lcd segments
-227 $0=$10
-228 PRINTV $11
-229 C = strlen $0
-230 FOR B = 0 TO C
-231 A = lcd $0[B]
-232 NEXT B
+178 $0=$10
+179 PRINTV $11
+180 C = strlen $0
+181 FOR B = 0 TO C
+182 A = lcd $0[B]
+183 NEXT B
+184 A = pioirq"P011000000001"
+185 X = 1
 
-233 A = lcd"TESTING    "
-0 REM read K, then read IR
-234 $7="K"
-235 GOSUB 360
-236 A = beep
-237 A = pioget 12
-238 IF A = 1 THEN 241
-239 WAIT 2
-240 GOTO 234
-241 $7="IR"
-242 GOSUB 360
-243 A = beep
-244 A = pioget 12
-245 IF A = 1 THEN
-246 WAIT 2
-247 GOTO 241
+190 $7="IR"
+191 GOSUB 360
+192 A = beep
+193 X = 2
+194 GOTO 151
+ 
+200 Y = 0
+201 ALARM 1
+202 RETURN
 
+210 A = zerocnt 1
+211 Y = 1
+212 RETURN
 
-248 A = pioirq"P011000000001"
-249 A = lcd"DONE           "
-250 RETURN
+220 A = pioget 12
+221 IF A = 0 THEN 240
+222 A = lcd "BYE             "
+223 A = pioget 12
+224 IF A = 0 THEN 230
+225 WAIT 1
+226 GOTO 223
+
+230 A = reboot
+231 Y = 1
+232 RETURN
+
+240 X = 0
+241 Y = 0
+242 ALARM 1
+243 RETURN
+
+@PIO_IRQ 250
+250 IF $0[2] = 48 THEN 260
+251 IF $0[3] = 48 THEN 265
+252 IF $0[12] = 49 THEN 270
+253 X = 0
+254 ALARM 0
+255 RETURN
+
+260 A = lcd "RIGHT     "
+261 RETURN
+
+265 A = lcd"LEFT       "
+266 RETURN
+
+270 A = lcd"MIDDLE    "
+271 X = 4
+272 ALARM 3
+273 RETURN
 
 
 360 GOSUB 410
