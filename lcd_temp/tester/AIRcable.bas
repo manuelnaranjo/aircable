@@ -36,9 +36,9 @@
 0 REM X = 3 testing battery
 0 REM X = 4 turn off
 0 REM semaphore Y
-0 REM Y = 0 running
-0 REM Y = 1 stopped
-58 Y = 0;
+0 REM W = 0 running
+0 REM W = 1 stopped
+58 W = 0;
 59 X = 0;
 
 62 A = auxdac 200
@@ -76,11 +76,11 @@
 @IDLE 100
 100 A = slave 1200
 101 X = 0
-102 Y = 0
+102 W = 0
 103 GOTO 150
 
 @ALARM 150
-150 IF Y = 1 THEN 200
+150 IF W = 1 THEN 200
 151 IF X = 0 THEN 170
 152 IF X = 1 THEN 190
 153 IF X = 2 THEN 160
@@ -132,7 +132,7 @@
 202 RETURN
 
 210 A = nextsns 1
-211 Y = 1
+211 W = 1
 212 RETURN
 
 220 A = pioget 12
@@ -144,11 +144,11 @@
 226 GOTO 223
 
 230 A = reboot
-231 Y = 1
+231 W = 1
 232 RETURN
 
 240 X = 0
-241 Y = 0
+241 W = 0
 242 ALARM 1
 243 RETURN
 
@@ -184,7 +184,7 @@
 360 GOSUB 410
 361 IF $7[0] = 73 THEN 380
 362 $0="K "
-363 Y = Y + X
+363 Y = Y + 540
 364 Y = Y / 20
 
 0 REM display ºC
@@ -307,7 +307,7 @@
 503 A = PRINTV A
 504 A = lcd $0
 505 X = 0
-506 Y = 0
+506 W = 0
 507 ALARM 1
 508 RETURN
 
