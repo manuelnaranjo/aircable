@@ -63,7 +63,7 @@
 13 RESERVED
 14 RESERVED
 
-15 0.1
+15 0.2
 16 SMARTinteractive
 17 SMART
 
@@ -184,12 +184,12 @@
 120 A = zerocnt;
 
 0 REM press button starts alarm for long press recognition
-121 IF $0[2]=48 THEN 130;
-122 IF $0[3]=48 THEN 130;
-123 IF $0[12]=49 THEN 130;
+122 IF $0[2]=48 THEN 130;
+123 IF $0[3]=48 THEN 130;
+124 IF $0[12]=49 THEN 130;
 0 REM was it a release, handle it
-124 IF W <> 0 THEN 140;
-125 RETURN
+125 IF W <> 0 THEN 140;
+126 RETURN
 
 0 REM button press, save state, start ALARM
 130 $2 = $0;
@@ -783,17 +783,18 @@
 719 TIMEOUTM 60;
 720 INPUTM $0;
 721 IF $0[0] = 63 THEN 750;
-722 IF $0[0] = 37 THEN 724;
+722 IF $0[0] = 37 THEN 725;
+723 IF $0[0] = 35 THEN 940;
 0 REM check if still connected
-723 GOTO 1000
+724 GOTO 900
 
-724 $709 = $0[1]
-725 $0 = $709
+725 $709 = $0[1]
+726 $0 = $709
 0 REM M amount of options
-726 K = atoi $0
-727 C = 0
-728 IF K > 45 THEN 745
-729 IF K = 0 THEN 745
+727 K = atoi $0
+728 C = 0
+729 IF K > 45 THEN 745
+730 IF K = 0 THEN 745
 
 0 REM __get each menu entry __
 731 TIMEOUTM 20
@@ -937,51 +938,80 @@
 845 RETURN
 
 
-@SLAVE 950
+@SLAVE 850
 0 REM LED on
-950 ALARM 0
-951 Q = 0
-952 A = pioset 20
-953 A = shell
-954 RETURN
+850 ALARM 0
+851 Q = 0
+852 A = pioset 20
+853 A = shell
+854 RETURN
 
 0 REM do we need this at all???
-@CONTROL 960
+@CONTROL 860
 0 REM remote request for DTR, disconnect
-960 IF $0[0] = 49 THEN 962;
-961 REM A = disconnect 1
-962 RETURN 
+860 IF $0[0] = 49 THEN 862;
+861 REM A = disconnect 1
+862 RETURN 
 
 0 REM slave for 60 seconds after boot
 0 REM then stop FTP too
-@IDLE 980
-980 A = pioclr 9
-981 A = pioset 9
-982 IF Q = 1 THEN 992
-983 IF Q = 2 THEN 996
-984 A = slave -1
-985 Q = 1
+@IDLE 870
+870 A = pioclr 9
+871 A = pioset 9
+872 IF Q = 1 THEN 890
+873 IF Q = 2 THEN 894
+874 A = slave -1
+875 Q = 1
 0 REM startup the automatic again
-986 IF U = 2 THEN 991
-987 U = 0
-988 W = 0
-989 ALARM 2
-990 RETURN
+876 IF U = 2 THEN 991
+877 U = 0
+878 W = 0
+879 ALARM 2
+880 RETURN
 
 0 REM after some time disable FTP
-992 A = disable 3
-993 WAIT 3
-994 A = slave -1
-995 Q = 2
-996 RETURN
+890 A = disable 3
+891 WAIT 3
+892 A = slave -1
+893 Q = 2
+894 RETURN
 
 
 0 REM check if we still connected before
 0 REM telling the server we need to resync
-1000 A = status;
-1001 IF A > 9 THEN 745;
-1002 U = 0;
-1003 A = lcd"Disconnected;
-1004 ALARM 10;
-1005 RETURN
+900 A = status;
+901 IF A > 9 THEN 745;
+902 U = 0;
+903 A = lcd"Disconnected;
+904 ALARM 10;
+905 RETURN
+
+0 REM generate update message
+940 A = lcd "UPDATING"
+941 $0[0]=0
+942 PRINTV $3
+943 PRINTV "|"
+944 PRINTV $4
+945 PRINTV "|"
+946 PRINTV $5
+947 PRINTV "|"
+948 PRINTV $6
+949 PRINTV "|"
+950 PRINTV $7
+951 PRINTV "|"
+953 PRINTV $9
+954 PRINTV "|"
+955 PRINTV $15
+956 PRINTV "|"
+957 PRINTV $16
+958 PRINTV "|"
+959 PRINTV $17
+962 PRINTV "\n\r"
+
+965 PRINTM $0
+966 A = enable 3;
+967 ALARM 60;
+968 O = 0;
+969 U = 1001
+970 RETURN
 

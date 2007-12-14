@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "types.h"
 #include "spp/sppclient.h"
@@ -53,6 +54,7 @@ void simulate();
 #define TAG_RESP_FUNCTION	strdup("responsefunction")
 #define TAG_AUTHENTICATE	strdup("authenticate")
 #define TAG_ACCEPT			strdup("accept")
+#define TAG_UPDATE			strdup("checkupdate")
 
 
 //FLAGS
