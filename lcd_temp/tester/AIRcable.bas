@@ -45,7 +45,7 @@
 63 A = getuniq $1
 64 $0="LCD "
 65 PRINTV $1
-66 A = name $1
+66 A = name $0
 
 0 REM initialize buttons 
 0 REM PIO2 right, PIO3 left, PIO12 middle
@@ -70,12 +70,13 @@
 77 A = pioout 20
 78 A = pioclr 20
 79 A = slave 1200
-80 ALARM 1
-81 RETURN
+80 RETURN
 
 @IDLE 100
 100 A = slave 1200
-101 GOTO 150
+101 X = 0
+102 Y = 0
+103 GOTO 150
 
 @ALARM 150
 150 IF Y = 1 THEN 200
@@ -91,7 +92,7 @@
 160 $7="IR"
 161 GOSUB 360
 162 A = beep
-163 X = 0
+163 X = 3
 164 GOTO 151
 
 0 REM test buzzer and leds
@@ -100,27 +101,30 @@
 172 A = beep
 173 A = pioset 9
 174 A = pioset 20
-175 A = pioclr 9
-176 A = pioclr 20
+175 A = pioin 10
+176 A = pioclr 9
+177 A = pioclr 20
+178 A = pioout 10
+179 A = pioclr 10
 
 0 REM test lcd segments
-178 $0=$10
-179 PRINTV $11
-180 PRINTV"                        "
-181 C = strlen $0
-182 WAIT 1
-183 FOR B = 0 TO C-8
-184 A = lcd $0[B]
-185 NEXT B
-186 0 REM A = pioirq"P011000000001"
-187 X = 1
-188 GOTO 150
+180 $0=$10
+181 PRINTV $11
+182 PRINTV"                        "
+183 C = strlen $0
+184 WAIT 1
+185 FOR B = 0 TO C-8
+186 A = lcd $0[B]
+187 NEXT B
+188 0 REM A = pioirq"P011000000001"
+189 X = 1
+190 GOTO 150
 
 190 $7="K"
 191 GOSUB 360
 192 A = beep
 193 X = 2
-194 GOTO 151
+194 GOTO 150
  
 200 Y = 0
 201 ALARM 1
@@ -147,7 +151,8 @@
 242 ALARM 1
 243 RETURN
 
-@PIO_IRQ 250
+@PIO_IRQ 249
+249 A = lcd $0
 250 IF $0[2] = 48 THEN 260
 251 IF $0[3] = 48 THEN 265
 252 IF $0[12] = 49 THEN 270
