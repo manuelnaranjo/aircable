@@ -27,7 +27,7 @@
 
 0 REM test contrast
 56 A = auxdac 200
-57 A = lcd "INIT1234    "
+57 A = lcd "LCD TEST    "
 
 0 REM state variable X
 0 REM X = 0 testing beep, leds, lcd
@@ -106,15 +106,17 @@
 0 REM test lcd segments
 178 $0=$10
 179 PRINTV $11
-180 PRINTV"         "
+180 PRINTV"                        "
 181 C = strlen $0
-182 FOR B = 0 TO C
-183 A = lcd $0[B]
-184 NEXT B
-185 0 REM A = pioirq"P011000000001"
-186 X = 1
+182 WAIT 1
+183 FOR B = 0 TO C-8
+184 A = lcd $0[B]
+185 NEXT B
+186 0 REM A = pioirq"P011000000001"
+187 X = 1
+188 GOTO 150
 
-190 $7="IR"
+190 $7="K"
 191 GOSUB 360
 192 A = beep
 193 X = 2
@@ -124,7 +126,7 @@
 201 ALARM 1
 202 RETURN
 
-210 A = zerocnt 1
+210 A = nextsns 1
 211 Y = 1
 212 RETURN
 
