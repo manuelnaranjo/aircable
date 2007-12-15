@@ -104,13 +104,13 @@
 165 A = pioset 20
 166 A = pioout 10
 167 A = pioset 11
-128 A = pioclr 4
+168 A = pioclr 4
 169 A = pioclr 10
 170 A = pioclr 9
 171 A = pioclr 20
 172 A = pioin 10
 173 A = pioclr 11
-174 A = pioset 9
+174 A = pioset 4
 
 0 REM test lcd segments
 180 $0=$10
@@ -190,7 +190,7 @@
 361 IF $7[0] = 73 THEN 380
 362 IF Y <= -32000 THEN 370
 363 $0="K "
-364 Y = Y + 520
+364 Y = Y + 420
 365 Y = Y / 20
 
 0 REM display ºC
