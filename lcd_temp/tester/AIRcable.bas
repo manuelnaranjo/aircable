@@ -74,7 +74,11 @@
 
 0 REM start counter
 83 A = zerocnt
-84 RETURN
+
+0 REM enable laser
+84 A = pioout 4
+85 A = pioset 4
+86 RETURN
 
 @IDLE 100
 100 A = slave 1200
@@ -100,11 +104,13 @@
 165 A = pioset 20
 166 A = pioout 10
 167 A = pioset 11
-168 A = pioclr 10
-169 A = pioclr 9
-170 A = pioclr 20
-171 A = pioin 10
-172 A = pioclr 11
+128 A = pioclr 4
+169 A = pioclr 10
+170 A = pioclr 9
+171 A = pioclr 20
+172 A = pioin 10
+173 A = pioclr 11
+174 A = pioset 9
 
 0 REM test lcd segments
 180 $0=$10
