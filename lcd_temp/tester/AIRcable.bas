@@ -184,7 +184,7 @@
 361 IF $7[0] = 73 THEN 380
 362 IF Y <= -32000 THEN 370
 363 $0="K "
-364 Y = Y + 540
+364 Y = Y + 520
 365 Y = Y / 20
 
 0 REM display ºC
@@ -262,7 +262,7 @@
 0 REM substract 273.15 to get Celsius
 0 REM temp / 0.02 is K
 0 REM F = address: 6 is ambient, 7 object
-452 F = 7
+452 F = 6
 0 REM E is repeat limit
 453 E = 0;
 454 $0[0] = 0;
