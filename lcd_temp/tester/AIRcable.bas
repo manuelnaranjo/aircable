@@ -214,16 +214,15 @@
 407 RETURN
 
 0 REM I2C sensor reading handler
-410 IF $7[0] = 75 THEN 418
+410 IF $7[0] = 75 THEN 419
 411 IF $7[0] = 73 THEN 450
 412 Y = 0
 413 RETURN
 
 0 REM K sensor connected to MCP3421
 
+419 K = 0
 0 REM tell the MCP4321 to take a reading
-418 K = 0
-419 IF K = 3 THEN 440
 420 R = 0;
 421 T = 1;
 0 REM slave address is 0xD0
@@ -240,17 +239,18 @@
 430 T = 0;
 431 R = 4;
 432 A = i2c $1;
-433 IF $0[3] >= 128 THEN 437
+433 IF $0[3] >= 128 THEN 440
 434 Y = $0[1] * 256;
 435 Y = Y + $0[2];
 436 RETURN
 
-437 K = K + 1
-438 OGOTO 419
+440 K = K + 1
+441 IF K < 3 THEN 430
 
-440 A = lcd"ADC ERR"
-441 Y = -32000
-442 RETURN
+
+445 A = lcd"ADC ERR"
+446 Y = -32000
+447 RETURN
 
 0 REM laser on
 450 A = pioclr 4
@@ -309,7 +309,7 @@
 500 A = sensor $0
 501 A = atoi $0
 502 A = A / 100
-503 $0="BATT"
+503 $0="BATT "
 504 PRINTV A
 505 PRINTV"                   "
 506 A = lcd $0
