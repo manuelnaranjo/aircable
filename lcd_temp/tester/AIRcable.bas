@@ -87,7 +87,7 @@
 150 IF X = 0 THEN 160
 151 A = lcd"READY       "
 152 A = readcnt
-153 IF A > 180 THEN 220
+153 IF A > 30 THEN 230
 154 ALARM 10
 155 RETURN
 
@@ -113,8 +113,8 @@
 183 C = strlen $0
 184 WAIT 1
 185 FOR B = 0 TO C-8
-186 A = lcd $0[B]
-187 NEXT B
+186 A = lcd $0[B];
+187 NEXT B;
 188 A = lcd "                            "
 
 190 $7="K"
@@ -152,8 +152,7 @@
 242 ALARM 1
 243 RETURN
 
-@PIO_IRQ 249
-249 A = lcd $0
+@PIO_IRQ 250
 250 IF $0[2] = 48 THEN 260
 251 IF $0[3] = 48 THEN 265
 252 IF $0[12] = 49 THEN 270
@@ -164,8 +163,7 @@
 261 GOTO 280
 
 265 A = lcd"LEFT       ";
-266 ALARM 3
-267 GOTO 280
+266 GOTO 280
 
 270 A = lcd"MIDDLE    "
 271 WAIT 1
@@ -173,7 +171,7 @@
 273 GOTO 280
 
 280 A = zerocnt
-281 ALARM 3
+281 ALARM 2
 282 RETURN
 
 285 W = 0
@@ -304,14 +302,16 @@
 @SENSOR 500
 500 A = sensor $0
 501 A = atoi $0
-502 $0="BATT"
-503 PRINTV A
-504 A = lcd $0
-505 X = 1
-506 ALARM 5
-507 A = pioirq"P011000000001"
-508 A = zerocnt
-509 RETURN
+502 A = A / 100
+503 $0="BATT"
+504 PRINTV A
+505 PRINTV"                   "
+506 A = lcd $0
+507 X = 1
+508 ALARM 5
+509 A = pioirq"P011000000001"
+510 A = zerocnt
+511 RETURN
 
 @SLAVE 600
 600 A = shell
