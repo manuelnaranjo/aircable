@@ -117,6 +117,7 @@
 187 NEXT B;
 188 A = lcd "                            "
 
+189 WAIT 1
 190 $7="K"
 191 GOSUB 360
 192 A = ring
@@ -214,7 +215,7 @@
 
 0 REM I2C sensor reading handler
 410 IF $7[0] = 75 THEN 418
-411 IF $7[0] = 73 THEN 440
+411 IF $7[0] = 73 THEN 450
 412 Y = 0
 413 RETURN
 
