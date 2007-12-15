@@ -30,16 +30,12 @@
 57 A = lcd "LCD TEST    "
 
 0 REM state variable X
-0 REM X = 0 testing beep, leds, lcd
-0 REM X = 1 testing K
-0 REM X = 2 testing IR
-0 REM X = 3 testing battery
-0 REM X = 4 turn off
-0 REM semaphore Y
-0 REM W = 0 running
-0 REM W = 1 stopped
-58 W = 0;
+0 REM X = 0 testing
+0 REM X = 1 ready
+0 REM W middle button state
+0 REM W = 1 middle has been pressed
 59 X = 0;
+60 W = 0;
 
 62 A = auxdac 200
 63 A = getuniq $1
@@ -71,7 +67,14 @@
 78 A = pioclr 20
 79 A = slave 1200
 80 A = pioin 10
-81 RETURN
+
+0 REM prepare back light
+81 A = pioout 11
+82 A = pioclr 11
+
+0 REM start counter
+83 A = zerocnt
+84 RETURN
 
 @IDLE 100
 100 A = slave 1200
@@ -79,34 +82,29 @@
 102 W = 0
 103 GOTO 150
 
-@ALARM 150
-150 IF W = 1 THEN 200
-151 IF X = 0 THEN 170
-152 IF X = 1 THEN 191
-153 IF X = 2 THEN 160
-154 IF X = 3 THEN 210
-155 IF X = 4 THEN 220
-156 X = 0
-157 ALARM 1
-158 RETURN
-
-160 $7="IR"
-161 GOSUB 360
-162 A = beep
-163 X = 3
-164 GOTO 151
+@ALARM 149
+149 IF W = 1 THEN 220
+150 IF X = 0 THEN 160
+151 A = lcd"READY       "
+152 A = readcnt
+153 IF A > 180 THEN 220
+154 ALARM 10
+155 RETURN
 
 0 REM test buzzer and leds
-170 0 REM A = pioirq"P0000000000000"
-171 A = lcd "TESTING    "
-172 A = beep
-173 A = pioset 9
-174 A = pioset 20
-175 A = pioout 10
-176 A = pioclr 10
-177 A = pioclr 9
-178 A = pioclr 20
-179 A = pioin 10
+160 WAIT 1
+161 A = pioirq"P0000000000000"
+162 A = lcd "TESTING    "
+163 A = ring
+164 A = pioset 9
+165 A = pioset 20
+166 A = pioout 10
+167 A = pioset 11
+168 A = pioclr 10
+169 A = pioclr 9
+170 A = pioclr 20
+171 A = pioin 10
+172 A = pioclr 11
 
 0 REM test lcd segments
 180 $0=$10
@@ -118,14 +116,16 @@
 186 A = lcd $0[B]
 187 NEXT B
 188 A = lcd "                            "
-189 X = 1
-190 GOTO 150
 
-191 $7="K"
-192 GOSUB 360
-193 A = beep
-194 X = 2
-195 GOTO 150
+190 $7="K"
+191 GOSUB 360
+192 A = ring
+
+193 $7="IR"
+194 GOSUB 360
+195 A = ring
+196 A = nextsns 1
+197 RETURN
  
 200 Y = 0
 201 ALARM 1
@@ -144,7 +144,7 @@
 226 GOTO 223
 
 230 A = reboot
-231 W = 1
+231 W = 0
 232 RETURN
 
 240 X = 0
@@ -157,29 +157,29 @@
 250 IF $0[2] = 48 THEN 260
 251 IF $0[3] = 48 THEN 265
 252 IF $0[12] = 49 THEN 270
-253 X = 0
-254 ALARM 0
-255 RETURN
+253 IF W = 1 THEN 285
+254 RETURN
 
 260 A = lcd "RIGHT     ";
-261 WAIT 1
-262 GOTO 280
+261 GOTO 280
 
 265 A = lcd"LEFT       ";
-266 WAIT 1
+266 ALARM 3
 267 GOTO 280
 
 270 A = lcd"MIDDLE    "
-271 X = 4
-272 ALARM 3
-273 WAIT 1
-274 GOTO 280
+271 WAIT 1
+272 W = 1
+273 GOTO 280
 
-280 $0=$10
-281 PRINTV $11
-282 PRINTV"                        "
-283 RETURN
+280 A = zerocnt
+281 ALARM 3
+282 RETURN
 
+285 W = 0
+286 X = 0
+287 ALARM 1
+288 RETURN
 
 360 GOSUB 410
 361 IF $7[0] = 73 THEN 380
@@ -304,13 +304,14 @@
 @SENSOR 500
 500 A = sensor $0
 501 A = atoi $0
-502 $0="BATT "
+502 $0="BATT"
 503 PRINTV A
 504 A = lcd $0
-505 X = 0
-506 W = 0
-507 ALARM 1
-508 RETURN
+505 X = 1
+506 ALARM 5
+507 A = pioirq"P011000000001"
+508 A = zerocnt
+509 RETURN
 
 @SLAVE 600
 600 A = shell
