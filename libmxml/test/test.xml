@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<records>
+
+                <record>
+
+                                <nodeid>123-123-123</nodeid>
+
+                                <tempurature>
+
+                                                <celsius>24</celsius>
+
+                                                <fahrenheit>75</fahrenheit>
+
+                                </tempurature>
+
+                                <datetime>6/12/2007 12:57:42</datetime>
+
+                </record>
+
+<record>
+
+                                <nodeid>123-123-123</nodeid>
+
+                                <tempurature>
+
+                                                <celsius>24</celsius>
+
+                                                <fahrenheit>75</fahrenheit>
+
+                                </tempurature>
+
+                                <datetime>6/12/2007 9:52:42</datetime>
+
+                </record>
+
+                <record>
+
+                                <nodeid>124-124-124</nodeid>
+
+                                <tempurature>
+
+                                                <celsius>14</celsius>
+
+                                                <fahrenheit>57.2</fahrenheit>
+
+                                </tempurature>
+
+                                <datetime>6/12/2007 13:01:42</datetime>
+
+                </record>
+
+</records>
