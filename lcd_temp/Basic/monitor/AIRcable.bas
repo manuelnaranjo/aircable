@@ -63,7 +63,7 @@
 13 RESERVED
 14 RESERVED
 
-15 0.1.5
+15 0.1.6
 16 SMARTauto
 17 SMART
 
@@ -80,7 +80,7 @@
 47 A = uarton
 48 A = baud 1152
 49 Z = 0
-50 A = disable 3
+0 REM 50 A = disable 3
 0 REM LED output and on
 51 A = pioout 9
 52 A = pioset 9
@@ -272,7 +272,7 @@
 174 GOSUB 400
 175 ALARM 10
 176 A = zerocnt
-177 IF U = 1000 THEN 190
+177 IF U = 1000 THEN 189
 178 IF P > 0 THEN 180
 
 0 REM show temp for 30 seconds
@@ -288,11 +288,12 @@
 186 RETURN
 
 0 REM booting message
-190 U = 0
+189 U = 0
+190 A = disable 3
 0 REM time achieved, message if needed.
 191 Q = 0
 192 A = strlen $3
-193 IF A < 12 THEN 182
+193 IF A < 12 THEN 222
 194 ALARM 0
 195 GOSUB 450;
 
@@ -426,7 +427,8 @@
 305 N = 1;
 306 A = nextsns 1800;
 307 ALARM 20
-308 RETURN
+308 U = 0
+309 RETURN
 
 310 U = 0;
 311 J = 0;
@@ -466,9 +468,9 @@
 345 $0="#BN%"
 346 GOTO 335
 
-350 ALARM 10
+350 ALARM 20
 351 N = N -1;
-352 RETURN;
+352 RETURN
 
 0 REM display temp handler ------
 400 GOSUB 450
@@ -615,10 +617,10 @@
 
 550 IF V > 7 THEN 555;
 551 A = lcd $(540 + V);
-552 RETURN;
+552 RETURN
 
 555 A = lcd"EXIT     ";
-556 RETURN;
+556 RETURN
 
 0 REM debug mode handler
 560 IF U = 20 THEN 626
@@ -889,7 +891,7 @@
 931 A = disable 3;
 932 ALARM 2;
 933 A = pioclr 9;
-934 RETURN;
+934 RETURN
 
 0 REM prepare for updates
 940 $24="!";
@@ -931,4 +933,5 @@
 980 A = lcd "not paired"
 981 ALARM 1
 982 RETURN
+
 
