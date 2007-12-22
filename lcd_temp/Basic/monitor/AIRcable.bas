@@ -185,7 +185,7 @@
 118 Q = 0
 
 0 REM check update
-119 IF $24[0] >= 120 THEN 940
+119 IF $24[0] >= 120 THEN 939
 
 120 ALARM 1
 122 $24="1"
@@ -284,7 +284,7 @@
 182 A = A + 1;
 183 $24[0]=A;
 184 IF Q >= P THEN 191
-185 IF A >= 121 THEN 940
+185 IF A >= 121 THEN 939
 186 RETURN
 
 0 REM booting message
@@ -336,7 +336,7 @@
 222 A = lcd $8
 0 REM keep showing temp for 10 secs
 223 ALARM 10
-224 RETURN
+224 GOTO 185
 
 
 0 REM long button press
@@ -664,7 +664,7 @@
 0 REM ºF / ºC
 597 IF V = 6 THEN 760
 0 REM launch update
-598 IF V = 7 THEN 940
+598 IF V = 7 THEN 939
 599 U = 0
 560 ALARM 1
 601 RETURN
@@ -894,6 +894,7 @@
 934 RETURN
 
 0 REM prepare for updates
+939 ALARM 0
 940 $24="!";
 941 A = strlen $3;
 942 IF A < 12 THEN 980;
@@ -919,6 +920,8 @@
 963 PRINTV "|"
 964 PRINTV $17
 
+
+969 A = zerocnt
 970 A = message $3;
 971 A = status
 972 IF A < 1000 THEN 975
