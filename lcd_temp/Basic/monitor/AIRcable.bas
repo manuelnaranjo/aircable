@@ -160,7 +160,7 @@
 0 REM mark we are booting
 102 U = 1000
 0 REM mark first battery meassure in two a minute
-0 REM 103 A = nextsns 120
+103 A = nextsns 120
 104 N = 1
 
 
@@ -284,8 +284,9 @@
 182 A = A + 1;
 183 $24[0]=A;
 184 IF Q >= P THEN 191
-185 IF A >= 121 THEN 939
-186 RETURN
+185 A = $24[0]
+186 IF A >= 121 THEN 939
+187 RETURN
 
 0 REM booting message
 189 U = 0
@@ -425,7 +426,7 @@
 304 GOTO 345
 0 REM meassure again in 30 minutes
 305 N = 1;
-0 REM 306 A = nextsns 60;
+306 A = nextsns 60;
 307 ALARM 20
 308 U = 0
 309 RETURN
@@ -446,8 +447,7 @@
 323 PRINTV J;
 324 PRINTV"    
 325 A = lcd $0;
-326 ALARM 30;
-327 GOTO 305; 
+326 GOTO 305; 
 
 330 $0="LOW BATT";
 331 A = lcd $0;
