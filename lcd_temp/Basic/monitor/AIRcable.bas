@@ -282,11 +282,10 @@
 180 Q = Q + 1;
 181 A = $24[0];
 182 A = A + 1;
-183 $24[0]=A;
-184 IF Q >= P THEN 191
-185 A = $24[0]
-186 IF A >= 121 THEN 939
-187 RETURN
+183 IF Q >= P THEN 191
+184 A = $24[0]
+185 IF A >= 121 THEN 939
+186 RETURN
 
 0 REM booting message
 189 U = 0
@@ -314,13 +313,12 @@
 206 A = message $3;
 207 A = zerocnt
 208 A = lcd " MESSAGE"
-209 WAIT 2
+209 WAIT 10
 
 0 REM check message transmission
 210 C = status
 211 IF C < 1000 THEN 215
-212 WAIT 2
-213 GOTO 210
+212 GOTO 209
 
 215 A = pioclr 20
 216 A = success
@@ -895,7 +893,7 @@
 
 0 REM prepare for updates
 939 ALARM 0
-940 $24="!";
+940 $24[0]=33;
 941 A = strlen $3;
 942 IF A < 12 THEN 980;
 943 A = pioset 9;
@@ -923,9 +921,9 @@
 
 969 A = zerocnt
 970 A = message $3;
-971 A = status
-972 IF A < 1000 THEN 975
-973 WAIT 1
+971 WAIT 10
+972 A = status
+973 IF A < 1000 THEN 975
 974 GOTO 971
 975 A = enable 3;
 976 ALARM 60;
