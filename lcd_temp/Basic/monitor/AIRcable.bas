@@ -246,7 +246,7 @@
 
 0 REM only message if paired
 163 A = strlen $3
-164 IF A < 12 THEN 158
+164 IF A < 12 THEN 810
 
 165 IF Q >= P THEN 175
 166 A = $24[0]
@@ -260,7 +260,7 @@
 175 U = 0
 176 A = disable 3
 178 A = status
-179 IF A >= 1000 THEN 158
+179 IF A >= 1000 THEN 800
 
 0 REM prevent any possible interrupt
 180 ALARM 0
@@ -381,6 +381,7 @@
 287 A = nextsns 1
 288 ALARM 30
 289 RETURN
+
 
 
 @SENSOR 296
@@ -837,6 +838,18 @@
 782 U = 10
 783 ALARM 1
 784 RETURN
+
+0 REM print errors
+0 REM --- print status
+800 $0="ST "
+801 PRINTV A
+802 PRINTV"        "
+803 B = lcd $0
+804 GOTO 158
+
+0 REM --- print not paired
+810 A = lcd"NOT PAIRED"
+811 GOTO 158
 
 0 REM do we need this at all???
 @CONTROL 910
