@@ -227,68 +227,71 @@
 
 0 REM no button press
 0 REM update screen
-153 A = lcd "WAIT. . . "
+153 A = lcd "WAIT. . .
 154 GOSUB 400
 155 A = readcnt
 
 0 REM time to send message?
-156 IF A > 300 THEN 160
-157 IF U = 1000 THEN 160
+156 IF A > 300 THEN 165
+157 IF U = 1000 THEN 165
+158 IF A < 0 THEN 165
 
 0 REM trigger alarms again
-158 ALARM 60
-159 RETURN
+159 ALARM 60
+160 RETURN
 
 0 REM increment prescalled counter, and check it
-160 Q = Q + 1;
-161 A = $24[0];
-162 A = A + 1;
+165 A = zerocnt
+166 Q = Q + 1;
+167 A = $24[0];
+168 A = A + 1;
 
 0 REM only message if paired
-163 A = strlen $3
-164 IF A < 12 THEN 810
+169 A = strlen $3
+170 IF A < 12 THEN 810
 
-165 IF Q >= P THEN 175
-166 A = $24[0]
-167 IF A >= 121 THEN 938
+171 IF Q > P THEN 176
+172 A = $24[0]
+173 IF A >= 121 THEN 938
 
-168 IF U = 1000 THEN 175
+174 IF U = 1000 THEN 177
 
-169 RETURN
+175 GOTO 159
 
 0 REM send message, check for status first
-175 U = 0
-176 A = disable 3
-178 A = status
-179 IF A >= 1000 THEN 800
+176 Q = 0
+177 U = 0
+178 A = disable 3
+179 A = status
+180 IF A >= 1000 THEN 800
 
 0 REM prevent any possible interrupt
-180 ALARM 0
-181 A = pioirq $22
-182 GOSUB 450;
+181 ALARM 0
+182 A = pioirq $22
+183 GOSUB 450;
 
-183 A =pioset 20
+184 A =pioset 20
 
-184 $0[0]=0;
-185 PRINTV"$";
-186 PRINTV A;
-187 PRINTV ":";
-188 PRINTV Y;
-189 PRINTV"!";
-190 PRINTV X;
-191 PRINTV"#";
-192 PRINTV $7;
+185 $0[0]=0;
+186 PRINTV"$";
+187 PRINTV A;
+188 PRINTV ":";
+189 PRINTV Y;
+190 PRINTV"!";
+191 PRINTV X;
+192 PRINTV"#";
+193 PRINTV $7;
 
 
-193 A = message $3;
-194 A = zerocnt
-195 A = lcd " MESSAGE"
-196 WAIT 10
+194 A = message $3;
+195 A = zerocnt
+196 A = lcd " MESSAGE"
+197 WAIT 10
 
 0 REM check message transmission
-197 C = status
-198 IF C < 1000 THEN 205
-199 GOTO 196
+198 C = status
+199 IF C < 1000 THEN 205
+200 GOTO 197
 
 205 A = pioclr 20
 206 A = success
@@ -363,12 +366,12 @@
 269 IF $2[3] = 48 THEN 275;
 270 IF $2[12] = 49 THEN 280;
 271 S = 0
-272 GOTO 163
+272 GOTO 169
 
 0 REM send current temp
 275 A = strlen $3
 276 IF A < 12 THEN 288
-277 GOTO 175
+277 GOTO 177
 
 0 REM show current temp
 280 GOSUB 400
