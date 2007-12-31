@@ -171,7 +171,7 @@
 0 REM S = 0 deep sleep
 0 REM S = 1 non-deep sleep
 108 S = 1
-109 IF $540[0]<>0 THEN 117
+109 IF $540[0]<>0 THEN 118
 110 $540="BT ADDR "
 111 $541="PEER BT "
 112 $542="CONTRAST"
@@ -185,11 +185,10 @@
 118 Q = 0
 
 0 REM check update
-119 IF $24[0] >= 120 THEN 938
+119 IF $24[0] >= 57 THEN 938
 
 120 ALARM 1
-122 $24="1"
-123 RETURN
+121 RETURN
 
 
 0 REM buttons and power
@@ -243,8 +242,8 @@
 0 REM increment prescalled counter, and check it
 165 A = zerocnt
 166 Q = Q + 1;
-167 A = $24[0];
-168 A = A + 1;
+167 A = $24[0]+1;
+168 $24[0] = A ;
 
 0 REM only message if paired
 169 A = strlen $3
@@ -252,7 +251,7 @@
 
 171 IF Q > P THEN 176
 172 A = $24[0]
-173 IF A >= 121 THEN 938
+173 IF A >= 57 THEN 938
 
 174 IF U = 1000 THEN 177
 
@@ -307,7 +306,7 @@
 212 A = lcd $8
 213 ALARM 60
 214 A = pioirq $23
-215 RETURN
+215 GOTO 172
 
 
 0 REM long button press
