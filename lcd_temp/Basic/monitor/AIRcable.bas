@@ -19,7 +19,9 @@
 0 REM P is messages interval
 0 REM Q is prescaled counter for messages
 0 REM O is prescaled counter for updates
-0 REM ABCDEFGHIJKLMN
+0 REM N message flag
+0 REM M battery message flag
+0 REM ABCDEFGHIJKL
 
 0 REM $1 reserved for i2c
 0 REM $2 is for button state
@@ -160,8 +162,8 @@
 0 REM mark we are booting
 102 U = 1000
 0 REM mark first battery meassure in two a minute
-0 REM 103 A = nextsns 120
-104 N = 1
+103 A = nextsns 120
+104 M = 1
 
 
 0 REM laset pio out and high
@@ -184,11 +186,15 @@
 0 REM reset prescalled counter
 118 Q = 0
 
-0 REM check update
-119 IF $24[0] >= 57 THEN 938
+0 REM clear message flag
+119 N = 0
 
-120 ALARM 1
-121 RETURN
+
+0 REM check update
+120 IF $24[0] >= 57 THEN 936
+
+121 ALARM 1
+122 RETURN
 
 
 0 REM buttons and power
@@ -211,8 +217,8 @@
 145 A = pioset 9
 146 A = uarton
 
-147 IF U <> 1001 THEN 150
-148 A = disable 3
+147 A = disable 3
+148 IF U <> 1001 THEN 150
 149 U = 0
 
 0 REM we just boot?
@@ -231,38 +237,42 @@
 155 A = readcnt
 
 0 REM time to send message?
-156 IF A > 300 THEN 165
-157 IF U = 1000 THEN 165
-158 IF A < 0 THEN 165
+156 IF A > 300 THEN 161
+157 IF U = 1000 THEN 161
+158 IF A < 0 THEN 161
 
 0 REM trigger alarms again
 159 ALARM 60
 160 RETURN
 
 0 REM increment prescalled counter, and check it
-165 A = zerocnt
-166 Q = Q + 1;
-167 A = $24[0]+1;
-168 $24[0] = A ;
+161 A = zerocnt
+162 Q = Q + 1;
+163 A = $24[0]+1;
+164 $24[0] = A ;
 
 0 REM only message if paired
-169 A = strlen $3
-170 IF A < 12 THEN 810
+165 A = strlen $3
+166 IF A < 12 THEN 810
 
-171 IF Q > P THEN 176
-172 A = $24[0]
-173 IF A >= 57 THEN 938
+167 IF Q > P THEN 172
+168 A = $24[0]
+169 IF A >= 57 THEN 936
 
-174 IF U = 1000 THEN 177
+170 IF U = 1000 THEN 172
 
-175 GOTO 159
+171 GOTO 159
+
+172 IF N = 0 THEN 175
+173 GOTO 169
 
 0 REM send message, check for status first
-176 Q = 0
-177 U = 0
-178 A = disable 3
-179 A = status
-180 IF A >= 1000 THEN 800
+175 A = status
+176 IF A >= 1000 THEN 800
+
+177 N = 1
+178 Q = 0
+179 U = 0
 
 0 REM prevent any possible interrupt
 181 ALARM 0
@@ -301,12 +311,13 @@
 
 0 REM ---------------------------
 210 A = lcd "   OK   "
-211 WAIT 5
+211 N = 0
+212 WAIT 2
 0 REM show last temp again
-212 A = lcd $8
-213 ALARM 60
-214 A = pioirq $23
-215 GOTO 172
+213 A = lcd $8
+214 ALARM 60
+215 A = pioirq $23
+216 GOTO 168
 
 
 0 REM long button press
@@ -320,7 +331,7 @@
 229 IF A = 1 THEN 234;
 0 REM ignore other long presses
 230 W = 0;
-231 GOTO 171
+231 GOTO 167
 
 0 REM exit
 234 A = lcd "GOOD BYE";
@@ -365,7 +376,7 @@
 269 IF $2[3] = 48 THEN 275;
 270 IF $2[12] = 49 THEN 280;
 271 S = 0
-272 GOTO 169
+272 GOTO 165
 
 0 REM send current temp
 275 A = strlen $3
@@ -379,7 +390,7 @@
 
 0 REM show batteries level
 285 U = 100
-286 N = 1
+286 M = 1
 287 A = nextsns 1
 288 ALARM 30
 289 RETURN
@@ -388,17 +399,17 @@
 
 @SENSOR 296
 296 ALARM 0
-297 IF N <> 0 THEN 350;
+297 IF M <> 0 THEN 360;
 298 A = pioset 9;
 299 A = uarton;
 300 A = sensor $0;
 301 V = atoi $0;
 302 IF U = 100 THEN 310;
 303 IF V <= 2100 THEN 330;
-304 GOTO 345
+304 GOTO 350
 0 REM meassure again in 60 minutes
-305 N = 1;
-0 REM 306 A = nextsns 3600;
+305 M = 1;
+306 A = nextsns 3600;
 307 ALARM 20
 308 U = 0
 309 RETURN
@@ -425,24 +436,29 @@
 331 A = lcd $0;
 332 A = ring;
 333 WAIT 1;
-334 $0 = "#LB%";
-335 PRINTV V;
-336 A = strlen $3;
-337 IF A < 12 THEN 305;
-338 A = pioset 20;
-339 A = message $3;
-340 WAIT 10
-341 A = status;
-342 IF A >= 1000 THEN 340;
-343 A = pioclr 20
-344 GOTO 305;
+334 IF N <> 0 THEN 305
+335 N = 1
+336 $0 = "#LB%";
+337 PRINTV V;
+338 A = strlen $3;
+339 IF A < 12 THEN 305;
+340 A = pioset 20;
+341 A = message $3;
+342 WAIT 10
+343 A = status;
+344 IF A >= 1000 THEN 342;
+345 A = pioclr 20
+346 N = 0
+347 GOTO 305;
 
-345 $0="#BN%"
-346 GOTO 335
+350 IF N <> 0 THEN 305
+351 N = 1
+352 $0="#BN%"
+353 GOTO 337
 
-350 ALARM 20
-351 N = N -1;
-352 RETURN
+360 ALARM 20
+361 M = M -1;
+362 RETURN
 
 0 REM display temp handler ------
 400 GOSUB 450
@@ -636,7 +652,7 @@
 0 REM ºF / ºC
 597 IF V = 6 THEN 760
 0 REM launch update
-598 IF V = 7 THEN 938
+598 IF V = 7 THEN 936
 599 U = 0
 600 ALARM 1
 601 RETURN
@@ -880,11 +896,13 @@
 934 RETURN
 
 0 REM prepare for updates
-938 A = pioirq $22
-939 ALARM 0
-940 $24[0]=33;
-941 A = strlen $3;
-942 IF A < 12 THEN 985;
+936 A = pioirq $22
+937 ALARM 0
+938 A = strlen $3;
+939 IF A < 12 THEN 985;
+940 IF N <> 0 THEN 976;
+941 N = 1
+942 $24[0] = 33
 943 A = pioset 9;
 944 A = uarton;
 945 A = lcd "UPDATE  ";
@@ -919,7 +937,8 @@
 977 O = 0;
 978 U = 1001
 979 A = pioirq $23
-980 RETURN
+980 N = 0
+981 RETURN
 
 985 A = lcd "not paired"
 986 A = pioirq $23
