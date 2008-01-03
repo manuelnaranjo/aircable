@@ -181,7 +181,7 @@
 114 $544="CALIBRAT"
 115 $545="MSG RATE"
 116 $546="%F \ %C "
-117 $547="UPDATE N"
+117 $547="UPDATE    "
 
 0 REM reset prescalled counter
 118 Q = 0
@@ -904,28 +904,30 @@
 939 IF A < 12 THEN 985;
 940 IF N <> 0 THEN 976;
 941 N = 1
-942 $24 = "!"
-943 A = pioset 9;
-944 A = uarton;
-945 A = lcd "UPDATE  ";
-946 $0="?UPDATE|";
-948 PRINTV $3
-949 PRINTV "|"
-950 PRINTV $4
-951 PRINTV "|"
-952 PRINTV $5
-953 PRINTV "|"
-954 PRINTV $6
-955 PRINTV "|"
-956 PRINTV $7
-957 PRINTV "|"
-958 PRINTV $9
-959 PRINTV "|"
-960 PRINTV $15
-961 PRINTV "|"
-962 PRINTV $16
-963 PRINTV "|"
-964 PRINTV $17
+0 REM make sure battery readings don't bother us
+942 A =  nextsns 3600
+944 $24 = "!"
+945 A = pioset 9;
+946 A = uarton;
+947 A = lcd "UPDATING.  ";
+948 $0="?UPDATE|";
+949 PRINTV $3
+950 PRINTV "|"
+951 PRINTV $4
+952 PRINTV "|"
+953 PRINTV $5
+954 PRINTV "|"
+955 PRINTV $6
+956 PRINTV "|"
+957 PRINTV $7
+958 PRINTV "|"
+959 PRINTV $9
+960 PRINTV "|"
+961 PRINTV $15
+962 PRINTV "|"
+963 PRINTV $16
+964 PRINTV "|"
+965 PRINTV $17
 
 
 969 A = zerocnt
