@@ -1,11 +1,12 @@
 XML Parse
 
-This app will read an xml file from stdin, and print the value of it's fields to stdout.
+This app will read an xml file from stdin, and print the value of it's fields to
+stdout.
 
 To build it just call:
 
 gcc -c -o xmlparse.o xmlparse 
-gcc -o xmlparse xmlparse.o libxml.a
+gcc -o xmlparse xmlparse.o libmxml.a
 
-You might need to provide the full path to libxml.a
+You might need to provide the full path to libmxml.a
 

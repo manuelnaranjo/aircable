@@ -42,8 +42,11 @@ int main( int argc, char *argv[] )
     //print keys and values
     mxml_iterator_setup( &iter, doc );
     while ( ( node = mxml_iterator_next( &iter ) ) != NULL ) {
-    
-	printf("%s: %s\n", node->name, node->data);
+	
+	if ( node -> data )
+	    printf("%s: %s\n", node->name, node->data);
+	else
+	    printf("%s \n", node->name);
 	
     }
 
