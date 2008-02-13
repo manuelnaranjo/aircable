@@ -48,6 +48,10 @@
 0 REM $24 update counter it counts from 21 (!)
 0 REM to 121 (y)
 
+0 REM $25 last battery reading
+
+0 REM $26 temp
+
 1 
 2 
 0 REM 3 0050C2585088
@@ -65,7 +69,7 @@
 13 RESERVED
 14 RESERVED
 
-15 0.1.10
+15 0.1.11
 16 SMARTauto
 17 SMART
 
@@ -77,6 +81,9 @@
 23 P011000000001
 
 24 !
+
+25 0000
+26 
 
 @INIT 47
 47 A = uarton
@@ -284,7 +291,7 @@
 
 185 $0[0]=0;
 186 PRINTV"$";
-187 PRINTV A;
+187 PRINTV $25
 188 PRINTV ":";
 189 PRINTV Y;
 190 PRINTV"!";
@@ -398,23 +405,23 @@
 
 
 
-@SENSOR 296
-296 ALARM 0
-297 IF M <> 0 THEN 370;
-298 A = pioset 9;
-299 A = uarton;
-300 A = sensor $0;
-301 V = atoi $0;
-302 IF U = 100 THEN 315;
-303 IF V <= 2100 THEN 335;
-304 GOTO 360
+@SENSOR 300
+300 IF M <> 0 THEN 350;
+301 A = pioset 9;
+302 A = sensor $25;
+303 V = atoi $25;
+304 IF V <= 2100 THEN 340;
+305 IF U = 100 THEN 315;
 0 REM meassure again in 60 minutes
-305 M = 1;
-306 A = nextsns 3600;
-307 ALARM 20
+306 M = 1;
+307 A = nextsns 3600;
 308 U = 0
-309 A = pioclr 9
-310 RETURN
+309 B = atoi $25[5]
+310 $25[4] = 0
+311 IF B < 300 THEN 313
+312 X = (B - 500) * 2
+313 A = pioclr 9
+314 RETURN
 
 315 U = 0;
 316 J = 0;
@@ -432,35 +439,17 @@
 328 PRINTV J;
 329 PRINTV"    
 330 A = lcd $0;
-331 GOTO 305; 
+331 GOTO 307; 
 
-335 $0="LOW BATT";
-336 A = lcd $0;
-337 A = ring;
-338 WAIT 1;
-339 IF N <> 0 THEN 305
-340 N = 1
-341 $0 = "#LB%";
-342 PRINTV V;
-343 A = strlen $3;
-344 IF A < 12 THEN 305;
-345 A = pioset 20;
-346 A = message $3;
-347 WAIT 10
-348 A = status;
-349 IF A >= 1000 THEN 347;
-350 A = pioclr 20
-351 N = 0
-352 GOTO 305;
+340 $26="LOW BATT";
+341 A = lcd $26;
+342 A = ring;
+343 WAIT 2
+344 GOTO 306
 
-360 IF N <> 0 THEN 305
-361 N = 1
-362 $0="#BN%"
-363 GOTO 342
-
-370 ALARM 20
-371 M = M -1;
-372 RETURN
+350 ALARM 20
+351 M = M -1;
+352 RETURN
 
 0 REM display temp handler ------
 400 GOSUB 450
