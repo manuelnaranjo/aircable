@@ -16,12 +16,17 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 LOG_FILE="/dev/null"
-
-#APP_DIR="/usr/share/aircable/airmsgd/"
-
-APP_DIR="."
-
 LOG_DIR="/var/log/airmsgd"
+
+if [ -f /etc/aircable/airmsgd.conf ]; then
+    source /etc/aircable/airmsgd.conf
+fi
+    
+
+APP_DIR="/usr/share/aircable/airmsgd/"
+
+#APP_DIR="."
+
 TEMPERATURE_DIR="/tmp/airmsgd/temperature"
 BATT_DIR="/tmp/airmsgd/batt"
 
@@ -31,10 +36,10 @@ do
     
     if [ -n "$FILES" ]; then
 	XML=$($APP_DIR/temperature/genxml.sh $TEMPERATURE_DIR)
-	echo -e "$XML"
+	echo -e "$XML" >> $LOG_FILE
 
 	REPLY=$($APP_DIR/send.sh "$XML")
-	echo -e "$REPLY"
+	echo -e "$REPLY" >> $LOG_FILE
 	CONT=$( echo "$REPLY" | grep "\<recorded\>" ) ;
 	
 	if [ -n "$CONT" ]; then
@@ -52,11 +57,11 @@ do
     
     if [ -n "$FILES" ]; then
 	XML=$($APP_DIR/battery/genxml.sh $BATT_DIR)
-	echo -e "$XML"
+	echo -e "$XML" >> $LOG_FILE
 
 	REPLY=$($APP_DIR/send.sh "$XML")
-	echo -e "$REPLY"
-	CONT=$( echo "$REPLY" ) ;
+	echo -e "$REPLY" >> $LOG_FILE
+	CONT=$( echo "$REPLY" ) ; 
 	
 
 	echo "Server got readings"

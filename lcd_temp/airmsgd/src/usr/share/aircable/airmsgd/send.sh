@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /bin/bash
 # AIRmsgd do transaction
 # Copyright (C) 2007 Wireless Cables Inc.
 # Copyright (C) 2007 Naranjo, Manuel <manuel@aircable.net>
@@ -15,12 +15,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+URL="http://www.smart-temps.com/xml/index.cfm"
+
+if [ -f /etc/aircable/airmsgd.conf ]; then
+    source /etc/aircable/airmsgd.conf
+fi
 
 TEMP="/tmp/airmsgd/tmp"
 
 mkdir -p $TEMP
-
-URL="http://www.smart-temps.com/xml/index.cfm"
 
 FILE="reply.xml.$RANDOM"
 FILE2="reply2.xml.$RANDOM"

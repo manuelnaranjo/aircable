@@ -37,11 +37,17 @@ kill_obex(){
     exit 0
 }
 
+
+LOG_DIR="/var/log/airmsgd"
+OBEX_LOG="$LOG_DIR/obexftpd.log"
 LOG_FILE="/dev/stdout"
 
-#APP_DIR="/usr/share/aircable/airmsgd"
+if [ -f /etc/aircable/airmsgd.conf ]; then
+    source /etc/aircable/airmsgd.conf
+fi
+    
 
-APP_DIR="."
+APP_DIR="/usr/share/aircable/airmsgd"
 
 PID_DIR="/var/run/airmsgd"
 
@@ -49,6 +55,7 @@ echo $$ > $PID_DIR/pid
 
 OBEX_PID=$PID_DIR/obexftpd
 SENDER_PID=$PID_DIR/sender
+
 LOG_DIR="/var/log/airmsgd"
 MSG_DIR="/tmp/airmsgd/msg"
 TEMPERATURE_DIR="/tmp/airmsgd/temperature"
@@ -66,11 +73,9 @@ mkdir -p $TEMPERATURE_DIR
 mkdir -p $BATT_DIR
 mkdir -p $UPDATE_DIR
 
-OBEX_LOG="$LOG_DIR/obexftpd.log"
-
 trap kill_obex SIGHUP SIGINT SIGTERM TERM
 
-/opt/obexftp/bin/obexftpd -c $MSG_DIR -b -B 10 > /dev/null &
+obexftpd -c $MSG_DIR -b -B 10 > $OBEX_LOG &
 
 echo $! > $OBEX_PID
 
@@ -89,11 +94,9 @@ do
     do
 	FILEN=$MSG_DIR/$i
 	echo $(date) "Received Message from $i" >> $LOG_FILE
-	echo "Received Message from $i"
 	
 	FILE=$( cat $FILEN );
 	echo -e "$FILE" >> $LOG_FILE;
-	echo -e "$FILE"
 	
 	BODY=$( echo -e "$FILE" | grep "BODY:" );
 	echo "BODY: $BODY"
@@ -103,19 +106,19 @@ do
 	UPDATE=$( echo -e "$BODY" | grep -E 'BODY:\?UPDATE' );
 
 	if [ -n "$TEMPERATURE"  ]; then
-	    echo "Temperature Reading"
+	    echo "Temperature Reading" >> $LOG_FILE
 	    PARSE=$( bash $APP_DIR/temperature/parse.sh $MSG_DIR $i )
 	    echo $PARSE > $TEMPERATURE_DIR/reading.$RANDOM
-	    echo "Reading generated: " $PARSE
+	    echo "Reading generated: " $PARSE >> $LOG_FILE
 	else 
 	    if [ -n "$BATT" ]; then
-		echo "Battery Reading"
+		echo "Battery Reading" >> $LOG_FILE
 		PARSE=$( bash $APP_DIR/battery/parse.sh $MSG_DIR $i )
 		echo $PARSE > $BATT_DIR/reading.$RANDOM
-		echo "Battery generated: " $PARSE
+		echo "Battery generated: " $PARSE >> $LOG_FILE
 	    else 
 		if [ -n "$UPDATE" ]; then
-		    echo "Update Ready"
+		    echo "Update Request" >> $LOG_FILE
 		    $APP_DIR/update/update.sh ${i:0:17} "$UPDATE" $LOG_FILE
 		fi
 	    fi
@@ -125,5 +128,5 @@ do
 	
     done
     
-    sleep 10
+    sleep 60
 done

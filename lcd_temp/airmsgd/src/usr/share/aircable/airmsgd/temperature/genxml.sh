@@ -16,9 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#APP_PATH="/usr/share/aircable/airmsgd/temperature"
+APP_PATH="/usr/share/aircable/airmsgd/temperature"
 
-APP_PATH="./temperature"
+#APP_PATH="./temperature"
 
 if [ -z "$1" ]
 then

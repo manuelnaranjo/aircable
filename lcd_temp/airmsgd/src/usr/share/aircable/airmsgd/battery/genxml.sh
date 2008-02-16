@@ -16,9 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#APP_PATH="/usr/share/aircable/airmsgd/battery"
+APP_PATH="/usr/share/aircable/airmsgd/battery"
 
-APP_PATH="./battery"
+#APP_PATH="./battery"
 
 if [ -z "$1" ]
 then
@@ -30,7 +30,7 @@ echo "<messages>"
 for file in $(ls $1); do
     
     echo -e "\t<message>"
-
+    
     awk -f $APP_PATH/xml.awk $1/$file
     
     echo -e "\t</message>"

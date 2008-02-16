@@ -17,17 +17,17 @@
 
 LOG_FILE="/dev/null";
 
-#APP_DIR="/usr/share/aircable/airmsgd/battery"
-
-APP_DIR="./battery"
-
-if [ -z $1 ] || [ -z $2 ]; then
-    echo "Usage: $0 dir file [log file]"
-    exit 0
+if [ -f /etc/aircable/airmsgd.conf ]; then
+    source /etc/aircable/airmsgd.conf
 fi
 
-if [ ! -z $3 ]; then
-    LOG_FILE="$3"
+APP_DIR="/usr/share/aircable/airmsgd/battery"
+
+#APP_DIR="./battery"
+
+if [ -z $1 ] || [ -z $2 ]; then
+    echo "Usage: $0 dir file"
+    exit 0
 fi
 
 CONTENT=$(cat $1/$2)
@@ -41,5 +41,6 @@ BATT=$( echo $BODY | awk -f $APP_DIR/parse1.awk | awk -f $APP_DIR/parse2.awk);
 
 ADDR=${2:0:17}
 
+echo $ADDR ${BATT[0]} ${BATT[1]} >> $LOG_FILE
 echo $ADDR ${BATT[0]} ${BATT[1]}
 
