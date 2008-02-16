@@ -85,10 +85,15 @@
 25 0000
 26 
 
-@INIT 47
-47 A = uarton
-48 A = baud 1152
-49 Z = 0
+@INIT 40
+40 A = uarton
+41 A = baud 1152
+42 Z = 0
+
+0 REM set ADC amplification
+43 $0 = "@0008 = 07d0 03E8"
+44 A = psset 2
+
 0 REM 50 A = disable 3
 0 REM LED output and on
 51 A = pioout 9
