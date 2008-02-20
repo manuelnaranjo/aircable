@@ -84,10 +84,10 @@
 
 0 REM LCD contrast between 100 and 200
 51 L = atoi $6
-52 IF L > 200 THEN 55
+52 IF L > 260 THEN 55
 53 IF L = 0 THEN 55
 54 GOTO 59
-55 L = 160
+55 L = 200
 56 $0[0] = 0
 57 PRINTV L
 58 $6 = $0
@@ -321,7 +321,7 @@
 @SENSOR 300
 300 IF N = 2 THEN 335
 301 A = sensor $0;
-302 V = atoi $0;
+302 W = atoi $0;
 303 J = 0;
 304 IF V < 3000 THEN 306;
 305 J = J + 20;
@@ -581,7 +581,7 @@
 548 IF $2[12] = 49 THEN 560;
 549 RETURN
 
-550 IF L > 220 THEN 540
+550 IF L > 260 THEN 540
 551 L = L + 10
 552 GOTO 540
 

@@ -742,7 +742,7 @@ int doWork(NODE * node){
 	int ret;
 	while (1){
 		node->monitorProbe = 0;
-		if (isTagPresent(node, TAG_UPDATE)!=TAG_FOUND){
+		if (isTagPresent(node, TAG_UPDATE)==TAG_FOUND){
 			char * content = calloc(sizeof(char), 121); //save space for the settings from the lcd
 			char * out = calloc(sizeof(char), 300);
 			
@@ -868,6 +868,7 @@ int isAccepted(NODE * node){
 }
 
 void nodemain(int channel){
+	int r;
 	const char addr[] = "http://www.smart-tms.com/xml/index.cfm";	
 	
 	postSetURL(addr);
@@ -880,9 +881,15 @@ void nodemain(int channel){
 	
 	socket->channel=channel;
 	
-	sppRegister(socket);
+	r = sppRegister(socket);
+	if ( r != OK) exit(-1);
 	
-	sppListen(socket);
+	r = sppListen(socket);
+	if ( r != OK) {
+	    sppUnregister(socket);
+	    exit(-1);
+	}
+	
 	sppWaitConnection(socket);
 	
 	sppUnregister(socket);
