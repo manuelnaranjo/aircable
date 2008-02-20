@@ -15,6 +15,52 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+function generic_send(){
+	XML=$($2 $1)
+	echo -e "$XML" >> $LOG_FILE
+
+	REPLY=$($APP_DIR/send.sh "$XML")
+	echo -e "$REPLY" >> $LOG_FILE
+}
+
+function generic_prepare(){
+    let count=0
+    FOLDER="/tmp/airmsgd/divide.$RANDOM"
+    mkdir -p $FOLDER
+    
+    mount -osize=10m tmpfs $FOLDER -t tmpfs
+    
+    for i in $FILES ; do
+    
+	cp $TEMPERATURE_DIR/$i $FOLDER
+	let count++
+	
+	if [ $count -ge 100 ]; then
+	    generic_send $FOLDER $1
+	    rm $FOLDER/*
+	    let count=0
+	fi
+    done
+    
+    echo "end"
+    
+    generic_send $FOLDER $1
+    
+    rm -rf $FOLDER/*
+    
+    umount $FOLDER
+    rmdir $FOLDER
+    
+}
+
+function temperature_prepare(){
+    generic_prepare "$APP_DIR/temperature/genxml.sh"
+}
+
+function battery_prepare(){
+    generic_prepare "$APP_DIR/battery/genxml.sh"
+}
+
 LOG_FILE="/dev/null"
 LOG_DIR="/var/log/airmsgd"
 
@@ -35,39 +81,12 @@ do
     FILES=$( ls $TEMPERATURE_DIR )
     
     if [ -n "$FILES" ]; then
-	XML=$($APP_DIR/temperature/genxml.sh $TEMPERATURE_DIR)
-	echo -e "$XML" >> $LOG_FILE
+	temperature_prepare
 
-	REPLY=$($APP_DIR/send.sh "$XML")
-	echo -e "$REPLY" >> $LOG_FILE
-	CONT=$( echo "$REPLY" | grep "\<recorded\>" ) ;
-	
-	if [ -n "$CONT" ]; then
-	    echo "Server got readings"
-	    for i in $FILES
-	    do
-		rm $TEMPERATURE_DIR/$i
-	    done
-	else
-	    echo "Server didn't got readings"
-	fi
-    fi
+	battery_prepare
     
-    FILES=$( ls $BATT_DIR )
-    
-    if [ -n "$FILES" ]; then
-	XML=$($APP_DIR/battery/genxml.sh $BATT_DIR)
-	echo -e "$XML" >> $LOG_FILE
-
-	REPLY=$($APP_DIR/send.sh "$XML")
-	echo -e "$REPLY" >> $LOG_FILE
-	CONT=$( echo "$REPLY" ) ; 
-	
-
-	echo "Server got readings"
-	for i in $FILES
-	do
-	    rm $BATT_DIR/$i
+	for i in $FILES; do
+	    rm -rf $TEMPERATURE_DIR/$i
 	done
     fi
     

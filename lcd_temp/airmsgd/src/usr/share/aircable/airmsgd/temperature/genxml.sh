@@ -36,6 +36,5 @@ for file in $(ls $1); do
     echo -e "\t</record>"
     
 done
-
 echo -e "</records>"
 

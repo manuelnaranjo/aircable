@@ -34,7 +34,7 @@ CONTENT=$(cat $1/$2)
 
 echo $CONTENT >> $LOG_FILE
 
-BODY=$(cat $1/$2 | grep "BODY" );
+BODY=$(grep "BODY" $1/$2);
 
 # Get temperature and type of node
 PAR=$( echo $BODY | awk -f $APP_DIR/parse1.awk | LC_ALL=en_us awk -f $APP_DIR/parse2.awk) 

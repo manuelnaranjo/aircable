@@ -16,6 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 kill_obex(){
+
     OPUSH=$(sdptool browse --uuid 0x1105 local | grep "Service RecHandle:" \
     		| sed -e "s/Service RecHandle: 0x//g")
     FTP=$(sdptool browse --uuid 0x1106 local | grep "Service RecHandle:" \
@@ -31,21 +32,41 @@ kill_obex(){
     
     PID=$(cat $SENDER_PID)
     kill -9 $PID
+
+    if [ -n $( uname -r | grep aircable ) ]; then
+	cd /
+	rm -rf $BASE/*
+	umount $BASE
+	rmdir $BASE
+    fi
     
     echo $(date) "stoping daemon"
     
     exit 0
 }
 
-
 LOG_DIR="/var/log/airmsgd"
 OBEX_LOG="$LOG_DIR/obexftpd.log"
 LOG_FILE="/dev/stdout"
 
+BASE="/tmp/airmsgd"
+
+LOG_DIR="/var/log/airmsgd"
+MSG_DIR="$BASE/msg"
+TEMPERATURE_DIR="$BASE/temperature"
+BATT_DIR="$BASE/batt"
+UPDATE_DIR="$BASE/update"
+
+
 if [ -f /etc/aircable/airmsgd.conf ]; then
     source /etc/aircable/airmsgd.conf
 fi
-    
+
+#make memory file system only in the ebox, the slug doesn't need this
+if [ -n $( uname -r | grep aircable ) ]; then
+    mkdir $BASE   
+    mount -osize=10m tmpfs $BASE -t tmpfs
+fi
 
 APP_DIR="/usr/share/aircable/airmsgd"
 
@@ -56,11 +77,6 @@ echo $$ > $PID_DIR/pid
 OBEX_PID=$PID_DIR/obexftpd
 SENDER_PID=$PID_DIR/sender
 
-LOG_DIR="/var/log/airmsgd"
-MSG_DIR="/tmp/airmsgd/msg"
-TEMPERATURE_DIR="/tmp/airmsgd/temperature"
-BATT_DIR="/tmp/airmsgd/batt"
-UPDATE_DIR="/tmp/airmsgd/update"
 
 rm -rf $MSG_DIR
 rm -rf $TEMPERATURE_DIR
@@ -101,7 +117,7 @@ do
 	BODY=$( echo -e "$FILE" | grep "BODY:" );
 	echo "BODY: $BODY"
 	TEMPERATURE=$( echo -e "$BODY" | grep -E \
-		'BODY:\$(+|-)?[0-9]+:(+|-)?[0-9]+!(+|-)?[0-9]+\#(K|IR)+$' );
+	    'BODY:\$(+|-)?[0-9]+:(+|-)?[0-9]+!(+|-)?[0-9]+\#(K|IR)(\#[0-1])?$');
 	BATT=$( echo -e "$BODY" | grep -E 'BODY:\#.*\%.*' );
 	UPDATE=$( echo -e "$BODY" | grep -E 'BODY:\?UPDATE' );
 
@@ -119,14 +135,14 @@ do
 	    else 
 		if [ -n "$UPDATE" ]; then
 		    echo "Update Request" >> $LOG_FILE
-		    $APP_DIR/update/update.sh ${i:0:17} "$UPDATE" $LOG_FILE
+		    bash $APP_DIR/update/update.sh ${i:0:17} "$UPDATE" $LOG_FILE &
 		fi
 	    fi
 	fi
 	
 	rm $MSG_DIR/$i
 	
-    done
-    
+    done    
     sleep 60
 done
+

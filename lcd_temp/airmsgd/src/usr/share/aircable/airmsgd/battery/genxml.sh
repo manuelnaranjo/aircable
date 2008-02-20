@@ -31,7 +31,7 @@ for file in $(ls $1); do
     
     echo -e "\t<message>"
     
-    awk -f $APP_PATH/xml.awk $1/$file
+    awk -F\* -f $APP_PATH/battery.xml.awk $1/$file
     
     echo -e "\t</message>"
     
