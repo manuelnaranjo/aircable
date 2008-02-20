@@ -21,7 +21,9 @@
 0 REM O is prescaled counter for updates
 0 REM N message flag
 0 REM M battery message flag
-0 REM ABCDEFGHIJKL
+0 REM L used in some parts of the code as temp
+0 REM K ambient sensor available
+0 REM ABCDEFGHIJ
 
 0 REM $1 reserved for i2c
 0 REM $2 is for button state
@@ -93,6 +95,9 @@
 0 REM set ADC amplification
 43 $0 = "@0008 = 07d0 03E8"
 44 A = psset 2
+
+0 REM mark we don't have ambient sensor
+45 K = 0
 
 0 REM 50 A = disable 3
 0 REM LED output and on
@@ -288,32 +293,34 @@
 179 U = 0
 
 0 REM prevent any possible interrupt
-181 ALARM 0
-182 A = pioirq $22
-183 GOSUB 450;
+180 ALARM 0
+181 A = pioirq $22
+182 GOSUB 450;
 
-184 A =pioset 20
+183 A =pioset 20
 
-185 $0[0]=0;
-186 PRINTV"$";
-187 PRINTV $25
-188 PRINTV ":";
-189 PRINTV Y;
-190 PRINTV"!";
-191 PRINTV X;
-192 PRINTV"#";
-193 PRINTV $7;
+184 $0[0]=0;
+185 PRINTV"$";
+186 PRINTV $25
+187 PRINTV ":";
+188 PRINTV Y;
+189 PRINTV"!";
+190 PRINTV X;
+191 PRINTV"#";
+192 PRINTV $7;
+193 PRINTV"#"
+194 PRINTV K
 
 
-194 A = message $3;
-195 A = zerocnt
-196 A = lcd " MESSAGE"
-197 WAIT 10
+195 A = message $3;
+196 A = zerocnt
+197 A = lcd " MESSAGE"
+198 WAIT 10
 
 0 REM check message transmission
-198 C = status
-199 IF C < 1000 THEN 205
-200 GOTO 197
+199 C = status
+200 IF C < 1000 THEN 205
+201 GOTO 198
 
 205 A = pioclr 20
 206 A = success
@@ -411,50 +418,51 @@
 
 
 @SENSOR 300
-300 IF M <> 0 THEN 350;
+300 IF M <> 0 THEN 360;
 301 A = pioset 9;
 302 A = sensor $25;
 303 V = atoi $25;
-304 IF V <= 2100 THEN 340;
-305 IF U = 100 THEN 315;
+304 IF V <= 2100 THEN 350;
+305 IF U = 100 THEN 320;
 0 REM meassure again in 60 minutes
 306 M = 1;
 307 A = nextsns 3600;
 308 U = 0
 309 B = atoi $25[5]
 310 $25[4] = 0
-311 IF B < 300 THEN 313
+311 IF B < 300 THEN 314
 312 X = (B - 500) * 2
-313 A = pioclr 9
-314 RETURN
+313 K = 1
+314 A = pioclr 9
+315 RETURN
 
-315 U = 0;
-316 J = 0;
-317 IF V < 3000 THEN 319;
-318 J = J + 20;
-319 IF V < 2820 THEN 321;
-320 J = J + 20;
-321 IF V < 2640 THEN 323;
-322 J = J + 20;
-323 IF V < 2460 THEN 325;
-324 J = J + 20;
-325 IF V < 2280 THEN 327;
-326 J = J + 20;
-327 $0="BAT 
-328 PRINTV J;
-329 PRINTV"    
-330 A = lcd $0;
-331 GOTO 307; 
+320 U = 0;
+321 J = 0;
+322 IF V < 3000 THEN 324;
+323 J = J + 20;
+324 IF V < 2820 THEN 326;
+325 J = J + 20;
+326 IF V < 2640 THEN 328;
+327 J = J + 20;
+328 IF V < 2460 THEN 330;
+329 J = J + 20;
+330 IF V < 2280 THEN 332;
+331 J = J + 20;
+332 $0="BAT 
+333 PRINTV J;
+334 PRINTV"    
+335 A = lcd $0;
+336 GOTO 307; 
 
-340 $26="LOW BATT";
-341 A = lcd $26;
-342 A = ring;
-343 WAIT 2
-344 GOTO 306
+350 $26="LOW BATT";
+351 A = lcd $26;
+352 A = ring;
+353 WAIT 2
+354 GOTO 306
 
-350 ALARM 20
-351 M = M -1;
-352 RETURN
+360 ALARM 20
+361 M = M -1;
+362 RETURN
 
 0 REM display temp handler ------
 400 GOSUB 450
