@@ -7,7 +7,9 @@
 13 A = lcd "TEST       "
 14 A = nextsns 20
 15 W = 1
-16 RETURN
+16 $0 = "@0008 = 07d0 03E8"
+17 A = psset 2
+18 RETURN
 
 @SENSOR 100
 100 IF W = 0 THEN 110
