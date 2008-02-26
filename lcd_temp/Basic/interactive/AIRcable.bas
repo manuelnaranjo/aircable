@@ -20,7 +20,10 @@
 0 REM N used for <monitor> (reading)
 0 REM M used for <monitor> (max val)
 0 REM L used for <monitor> (min val)
-0 REM ABCDEFGHIJK
+0 REM K amount of options in the menu 
+0 REM J used in @SENSOR 
+0 REM I temporary temperature
+0 REM ABCDEFGH
 
 0 REM $1 reserved for i2c
 0 REM $2 is for button state
@@ -282,14 +285,16 @@
 0 REM show current temp on IR
 225 A = lcd"WAIT. . . "
 226 GOSUB 440
-227 ALARM 30
-228 GOTO 380
+227 I = Y
+228 ALARM 30
+229 GOTO 380
 
 0 REM show current temp on K
 235 A = lcd"WAIT. . . "
 236 GOSUB 420
-237 ALARM 30
-238 GOTO 362 
+237 I = Y
+238 ALARM 30
+239 GOTO 362 
 
 
 
@@ -865,7 +870,7 @@
 0 REM 774 GOSUB 420
 0 REM 775 GOTO 777
 0 REM 776 GOSUB 440
-777 PRINTM Y
+777 PRINTM I
 778 PRINTM ":"
 779 PRINTM X 
 780 PRINTM "#"
