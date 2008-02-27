@@ -23,7 +23,8 @@
 0 REM K amount of options in the menu 
 0 REM J used in @SENSOR 
 0 REM I temporary temperature
-0 REM ABCDEFGH
+0 REM H noexit enabled
+0 REM ABCDEFG
 
 0 REM $1 reserved for i2c
 0 REM $2 is for button state
@@ -66,7 +67,7 @@
 13 RESERVED
 14 RESERVED
 
-15 0.2
+15 0.3
 16 SMARTinteractive
 17 SMART
 
@@ -315,13 +316,21 @@
 262 A = pioclr 20
 263 RETURN
 
-264 IF U = 301 THEN 795
-265 RETURN
+264 A = readcnt
+265 IF A > 300 THEN 280
+266 IF U = 301 THEN 796
+267 ALARM 10
+268 RETURN
 
 270 A = lcd "Failed    "
 271 U = 0
 272 ALARM 10
 273 RETURN
+
+280 PRINTM"\x03"
+281 A = lcd "Timeout"
+282 WAIT 5
+283 GOTO 160
 
 @SENSOR 300
 300 IF N = 2 THEN 335
@@ -377,7 +386,9 @@
 0 REM save temp string. then display
 374 $8 = $0
 375 A = lcd $8
-376 RETURN
+376 A = zerocnt
+378 ALARM 10
+379 RETURN
 
 0 REM IR sensor
 380 $0 ="IR. "
@@ -407,7 +418,9 @@
 
 405 $0="ERR READ"
 406 A = lcd $0
-407 RETURN
+407 A = zerocnt
+408 ALARM 10
+409 RETURN
 
 0 REM I2C sensor reading handler
 410 IF $7[0] = 75 THEN 420
@@ -761,40 +774,46 @@
 696 A = lcd "WAIT . . . "
 697 U = 200
 698 A = pioset 20
-699 GOTO 710
+699 GOTO 706
 
 0 REM __interactive mode button handler __
 0 REM $MENU code: right, left, middle
 700 IF U >= 300 THEN 759;
-701 IF $2[2] = 48 THEN 815;
-702 IF $2[3] = 48 THEN 818;
+701 IF $2[2] = 48 THEN 818;
+702 IF $2[3] = 48 THEN 823;
 703 IF $2[12] = 49 THEN 830;
 704 RETURN
 
 0 REM __generate menu __
-709 RESERVED
+705 RESERVED
 0 REM __send our current temp__
-710 PRINTM"!"
-711 GOSUB 410;
-712 PRINTM Y;
-713 PRINTM":";
-714 PRINTM X;
-715 PRINTM"#";
-716 PRINTM $7;
-717 PRINTM"\n";
+706 A = zerocnt
+707 PRINTM"!"
+708 GOSUB 410;
+709 PRINTM Y;
+710 PRINTM ":";
+711 PRINTM X;
+712 PRINTM "#";
+713 PRINTM $7;
+714 PRINTM "\n";
+
+0 REM H = 1 noexit
+0 REM H = 0 exit
+716 H=0
 
 0 REM __ get amount of messages __
-718 ALARM 0;
-719 TIMEOUTM 60;
-720 INPUTM $0;
-721 IF $0[0] = 63 THEN 750;
-722 IF $0[0] = 37 THEN 725;
-723 IF $0[0] = 35 THEN 940;
+717 ALARM 90;
+718 TIMEOUTM 60;
+719 INPUTM $0;
+720 IF $0[0] = 63 THEN 750;
+721 IF $0[0] = 37 THEN 725;
+722 IF $0[0] = 35 THEN 920;
+723 IF $0[0] = 43 THEN 955;
 0 REM check if still connected
 724 GOTO 900
 
-725 $709 = $0[1]
-726 $0 = $709
+725 $705 = $0[1]
+726 $0 = $705
 0 REM M amount of options
 727 K = atoi $0
 728 C = 0
@@ -804,7 +823,7 @@
 0 REM __get each menu entry __
 731 TIMEOUTM 20
 732 INPUTM $0
-733 $(900+C)=$0[2]
+733 $(960+C)=$0[2]
 734 C = C +1
 735 IF C>= K THEN 738
 736 PRINTM"&"
@@ -842,7 +861,7 @@
 0 REM right show temp in IR probe
 0 REM left show temp in K probe
 0 REM middle send temp, make compare
-759 IF U = 301 THEN 795;
+759 IF U = 301 THEN 796;
 760 IF $2[2] = 48 THEN 764;
 761 IF $2[3] = 48 THEN 766;
 762 IF $2[12] = 49 THEN 769;
@@ -861,7 +880,7 @@
 767 GOTO 235
 
 0 REM send to the server, he knows what to do
-769 IF S < 2 THEN 795
+769 IF S < 2 THEN 796
 770 ALARM 0
 771 A = lcd "WAIT . . . "
 772 PRINTM"!"
@@ -879,22 +898,23 @@
 783 GOTO 785
 784 PRINTM"I"
 785 PRINTM"\n"
-786 IF S < 4 THEN 795
-787 TIMEOUTM 10
-788 INPUTM $0
-789 A = lcd $0[1]
-790 IF $0[0] = 48 THEN 792
-791 A = ring
-792 ALARM 10
-793 U = 301
-794 RETURN
+786 A = zerocnt
+787 IF S < 4 THEN 796
+788 TIMEOUTM 10
+789 INPUTM $0
+790 A = lcd $0[1]
+791 IF $0[0] = 48 THEN 793
+792 A = ring
+793 ALARM 10
+794 U = 301
+795 RETURN
 
-795 U = 200
-796 A = lcd"WAIT . . . "
-797 GOTO 710
+796 U = 200
+797 A = lcd"WAIT . . . "
+798 GOTO 706
 
 0 REM clear lcd then display menu
-800 $0=$(900+V)
+800 $0=$(960+V)
 801 O = 0
 802 E = strlen $0
 803 PRINTV"           "
@@ -905,27 +925,29 @@
 808 O = O+1
 809 IF O < 2 THEN 805
 810 A = lcd $0
-811 RETURN
+811 A = zerocnt
+812 ALARM 10
+813 RETURN
 
 0 REM if line is empty then we show the
 0 REM exit option
-812 A = lcd "EXIT     "
-813 V = -1
-814 RETURN
+815 A = lcd "EXIT     "
+816 V = -1
+817 GOTO 811
 
 0 REM __right button pressed
-815 V = V + 1
-816 IF V = K THEN 812
-817 GOTO 800
-
-0 REM __left button pressed
-818 IF V =-1 THEN 822
-819 IF V = 0 THEN 812
-820 V = V-1
+818 V = V + 1
+819 IF V = K THEN 910
 821 GOTO 800
 
-822 V = K-1
-823 GOTO 800
+0 REM __left button pressed
+823 IF V =-1 THEN 828
+824 IF V = 0 THEN 915
+825 V = V-1
+826 GOTO 800
+
+828 V = K-1
+829 GOTO 800
 
 0 REM __middle button pressed
 830 IF V = -1 THEN 840
@@ -933,7 +955,7 @@
 832 PRINTM"@"
 833 A = V+1
 834 PRINTM A
-835 GOTO 710
+835 GOTO 706
 
 0 REM __choose exit, tell NSLU2
 840 PRINTM"\x03"
@@ -992,32 +1014,45 @@
 904 ALARM 10;
 905 RETURN
 
-0 REM generate update message
-940 A = lcd "UPDATING"
-941 $0[0]=0
-942 PRINTV $3
-943 PRINTV "|"
-944 PRINTV $4
-945 PRINTV "|"
-946 PRINTV $5
-947 PRINTV "|"
-948 PRINTV $6
-949 PRINTV "|"
-950 PRINTV $7
-951 PRINTV "|"
-953 PRINTV $9
-954 PRINTV "|"
-955 PRINTV $15
-956 PRINTV "|"
-957 PRINTV $16
-958 PRINTV "|"
-959 PRINTV $17
-962 PRINTV "\n\r"
+0 REM end of noexit handler
+910 IF H = 0 THEN 815
+911 V = 0
+912 GOTO 800
 
-965 PRINTM $0
-966 A = enable 3;
-967 ALARM 60;
-968 O = 0;
-969 U = 1001
-970 RETURN
+915 IF H = 0 THEN 815
+916 GOTO 828
+
+0 REM generate update message
+920 A = lcd "UPDATING"
+921 $0[0]=0
+922 PRINTV $3
+923 PRINTV "|"
+924 PRINTV $4
+925 PRINTV "|"
+926 PRINTV $5
+927 PRINTV "|"
+928 PRINTV $6
+929 PRINTV "|"
+930 PRINTV $7
+931 PRINTV "|"
+932 PRINTV $9
+933 PRINTV "|"
+934 PRINTV $15
+935 PRINTV "|"
+936 PRINTV $16
+937 PRINTV "|"
+938 PRINTV $17
+939 PRINTV "\n\r"
+
+945 PRINTM $0
+946 A = enable 3;
+947 ALARM 60;
+948 O = 0;
+949 U = 1001
+950 RETURN
+
+955 H = 1
+956 GOTO 706
+
+0 REM 960 and higher used for storing menu values.
 
