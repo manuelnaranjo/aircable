@@ -55,6 +55,7 @@ void simulate();
 #define TAG_AUTHENTICATE	strdup("authenticate")
 #define TAG_ACCEPT			strdup("accept")
 #define TAG_UPDATE			strdup("checkupdate")
+#define TAG_NOEXIT			strdup("noexit")
 
 
 //FLAGS

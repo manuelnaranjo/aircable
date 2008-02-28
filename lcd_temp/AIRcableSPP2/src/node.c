@@ -599,7 +599,7 @@ int sendMenu(sppSocket *socket, menu_entry * menu){
 		sprintf(buf,"%02hX%s\n\r", menu->index, menu->text);
 		j = sppWriteLine(socket, buf);
 
-		if ( j < 0 ){
+		if ( j < 0 ) {
 			fprintf(stderr, "There has been an error while writting "
 					"to the socket (while)\n");
 			return ERROR;
@@ -617,7 +617,7 @@ int sendMenu(sppSocket *socket, menu_entry * menu){
 		else
 			sprintf(buf,"$%02hX", menu->index);
 		
-		if ( strncmp(buf, rec,3) == 0){
+		if ( strncmp(buf, rec,3) == 0 ){
 			menu = menu->next;
 			printf("LCD got menu option\n");
 		}
@@ -653,9 +653,7 @@ int workDenied(NODE * node) {
 		menu_entry_destroy(entries);
 		return ret;
 	}
-	
-	
-	
+
 	fprintf(stderr, "Node will close connection\n");
 
 	if (reply->text)
@@ -669,6 +667,10 @@ int workDenied(NODE * node) {
 	menu_entry_destroy(entries);
 	
 	return ret;
+}
+
+void sendNoExit(NODE * node){
+	sppWriteLine(node->socket,"+\n\r");
 }
 
 int workMenu(NODE * node){
@@ -740,8 +742,13 @@ free:
 
 int doWork(NODE * node){
 	int ret;
+
 	while (1){
 		node->monitorProbe = 0;
+		
+		if ( isTagPresent( node, TAG_NOEXIT ) == TAG_FOUND )
+			sendNoExit(node);
+		
 		if (isTagPresent(node, TAG_UPDATE)==TAG_FOUND){
 			char * content = calloc(sizeof(char), 121); //save space for the settings from the lcd
 			char * out = calloc(sizeof(char), 300);
@@ -763,8 +770,9 @@ int doWork(NODE * node){
 
 		}
 		
-		else
+		else{
 			ret = workMonitor(node);
+		}
 			
 		if ( ret != OK )
 			break;
@@ -794,8 +802,7 @@ int initConnection(NODE * node){
 		fprintf(stderr, "You need to initializate spp side first");
 		return ERROR;
 	}
-		
-	
+
 	buf=calloc(1024, sizeof(char));
 	
 	while (bytes_read <= 0){
