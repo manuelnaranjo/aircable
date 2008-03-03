@@ -284,14 +284,14 @@
 222 RETURN
 
 0 REM show current temp on IR
-225 A = lcd"WAIT. . . "
+225 A = lcd"WAIT. . .   "
 226 GOSUB 440
 227 I = Y
 228 ALARM 30
 229 GOTO 380
 
 0 REM show current temp on K
-235 A = lcd"WAIT. . . "
+235 A = lcd"WAIT. . .   "
 236 GOSUB 420
 237 I = Y
 238 ALARM 30
@@ -771,7 +771,7 @@
 0 REM __________INTERACTIVE MODE_______
 @MASTER 695
 695 ALARM 0
-696 A = lcd "WAIT . . . "
+696 A = lcd "WAIT . . .   "
 697 U = 200
 698 A = pioset 20
 699 GOTO 706
@@ -838,7 +838,7 @@
 743 V = 0
 744 GOTO 800
 
-745 A = lcd"ERROR...    "
+745 A = lcd"ERROR. . .    "
 746 A = disconnect 1
 747 U = 0
 748 ALARM 10
@@ -854,7 +854,8 @@
 0 REM FCOMPAR_TEMP	4
 753 S = A
 754 U = 300
-755 GOTO 766
+755 A = lcd "TAKE TEMP"
+756 RETURN
 
 0 REM <monitor> button handler
 0 REM right, left, middle
@@ -882,7 +883,7 @@
 0 REM send to the server, he knows what to do
 769 IF S < 2 THEN 796
 770 ALARM 0
-771 A = lcd "WAIT . . . "
+771 A = lcd "WAIT . . .     "
 772 PRINTM"!"
 0 REM use old reading instead of a new one
 0 REM 773 IF O = 1 THEN 776
@@ -903,13 +904,15 @@
 784 TIMEOUTM 15
 785 INPUTM $0
 786 A = lcd $0[1]
-787 IF $0[0] = 48 THEN 789
-788 A = ring
-789 WAIT 5
-790 GOTO 717
+787 WAIT 5
+788 IF $0[0] = 48 THEN 790
+789 A = ring
+790 U = 301
+791 ALARM 10
+792 RETURN
 
 796 U = 200
-797 A = lcd"WAIT . . . "
+797 A = lcd"WAIT . . .     "
 798 GOTO 706
 
 0 REM clear lcd then display menu
@@ -950,7 +953,7 @@
 
 0 REM __middle button pressed
 830 IF V = -1 THEN 840
-831 A = lcd"WAIT . . . "
+831 A = lcd"WAIT . . .     "
 832 PRINTM"@"
 833 A = V+1
 834 PRINTM A
