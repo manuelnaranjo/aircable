@@ -35,7 +35,9 @@ kill_obex(){
 
     if [ -n $( uname -r | grep aircable ) ]; then
 	cd /
-	rm -rf $BASE/*
+	for i in $( ls $BASE/ ); do
+	    rm -rf $BASE/$i
+	done
 	umount $BASE
 	rmdir $BASE
     fi
@@ -89,7 +91,7 @@ mkdir -p $TEMPERATURE_DIR
 mkdir -p $BATT_DIR
 mkdir -p $UPDATE_DIR
 
-trap kill_obex SIGHUP SIGINT SIGTERM TERM
+trap kill_obex SIGHUP SIGINT SIGTERM SIGKILL
 
 obexftpd -c $MSG_DIR -b -B 10 > $OBEX_LOG &
 

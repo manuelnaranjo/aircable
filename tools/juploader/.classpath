@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry path="src" kind="src"/>
+	<classpathentry path="org.eclipse.jdt.launching.JRE_CONTAINER" kind="con"/>
+	<classpathentry sourcepath="/home/manuel/Desktop/logging-log4j-1.2.14/logging-log4j-1.2.14/src/java" path="libs/log4j-1.2.14.jar" kind="lib"/>
+	<classpathentry path="libs/swingx-2006_10_27.jar" kind="lib"/>
+	<classpathentry path="libs/itext-pdf.jar" kind="lib"/>
+	<classpathentry path="bin" kind="output"/>
+</classpath>

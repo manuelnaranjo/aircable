@@ -752,13 +752,21 @@ int doWork(NODE * node){
 		if (isTagPresent(node, TAG_UPDATE)==TAG_FOUND){
 			char * content = calloc(sizeof(char), 121); //save space for the settings from the lcd
 			char * out = calloc(sizeof(char), 300);
+			int temp;
 			
-			sppWriteLine(node->socket, "?UPDATE\n\r");
+			sppWriteLine(node->socket, "#UPDATE\n\r");
 			sppReadLine(node->socket, content, 120);
 			
-			sprintf(out, "bash /usr/share/aircable/airmsgd/update/update.sh %s \"%s\"\n", node->nodeId, content);
+			content=strtok(content, "\n\r");
+			
+			sprintf(out, 
+			    "bash /usr/share/aircable/interactive/update/update.sh %s '%s'\n", 
+			    node->nodeId, content);
 			
 			system(out);
+			
+			ret = OK;
+			break;
 			
 		} else if (isTagPresent(node, TAG_MONITOR)!=TAG_FOUND){
 			ret = workMenu(node);

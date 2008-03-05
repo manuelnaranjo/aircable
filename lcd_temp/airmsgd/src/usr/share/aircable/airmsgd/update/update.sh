@@ -93,38 +93,40 @@ if [ -n "$NRATE" ]; then
     echo 4 $NRATE >> $WORK_DIR/$FILE
 fi
 
-NCAL=$( echo -e "$PRESPONSE" | grep "<\kcalibration\>" | awk '{print $2}' | sed 's/\/r//' )
+NCAL=$( echo -e "$PRESPONSE" | grep "\<kcalibration\>" | awk '{print $2}' | sed 's/\/r//' )
 if [ -n "$NCAL" ]; then
     echo 5 $NCAL >> $WORK_DIR/$FILE
 fi
  
 
-NCON=$( echo -e "$PRESPONSE" | grep "<\lcdcontrast\>" | awk '{print $2}' | sed 's/\/r//' )
+NCON=$( echo -e "$PRESPONSE" | grep "\<lcdcontrast\>" | awk '{print $2}' | sed 's/\/r//' )
 if [ -n "$NCON" ]; then
     echo 6 $NCON >> $WORK_DIR/$FILE
 fi
 
-NPROBE=$( echo -e "$PRESPONSE" | grep "<\probe\>" | awk '{print $2}' | sed 's/\/r//' )
+NPROBE=$( echo -e "$PRESPONSE" | grep "\<probe\>" | awk '{print $2}' | sed 's/\/r//' )
 if [ -n "$NPROBE" ]; then
     echo 7 $NPROBE >> $WORK_DIR/$FILE
 fi
 
-NTEMPTYPE=$( echo -e "$PRESPONSE" | grep "<\temptype\>" | awk '{print $2}' | sed 's/\/r//' )
+NTEMPTYPE=$( echo -e "$PRESPONSE" | grep "\<temptype\>" | awk '{print $2}' | sed 's/\/r//' )
 if [ -n "$NTEMPTYPE" ]; then
-    echo 9 $NTEMPTYPE | awk -f $APP_DIR/parsestemp2.awk >> $WORK_DIR/$FILE
+    echo $NTEMPTYPE | awk -f $APP_DIR/parsestemp2.awk >> $WORK_DIR/$FILE
 fi
 
-NNAME=$( echo -e "$PRESPONSE" | grep "<\visiblename\>" | awk '{print $2}' | sed 's/\/r//' )
+NNAME=$( echo -e "$PRESPONSE" | grep "\<visiblename\>" | awk '{print $2}' | sed 's/\/r//' )
 if [ -n "$NNAME" ]; then
     echo 16 $NNAME >> $WORK_DIR/$FILE
 fi
 
-NWELCOME=$( echo -e "$PRESPONSE" | grep "<\welcometext\>" | awk '{print $2}' | sed 's/\/r//' )
+NWELCOME=$( echo -e "$PRESPONSE" | grep "\<welcometext\>" | awk '{print $2}' | sed 's/\/r//' )
 if [ -n "$NWELCOME" ]; then
     echo 17 $NWELCOME >> $WORK_DIR/$FILE
 fi
 
 echo "" >> $WORK_DIR/$FILE
+
+cat $WORK_DIR/$FILE | tail -n 20
 
 mv $WORK_DIR/$FILE $WORK_DIR/AIRcable.bas
 

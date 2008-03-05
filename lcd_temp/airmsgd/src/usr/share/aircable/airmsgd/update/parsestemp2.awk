@@ -1,7 +1,7 @@
 END {
     if ( match ( $1, "C" ) )
-	echo "9 1"
+	print "9 1"
     else
-	echo "9 0"
+	print "9 0"
     
 }

@@ -1,5 +1,9 @@
 #! /bin/sh
-# AIRmsgd service script
+#
+#
+# Start/Stop airmgsd service
+#
+#
 # Copyright (C) 2007 Wireless Cables Inc.
 # Copyright (C) 2007 Naranjo, Manuel <manuel@aircable.net>
 #
@@ -14,6 +18,8 @@
 # 		
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+set -e
 
 DAEMON="/usr/bin/airmsgd"
 PIDDIR=/var/run/airmsgd
@@ -43,11 +49,44 @@ start_it_up()
 
 shut_it_down()
 {
-  echo -n "Stopping $DESC: "
-  start-stop-daemon --stop --pidfile $PIDFILE
+  echo -n "Stopping airmsgd"
 
+  if [ -z $( cat $PIDFILE ) ]; then
+	return 0
+  fi
+  
+  PID=$(cat $PIDFILE)
+
+  if [ -n "$( ps -ef | grep $PID | grep -v grep )" ]; then
+
+  	kill -TERM $( cat $PIDFILE )
+  fi
+  
+  echo -n "killing the rest"
+  PID=$( cat $PIDDIR/* )
+
+  if [ -n "$PID" ]; then  
+	kill -TERM $PID
+  fi
+
+  echo -n "removing records from dsp"
+  
+  OPUSH=$(sdptool browse --uuid 0x1105 local | grep "Service RecHandle:" \
+            | sed -e "s/Service RecHandle: 0x//g")
+  FTP=$(sdptool browse --uuid 0x1106 local | grep "Service RecHandle:" \
+	    | sed -e "s/Service RecHandle: 0x//g")
+	
+  for i in $OPUSH; do				  
+      sdptool del $i
+  done
+  
+  for i in $FTP; do
+      sdptool del $i
+  done
+    
   echo "Stopped."
   rm -f $PIDFILE
+  rm -f $PIDDIR/*
 }
 
 case "$1" in
