@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="libs/log4j-1.2.14.jar" sourcepath="/home/manuel/Desktop/logging-log4j-1.2.14/logging-log4j-1.2.14/src/java"/>
+	<classpathentry kind="lib" path="libs/swingx-2006_10_27.jar"/>
+	<classpathentry kind="lib" path="libs/itext-pdf.jar"/>
+	<classpathentry kind="lib" path="libs/bluecove-2.0.3-SNAPSHOT.jar" sourcepath="/home/manuel/bluecove/src/main/java"/>
+	<classpathentry kind="lib" path="libs/bluecove-gpl-2.0.3-SNAPSHOT.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
