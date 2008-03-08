@@ -25,11 +25,12 @@
 0 REM L used in some parts of the code as temp
 0 REM K ambient sensor available
 0 REM J used in @SENSOR
-0 REM I hardware supports deep sleep 
-0 REM ABCDEFGH
+0 REM I hardware supports deep sleep
+0 REM H increments on every minute that passes
+0 REM ABCDEFG
 
-0 REM S = 1 not sleeping
-0 REM S = 0 sleeping
+0 REM S = 1 sleeping
+0 REM S = 0 not sleeping
 
 0 REM $1 reserved for i2c
 0 REM $2 is for button state
@@ -85,7 +86,7 @@
 21 RESERVED
 
 
-22 P000000000000
+22 P000000000001
 23 P011000000001
 
 24 !
@@ -111,7 +112,7 @@
 46 A = pioin 5
 47 I = pioget 5
 48 A = pioout 5
-59 A = pioset 5
+49 A = pioset 5
 
 0 REM 50 A = disable 3
 0 REM LED output and on
@@ -187,8 +188,11 @@
 0 REM of five
 99 P = P / 5
 
-0 REM let's start up
+0 REM start up
+0 REM reset counter
 100 Q = 0;
+0 REM reset minute counter
+101 H = 0;
 
 0 REM mark we are booting
 102 U = 1000
@@ -237,73 +241,78 @@
 
 0 REM button press, save state, start ALARM
 130 IF I = 1 THEN 132
-131 IF S = 0 THEN 136
+131 IF S = 1 THEN 136
 132 $2 = $0;
 133 W = 1;
 134 ALARM 3
 135 RETURN
 
 0 REM leave deep sleep
-136 GOSUB 1000
+136 GOSUB 990
 137 ALARM 60;
 138 A = pioset 9;
-139 GOSUB 400;
+139 GOSUB 400
 140 W = 0
 141 RETURN
 
+
+0 REM @ALARM handler
 @ALARM 143
 143 A = pioset 9
 144 A = uarton
 
+0 REM @INIT doesn't call disable, time to do it.
 145 A = disable 3
-146 IF U <> 1001 THEN 148
-147 U = 0
 
-0 REM can we do deep sleep
-148 IF I = 1 THEN 151
+0 REM first boot?
+146 IF U <> 1000 THEN 151
+147 Q = 0
+148 A = zerocnt
+149 A = strlen $3
+150 IF A >= 12 THEN 212
 
-0 REM we can do deep sleep, are we sleeping
-0 REM deep sleep?
-149 IF S = 0 THEN 170
-
-0 REM if the hardware can do deep sleep, and
-0 REM W = 0 (no button press) then it's a timeout
-150 IF W = 0 THEN 172
-
-0 REM we just boot?
-151 IF U = 1000 THEN 153
-
-0 REM menu been displayed?
-152 IF U <> 0 THEN 550;
+0 REM Menu been displayed?
+151 IF U <> 0 THEN 550
 
 0 REM check for long button press
-153 IF W = 1 THEN 265
+152 IF W = 1 THEN 265
+
+0 REM one minute passed?
+153 A = readcnt
+154 IF A >= 60 THEN 165
+155 IF A < 0 THEN 165
+
+0 REM we support deep sleep
+156 IF I = 1 THEN 158
+
+0 REM we can do deep sleep,
+0 REM and we need to sleep
+157 GOSUB 1000
+
+0 REM next alarm in 20 seconds
+158 ALARM 20
+159 A = pioclr 9
+160 RETURN 
 
 0 REM no button press
 0 REM update screen
-154 A = lcd "WAIT. . .
-155 GOSUB 400
-156 A = readcnt
+165 H = H + 1
+166 A = zerocnt
+167 A = lcd "WAIT. . .
+168 GOSUB 400
 
 0 REM time to send message?
-157 IF A > 300 THEN 200
-158 IF U = 1000 THEN 200
-159 IF A < 0 THEN 200
+169 IF H >= 5 THEN 199
 
-0 REM trigger alarms again
-160 ALARM 60
-161 A = pioclr 9
-162 RETURN
+0 REM we keep showing the temperature
+0 REM for the next 5 seconds
+170 ALARM 5
+171 RETURN
 
-0 REM we are sleeping
-170 A = readcnt
-171 IF A > 300 THEN 151
-172 ALARM 10
-173 A = pioclr 9
-174 A = lcd
-175 GOTO 1000
-
+0 REM reset minute counter, check prescalled
+0 REM counter
 0 REM increment prescalled counter, and check it
+199 H = 0
 200 A = zerocnt
 201 Q = Q + 1;
 202 A = $24[0]+1;
@@ -314,12 +323,12 @@
 205 IF A < 12 THEN 810
 
 206 IF Q >= P THEN 210
-0 REM 169 A = $24[0]
 207 IF $24[0] >= 57 THEN 936
 
 208 IF U = 1000 THEN 210
 
-209 GOTO 159
+0 REM
+209 GOTO 158
 
 210 IF N = 0 THEN 212
 211 GOTO 207
@@ -375,9 +384,9 @@
 257 WAIT 2
 0 REM show last temp again
 258 A = lcd $8
-259 ALARM 60
+259 ALARM 5
 260 A = pioirq $23
-261 GOTO 207
+261 RETURN
 
 
 0 REM long button press
@@ -435,8 +444,7 @@
 313 IF $2[2] = 48 THEN 330;
 314 IF $2[3] = 48 THEN 320;
 315 IF $2[12] = 49 THEN 325;
-316 S = 0
-317 GOTO 204
+316 GOTO 204
 
 0 REM send current temp
 320 A = strlen $3
@@ -910,7 +918,7 @@
 
 0 REM --- print not paired
 810 A = lcd"NOT PAIRED"
-811 GOTO 158
+811 GOTO 156
 
 0 REM do we need this at all???
 @CONTROL 910
@@ -980,7 +988,7 @@
 975 A = enable 3;
 976 ALARM 60;
 977 O = 0;
-978 U = 1001
+978 U = 0
 979 A = pioirq $23
 980 N = 0
 981 RETURN
@@ -997,9 +1005,10 @@
 993 RETURN
 
 0 REM enable deep sleep
-1000 IF I = 1 THEN 1004
+1000 IF I = 1 THEN 1005
 1001 S = 1
 1002 A = pioirq $22
 1003 A = uartoff
-1004 RETURN
+1004 A = lcd 
+1005 RETURN
 
