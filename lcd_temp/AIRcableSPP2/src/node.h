@@ -63,5 +63,9 @@ void simulate();
 #define FRETURN_TEMP	2
 #define FCOMPARE_TEMP	4
 
+
+//enable debug
+#define DEBUG_UTILS
+
 #endif /*NODE_H_*/
 

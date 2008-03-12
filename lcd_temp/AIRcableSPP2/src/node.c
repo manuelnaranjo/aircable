@@ -255,7 +255,7 @@ int workMonitor(NODE *node){
 		
 		node->monitorProbe = node->type;
 		
-		node->value[count+1]=0;
+		node->value[count]=0;
 		
 		free(temp);
 	}
@@ -417,27 +417,34 @@ int parseEntries(NODE * node, menu_entry *output){
 	
 	while (menu){
     	MXML_NODE *node;
+    	char * temp;
     	
     	curr =menu_entry_new();
     	
     	curr->next = out;
-    	node = menu->child;    	
+    	node = menu->child;
+    	
+    	temp = calloc(sizeof(char), strlen(node->data) + 1 );
+    	strcpy(temp, node->data);
     	
     	if (strcmp(node->name, TAG_TEXT) == 0){
-    		curr->text = node->data;
+    		curr->text = temp;
     	}
     	else if (strcmp(node->name, TAG_VALUE) == 0){
-    		curr->value = node->data;
+    		curr->value = temp;
     	}
     	curr->index = ++i;
     	
     	node = node->next;
     	
+    	temp = calloc(sizeof(char), strlen(node->data) + 1 );
+    	strcpy(temp, node->data);
+    	
     	if (strcmp(node->name, TAG_TEXT) == 0){
-    		curr->text = node->data;
+    		curr->text = temp;
     	}
     	else if (strcmp(node->name, TAG_VALUE) == 0){
-    		curr->value = node->data;
+    		curr->value = temp;
     	}
    		
     	menu=menu->next;
@@ -456,7 +463,7 @@ int parseEntries(NODE * node, menu_entry *output){
     }     
     
 #ifdef DEBUG_UTILS
-	curr = out;
+	curr = output;
 	while (curr){
 		printf("index: %i,\ttext: %s,\tvalue: %s\n", curr->index, curr->text, curr->value);
 		curr = curr->next;
@@ -562,7 +569,7 @@ int getSelected(NODE * node, menu_entry * menu, menu_entry * reply){
 		
 }
 
-int sendMenu(sppSocket *socket, menu_entry * menu){
+int sendMenu(sppSocket *socket, menu_entry * menu, int noExit){
 	const static int bufsize=1024;
 	char * buf, * rec;
 	int j = 0;
@@ -584,8 +591,11 @@ int sendMenu(sppSocket *socket, menu_entry * menu){
 	}
 	
 	menu = head;
-		
-	sprintf(buf, "%%%i\n\r", j);
+	
+	if (!noExit)
+		sprintf(buf, "%%%i\n\r", j);
+	else
+		sprintf(buf, "+%i\n\r", j);
 	
 	j = sppWriteLine(socket,buf);
 
@@ -647,7 +657,7 @@ int workDenied(NODE * node) {
 		return ret;
 	}
 	
-	ret = sendMenu(node->socket, entries);
+	ret = sendMenu(node->socket, entries, 0);
 	if (ret != OK){
 		fprintf(stderr, "Couldn't send menu\n");
 		menu_entry_destroy(entries);
@@ -685,7 +695,8 @@ int workMenu(NODE * node){
 		return ret;
 	}
 	
-	ret = sendMenu(node->socket, entries);
+	ret = sendMenu(node->socket, entries, 
+			isTagPresent(node, TAG_NOEXIT)==TAG_FOUND);
 	if (ret != OK){
 		fprintf(stderr, "Couldn't send menu\n");
 		menu_entry_destroy(entries);
@@ -746,13 +757,9 @@ int doWork(NODE * node){
 	while (1){
 		node->monitorProbe = 0;
 		
-		if ( isTagPresent( node, TAG_NOEXIT ) == TAG_FOUND )
-			sendNoExit(node);
-		
 		if (isTagPresent(node, TAG_UPDATE)==TAG_FOUND){
 			char * content = calloc(sizeof(char), 121); //save space for the settings from the lcd
 			char * out = calloc(sizeof(char), 300);
-			int temp;
 			
 			sppWriteLine(node->socket, "#UPDATE\n\r");
 			sppReadLine(node->socket, content, 120);
@@ -929,6 +936,8 @@ void nodemain(int channel){
 	node->function=TAG_AUTHENTICATE;
 	
 	node->value = NULL;
+	
+	node->monitorProbe = 0;
 	
 	initConnection(node);
 	
