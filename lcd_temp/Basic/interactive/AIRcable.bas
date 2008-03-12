@@ -1054,7 +1054,7 @@
 950 RETURN
 
 955 H = 1
-956 GOTO 717
+956 GOTO 725
 
 0 REM 960 and higher used for storing menu values.
 
