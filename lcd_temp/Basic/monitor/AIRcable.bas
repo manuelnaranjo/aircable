@@ -464,7 +464,9 @@
 334 RETURN
 
 
-@SENSOR 340
+@SENSOR 339
+0 REM prevent deep sleep
+339 A = uarton
 340 IF M <> 0 THEN 390;
 341 A = pioset 9;
 342 A = sensor $25;
@@ -1005,7 +1007,7 @@
 993 RETURN
 
 0 REM enable deep sleep
-1000 IF I = 1 THEN 1005
+1000 IF I = 0 THEN 1005
 1001 S = 1
 1002 A = pioirq $22
 1003 A = uartoff
