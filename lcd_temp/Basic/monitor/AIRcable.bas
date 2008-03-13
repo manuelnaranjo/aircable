@@ -109,10 +109,11 @@
 0 REM check if we can do deep sleep
 0 REM I = 1 no deep sleep hardware
 0 REM I = 0 hardware has deep sleep
-46 A = pioin 5
-47 I = pioget 5
-48 A = pioout 5
-49 A = pioset 5
+46 A = pioset 5
+47 A = pioin 5
+48 I = pioget 5
+49 A = pioout 5
+50 A = pioclr 5
 
 0 REM 50 A = disable 3
 0 REM LED output and on
@@ -221,11 +222,11 @@
 0 REM clear message flag
 119 N = 0
 
-
 0 REM check update
 120 IF $24[0] >= 57 THEN 936
 
-121 ALARM 1
+121 ALARM 5
+122 GOSUB 1010
 122 RETURN
 
 
@@ -1004,13 +1005,28 @@
 990 S = 0
 991 A = pioirq $23
 992 A = uarton
-993 RETURN
+933 A = pioclr 5
+994 RETURN
 
 0 REM enable deep sleep
-1000 IF I = 0 THEN 1005
+1000 IF I = 1 THEN 1006
 1001 S = 1
 1002 A = pioirq $22
 1003 A = uartoff
 1004 A = lcd 
-1005 RETURN
+1005 A = pioset 5
+1006 RETURN
+
+1010 $0[0] = 0
+1011 A = getuniq $0
+1011 PRINTV " "
+1012 PRINTV $15
+1013 PRINTV " "
+1014 PRINTV I 
+1015 E = strlen $0
+1016 FOR B = 0 TO E - 8
+1017 A = lcd $0[B]
+1018 NEXT B
+1019 RETURN
+
 
