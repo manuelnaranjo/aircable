@@ -69,7 +69,7 @@
 5 420
 6 200
 7 K
-8 XXXºF
+8 WAIT
 9 0
 
 10 K
@@ -125,7 +125,7 @@
 54 IF L > 260 THEN 57
 55 IF L = 0 THEN 57
 56 GOTO 61
-57 L = 160
+57 L = 200
 58 $0[0] = 0
 59 PRINTV L
 60 $6 = $0
@@ -259,8 +259,8 @@
 
 0 REM @ALARM handler
 @ALARM 143
-143 A = pioset 9
-144 A = uarton
+143 A = pioset 9;
+144 A = pioclr 9
 
 0 REM @INIT doesn't call disable, time to do it.
 145 A = disable 3
@@ -270,7 +270,7 @@
 147 Q = 0
 148 A = zerocnt
 149 A = strlen $3
-150 IF A >= 12 THEN 212
+150 IF A >= 12 THEN 197
 
 0 REM Menu been displayed?
 151 IF U <> 0 THEN 550
@@ -290,27 +290,29 @@
 0 REM and we need to sleep
 157 GOSUB 1000
 
-0 REM next alarm in 20 seconds
-158 ALARM 20
+0 REM next alarm in 30 seconds
+158 ALARM 30
 159 A = pioclr 9
 160 RETURN 
 
 0 REM no button press
 0 REM update screen
-165 H = H + 1
-166 A = zerocnt
-167 A = lcd "WAIT. . .
-168 GOSUB 400
+165 GOSUB 990
+166 H = H + 1
+168 A = zerocnt
 
 0 REM time to send message?
-169 IF H >= 5 THEN 199
+169 IF H >= 5 THEN 197
 
 0 REM we keep showing the temperature
 0 REM for the next 5 seconds
 170 ALARM 5
 171 RETURN
 
-0 REM reset minute counter, check prescalled
+0 REM first update screen
+197 A = lcd "WAIT. . . "
+198 GOSUB 400
+0 REM then reset minute counter, check prescalled
 0 REM counter
 0 REM increment prescalled counter, and check it
 199 H = 0
@@ -449,20 +451,23 @@
 
 0 REM send current temp
 320 A = strlen $3
-321 IF A < 12 THEN 333
-322 GOTO 214
+321 IF A < 12 THEN 334
+322 A = lcd "WAIT . . . "
+323 GOTO 212
 
 0 REM show current temp
-325 GOSUB 400
-326 ALARM 30
-327 RETURN
+325 A = lcd "WAIT . . . "
+326 GOSUB 400
+327 ALARM 30
+328 RETURN
 
 0 REM show batteries level
-330 U = 100
-331 M = 1
-332 A = nextsns 1
-333 ALARM 30
-334 RETURN
+330 A = lcd "WAIT . . . "
+331 U = 100
+332 M = 1
+333 A = nextsns 1
+334 ALARM 30
+335 RETURN
 
 
 @SENSOR 339
@@ -1009,13 +1014,12 @@
 994 RETURN
 
 0 REM enable deep sleep
-1000 IF I = 1 THEN 1006
+1000 IF I = 1 THEN 1005
 1001 S = 1
 1002 A = pioirq $22
-1003 A = uartoff
-1004 A = lcd 
-1005 A = pioset 5
-1006 RETURN
+1003 A = uartoff 
+1004 A = pioset 5
+1005 RETURN
 
 1010 $0[0] = 0
 1011 A = getuniq $0
