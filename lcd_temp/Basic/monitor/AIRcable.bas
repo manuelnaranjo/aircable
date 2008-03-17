@@ -94,23 +94,24 @@
 25 0000
 26 
 
-@INIT 40
-40 A = uarton
-41 A = baud 1152
-42 Z = 0
+@INIT 38
+38 A = uarton
+39 A = baud 1152
+40 Z = 0
 
 0 REM set ADC amplification
-43 $0 = "@0008 = 07d0 03E8"
-44 A = psset 2
+41 $0 = "@0008 = 07d0 03E8"
+42 A = psset 2
 
 0 REM mark we don't have ambient sensor
-45 K = 0
+43 K = 0
 
 0 REM check if we can do deep sleep
 0 REM I = 1 no deep sleep hardware
 0 REM I = 0 hardware has deep sleep
-46 A = pioset 5
-47 A = pioin 5
+45 A = pioclr 5
+46 A = pioin 5
+47 A = pioset 5
 48 I = pioget 5
 49 A = pioout 5
 50 A = pioclr 5
