@@ -48,7 +48,8 @@
 
 0 REM $22 wake up interrupt (not used)
 0 REM $23 non deep sleep interrupts
-
+0 REM $24 middle button not enabled while showing
+0 REM 	TAKE TEMP
 
 1 
 2 
@@ -76,6 +77,7 @@
 
 22 P000000000001
 23 P011000000001
+24 P011000000000
 
 @INIT 45
 45 A = uarton
@@ -778,7 +780,7 @@
 
 0 REM __interactive mode button handler __
 0 REM $MENU code: right, left, middle
-700 IF U >= 300 THEN 759;
+700 IF U >= 300 THEN 758;
 701 IF $2[2] = 48 THEN 818;
 702 IF $2[3] = 48 THEN 823;
 703 IF $2[12] = 49 THEN 830;
@@ -855,13 +857,15 @@
 753 S = A
 754 U = 300
 755 A = lcd "TAKE TEMP"
-756 RETURN
+756 A = pioirq $24
+757 RETURN
 
 0 REM <monitor> button handler
 0 REM right, left, middle
 0 REM right show temp in IR probe
 0 REM left show temp in K probe
 0 REM middle send temp, make compare
+758 A = pioirq $23
 759 IF U = 301 THEN 796;
 760 IF $2[2] = 48 THEN 764;
 761 IF $2[3] = 48 THEN 766;
