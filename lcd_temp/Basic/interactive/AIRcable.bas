@@ -957,9 +957,9 @@
 
 0 REM __middle button pressed
 830 IF V = -1 THEN 840
-831 A = V+1
+831 A = lcd"WAIT . . . "
 832 PRINTM "@"
-833 A = lcd"WAIT . . .     "
+833 A = V+1
 834 B = hex8 A
 835 PRINTM$0
 836 GOTO 706
