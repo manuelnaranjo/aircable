@@ -84,6 +84,9 @@ int main(int argc, char *argv[]) {
 			
 			argv++;
 		}
+	} else {
+	    fprintf(stdout, "Using channel 1");
+	    nodemain(1);
 	}
 	
 	return 0;

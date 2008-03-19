@@ -262,7 +262,8 @@ int workMonitor(NODE *node){
 	
 	in = calloc (17, sizeof(char));
 	
-	sppReadLine(node->socket, in, 16);
+	while (strlen(in)<=1)
+		sppReadLine(node->socket, in, 16);
 	
 	free(in);
 	
@@ -677,10 +678,6 @@ int workDenied(NODE * node) {
 	menu_entry_destroy(entries);
 	
 	return ret;
-}
-
-void sendNoExit(NODE * node){
-	sppWriteLine(node->socket,"+\n\r");
 }
 
 int workMenu(NODE * node){
