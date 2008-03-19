@@ -1,0 +1,83 @@
+#! /bin/bash
+
+PIDFILE='/var/run/airint.pid'
+
+cleanup(){
+    REC=$(sdptool browse --uuid 0x1101 local | grep "Service RecHandle:" \
+              | sed -e "s/Service RecHandle: 0x//g")
+
+    for i in $REC; do
+	sdptool del $i
+    done
+			
+}
+
+signalhandler(){
+    PID=$( ps -ef | grep AIRcableSPP2 | grep -v grep | awk '{ print $2 }' )
+    kill -9 $PID
+    cleanup
+    exit
+}
+
+RunT(){
+	trap killT TERM
+	while [ 1 ]; do
+		PID=$( ps -ef | grep "AIRcableSPP2 --testnode $1" | grep -v grep )
+		if [ -z "$PID" ]; then			
+			AIRcableSPP2 --testnode $1 >> /root/interactive.$1 &
+			wait $!
+		else
+		    echo "It's running, sorry nothing I can do"
+		    exit 1
+		fi
+	done
+}
+
+Stop(){
+    PID=$(cat $PIDFILE)
+    kill -9 $PID
+    PID=$( ps -ef | grep "AIRcableSPP2" | grep -v grep | awk '{ print $2}' )
+    kill -9 $PID
+    rm $PIDFILE
+    cleanup
+}
+
+Start(){
+    
+    if [ -f $PIDFILE ]; then
+	OPID=$(cat $PIDFILE)
+	PID=$( ps -ef | awk '{ print $2 }' | grep "$OPID" )
+	if [ -n "$PID" ]; then
+	    echo "All ready running, nothing to do"
+	    exit 1
+	fi
+    fi
+    
+    cleanup
+    
+    for i in $(seq 3); do
+	RunT $i &
+	PID="$PID $!"
+    done
+
+    echo "$PID" > $PIDFILE
+}
+
+case "$1" in
+    start)
+	Start
+    ;;
+    stop)
+	Stop
+    ;;
+    restart|force-reload)
+	Stop
+	sleep 2
+	Start
+    ;;
+    *)
+	echo "Usage $0 {start|stop|restart|force-reload}"
+    ;;
+esac
+
+exit 0

@@ -1,0 +1,115 @@
+#!/bin/sh
+#
+# KwortBuild for bluez-utils
+# http://www.bluez.org
+# By Manuel Naranjo <manuel@aircable.net>
+#
+# based on SlackwareBuild for bluez-utils by
+# By SukkoPera <enjoy.the.silence@iol.it>
+# Thanks a lot to CAT for his Slackware package cration
+# guide (http://www.slacky.it/misto/tutorial/spunleashed.txt)
+#
+# Check out
+# - http://www.sukkopera.tk
+# - http://www.slacky.it
+# - http://www.nyft.org
+#
+# Notes:
+# - Many files and the whole PIN management system have been stolen from the
+#   Debian package. Thanks.
+#
+# Rewritten for kwort 2.4 Server XR version <manuel>
+# Rewritten for Slackware 2007-05  <pjv>
+
+URL=http://aircable.googlecode.com/svn/lcd_temp/tags/AIRcableSPP2
+
+NAME=airint
+# Get the current and temporary directories
+CWD=$(pwd)
+if [ "$TMP" = "" ]; then
+  TMP=/tmp
+fi
+if [ ! -d $TMP ]
+then
+  mkdir -p $TMP
+fi
+PKG=$TMP/package-$NAME
+
+
+# Some useful variables about the package
+VERSION=${VERSION:-0.2.0}
+ARCH=${ARCH:-i486}
+BUILD=${BUILD:-1}
+PACKER=${PACKER:-aircable}
+
+CFLAGS="-O2 -march=i486 -mtune=i486"
+
+rm -rf $PKG
+mkdir -p $PKG
+mkdir -p $PKG/etc/rc.d
+cd $TMP
+rm -rf $NAME-$VERSION
+svn checkout $URL/$VERSION ${NAME}-${VERSION}
+cd $NAME-$VERSION
+
+cd make
+
+chown -R root:root .
+find . -perm 666 -exec chmod 644 {} \;
+find . -perm 664 -exec chmod 644 {} \;
+find . -perm 600 -exec chmod 644 {} \;
+find . -perm 444 -exec chmod 644 {} \;
+find . -perm 400 -exec chmod 644 {} \;
+find . -perm 440 -exec chmod 644 {} \;
+find . -perm 777 -exec chmod 755 {} \;
+find . -perm 775 -exec chmod 755 {} \;
+find . -perm 511 -exec chmod 755 {} \;
+find . -perm 711 -exec chmod 755 {} \;
+find . -perm 555 -exec chmod 755 {} \;
+
+make -j4 || exit 1
+mkdir -p $PKG/usr/bin
+cp AIRcableSPP2 $PKG/usr/bin
+
+mkdir -p $PKG/etc/rc.d
+cp $CWD/rc.AIRint $PKG/etc/rc.d/rc.AIRint
+
+mkdir -p $PKG/usr/doc/$NAME-$VERSION
+cp -a \
+  $CWD/$0 $PKG/usr/doc/$NAME-$VERSION
+
+rm -rf $TMP/$NAME-$VERSION
+
+# Do not overwrite configuration
+( cd $PKG
+    mv etc/rc.d/rc.AIRint etc/rc.d/rc.AIRint.new
+)
+
+# Compress and if needed symlink the man pages:
+if [ -d $PKG/usr/man ]; then
+  ( cd $PKG/usr/man
+    for manpagedir in $(find . -type d -name "man*") ; do
+      ( cd $manpagedir
+        for eachpage in $( find . -type l -maxdepth 1) ; do
+          ln -s $( readlink $eachpage ).gz $eachpage.gz
+          rm $eachpage
+        done
+        gzip -9 *.?
+      )
+    done
+  )
+fi
+
+( cd $PKG
+  find . | xargs file | grep "executable" | grep ELF | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null
+  find . | xargs file | grep "shared object" | grep ELF | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null
+)
+
+mkdir -p $PKG/install
+cat $CWD/slack-desc > $PKG/install/slack-desc
+cat $CWD/doinst.sh > $PKG/install/doinst.sh
+
+cd $PKG
+makepkg -l y -c n $CWD/$NAME-$VERSION-$ARCH-$BUILD$PACKER.tgz
+
+rm -rf $PKG
