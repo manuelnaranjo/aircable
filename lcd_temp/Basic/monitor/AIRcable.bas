@@ -114,7 +114,7 @@
 47 A = pioset 5
 48 I = pioget 5
 49 A = pioout 5
-50 A = pioclr 5
+50 A = pioset 5
 
 0 REM 50 A = disable 3
 0 REM LED output and on
@@ -294,7 +294,8 @@
 0 REM next alarm in 30 seconds
 158 ALARM 30
 159 A = pioclr 9
-160 RETURN 
+160 A = pioclr 20
+161 RETURN 
 
 0 REM no button press
 0 REM update screen
@@ -341,56 +342,61 @@
 212 A = status
 213 IF A >= 1000 THEN 800
 
-214 N = 1
-215 Q = 0
-216 U = 0
+214 A = lcd "MESSAGE"
 
 0 REM prevent any possible interrupt
-225 ALARM 0
-226 A = pioirq"P000000000000"
-227 GOSUB 450;
+215 ALARM 0
+216 A = pioirq"P000000000000"
+217 GOSUB 450;
 
-228 A =pioset 20
+218 A =pioset 20
 
-229 $0[0]=0;
-230 PRINTV"$";
-231 PRINTV $25
-232 PRINTV ":";
-233 PRINTV Y;
-234 PRINTV"!";
-235 PRINTV X;
-236 PRINTV"#";
-237 PRINTV $7;
-238 PRINTV"#"
-239 PRINTV K
+219 $0[0]=0;
+220 PRINTV"$";
+221 PRINTV $25
+222 PRINTV ":";
+223 PRINTV Y;
+224 PRINTV"!";
+225 PRINTV X;
+226 PRINTV"#";
+227 PRINTV $7;
+228 PRINTV"#"
+229 PRINTV K
 
 
-240 A = message $3;
-241 A = zerocnt
-242 A = lcd " MESSAGE"
-243 WAIT 10
+230 A = message $3;
+231 WAIT 10
 
 0 REM check message transmission
-244 C = status
-245 IF C < 1000 THEN 250
-246 GOTO 243
+234 C = status
+235 IF C < 1000 THEN 240
+236 GOTO 231
 
-250 A = pioclr 20
-251 A = success
-252 IF A > 0 THEN 255
-253 A = lcd " FAILED "
-254 GOTO 256
+240 A = pioclr 20
+241 A = success
+242 IF A > 0 THEN 254
+243 IF A = 0 THEN 246
+244 A = lcd "FAILED      "
+245 GOTO 260
+246 A = lcd  "TIMEOUT      "
+247 GOTO 260
  
 
-0 REM ---------------------------
-255 A = lcd "   OK   "
-256 N = 0
-257 WAIT 2
+0 REM Message was ok, then we clear
+0 REM all the counters and start back from 0
+254 N = 1
+255 Q = 0
+256 U = 0
+257 A = zerocnt
+258 A = lcd "   OK   "
+259 N = 0
+
+260 WAIT 2
 0 REM show last temp again
-258 A = lcd $8
-259 ALARM 5
-260 A = pioirq $23
-261 RETURN
+261 A = lcd $8
+262 ALARM 5
+263 A = pioirq $23
+264 RETURN
 
 
 0 REM long button press
@@ -995,7 +1001,7 @@
 973 IF A < 1000 THEN 975
 974 GOTO 971
 975 A = enable 3;
-976 ALARM 60;
+976 ALARM 120;
 977 O = 0;
 978 U = 0
 979 A = pioirq $23
@@ -1011,15 +1017,15 @@
 990 S = 0
 991 A = pioirq $23
 992 A = uarton
-933 A = pioclr 5
+0 REM 933 A = pioclr 5
 994 RETURN
 
 0 REM enable deep sleep
 1000 IF I = 1 THEN 1005
 1001 S = 1
 1002 A = pioirq $22
-1003 A = uartoff 
-1004 A = pioset 5
+0 REM 1003 A = pioset 5 
+1004 A = uartoff
 1005 RETURN
 
 1010 $0[0] = 0
