@@ -972,7 +972,7 @@
 942 A =  nextsns 3600
 944 $24 = "!"
 945 A = pioset 9;
-946 A = uarton;
+946 GOSUB 990
 947 A = lcd "UPDATING.  ";
 948 $0="?UPDATE|";
 949 PRINTV $3
