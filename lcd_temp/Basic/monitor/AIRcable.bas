@@ -198,7 +198,7 @@
 
 0 REM mark we are booting
 102 U = 1000
-0 REM mark first battery meassure in two a minute
+0 REM mark first battery meassure in two minutes
 103 A = nextsns 120
 104 M = 1
 
@@ -477,14 +477,14 @@
 335 RETURN
 
 
-@SENSOR 339
-0 REM prevent deep sleep
-339 A = uarton
-340 IF M <> 0 THEN 390;
+@SENSOR 338
+338 IF M <> 0 THEN 390;
+339 GOSUB 990
+340 ALARM 0
 341 A = pioset 9;
 342 A = sensor $25;
-343 V = atoi $25;
-344 IF V <= 2100 THEN 380;
+343 L = atoi $25;
+344 IF L <= 2100 THEN 380;
 345 IF U = 100 THEN 360;
 0 REM meassure again in 60 minutes
 346 M = 1;
@@ -496,25 +496,26 @@
 352 X = (B - 500) * 2
 353 K = 1
 354 A = pioclr 9
-355 RETURN
+355 ALARM 5
+356 RETURN
 
 360 U = 0;
 361 J = 0;
-362 IF V < 3000 THEN 364;
+362 IF L < 3000 THEN 364;
 363 J = J + 20;
-364 IF V < 2820 THEN 366;
+364 IF L < 2820 THEN 366;
 365 J = J + 20;
-366 IF V < 2640 THEN 368;
+366 IF L < 2640 THEN 368;
 367 J = J + 20;
-368 IF V < 2460 THEN 370;
+368 IF L < 2460 THEN 370;
 369 J = J + 20;
-370 IF V < 2280 THEN 372;
+370 IF L < 2280 THEN 372;
 371 J = J + 20;
 372 $0="BAT 
 373 PRINTV J;
 374 PRINTV"    
 375 A = lcd $0;
-376 GOTO 347; 
+376 GOTO 346; 
 
 380 $26="LOW BATT";
 381 A = lcd $26;
