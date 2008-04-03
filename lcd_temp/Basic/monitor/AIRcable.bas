@@ -98,6 +98,13 @@
 
 27 P000000000000
 
+0 REM show WAIT then update screen, disable irqs
+30 A = pioirq $27
+31 A = lcd "WAIT . . . 
+32 GOSUB 400
+33 A = pioirq $23
+34 RETURN
+
 @INIT 38
 38 A = uarton
 39 A = baud 1152
@@ -232,7 +239,7 @@
 
 121 ALARM 5
 122 GOSUB 1010
-122 RETURN
+123 RETURN
 
 
 0 REM buttons and power
@@ -246,18 +253,18 @@
 129 RETURN
 
 0 REM button press, save state, start ALARM
-130 IF I = 1 THEN 132
-131 IF S = 1 THEN 136
+130 IF I = 1 THEN 132;
+131 IF S = 1 THEN 136;
 132 $2 = $0;
 133 W = 1;
 134 ALARM 3
 135 RETURN
 
 0 REM leave deep sleep
-136 GOSUB 990
+136 GOSUB 990;
 137 ALARM 60;
 138 A = pioset 9;
-139 GOSUB 400
+139 GOSUB 30;
 140 W = 0
 141 RETURN
 
@@ -316,8 +323,7 @@
 171 RETURN
 
 0 REM first update screen
-197 A = lcd "WAIT. . . "
-198 GOSUB 400
+197 GOSUB 30
 0 REM then reset minute counter, check prescalled
 0 REM counter
 0 REM increment prescalled counter, and check it
@@ -368,8 +374,9 @@
 229 PRINTV K
 
 
-230 A = message $3;
-231 WAIT 10
+230 A = unpair $3
+231 A = message $3;
+232 WAIT 10
 
 0 REM check message transmission
 234 C = status
@@ -467,10 +474,8 @@
 323 GOTO 212
 
 0 REM show current temp
-325 A = lcd "WAIT . . . "
-326 GOSUB 400
-327 ALARM 30
-328 RETURN
+325 ALARM 30
+326 GOTO 30
 
 0 REM show batteries level
 330 A = lcd "WAIT . . . "
@@ -1006,7 +1011,8 @@
 965 PRINTV $17
 
 
-969 A = zerocnt
+968 A = zerocnt
+969 A = unpair $3
 970 A = message $3;
 971 WAIT 10
 972 A = status
@@ -1051,5 +1057,9 @@
 1017 A = lcd $0[B]
 1018 NEXT B
 1019 RETURN
+
+
+
+
 
 
