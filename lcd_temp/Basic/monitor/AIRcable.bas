@@ -200,7 +200,7 @@
 102 U = 1000
 0 REM mark first battery meassure in two minutes
 103 A = nextsns 120
-104 M = 1
+104 M = 3
 
 
 0 REM laset pio out and high
@@ -471,15 +471,17 @@
 0 REM show batteries level
 330 A = lcd "WAIT . . . "
 331 U = 100
-332 M = 1
+332 M = 3
 333 A = nextsns 1
 334 ALARM 30
 335 RETURN
 
 
-@SENSOR 338
-338 IF M <> 0 THEN 390;
-339 GOSUB 990
+0 REM SENSOR handler
+@SENSOR 336
+337 ALARM 0
+338 IF M = 2 THEN 395;
+339 IF M <> 0 THEN 390;
 340 ALARM 0
 341 A = pioset 9;
 342 A = sensor $25;
@@ -487,7 +489,7 @@
 344 IF L <= 2100 THEN 380;
 345 IF U = 100 THEN 360;
 0 REM meassure again in 60 minutes
-346 M = 1;
+346 M = 3;
 347 A = nextsns 3600;
 348 U = 0
 349 B = atoi $25[5]
@@ -523,9 +525,12 @@
 383 WAIT 2
 384 GOTO 346
 
-390 ALARM 20
-391 M = M -1;
-392 RETURN
+390 M = M -1;
+391 RETURN
+
+395 A = nextsns 1
+396 GOSUB 990
+397 GOTO 390
 
 0 REM display temp handler ------
 400 GOSUB 450
