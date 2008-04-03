@@ -61,6 +61,8 @@
 
 0 REM $26 temp
 
+0 REM $27 no pio at all
+
 1 
 2 
 0 REM 3 0050C2585088
@@ -93,6 +95,8 @@
 
 25 0000
 26 
+
+27 P000000000000
 
 @INIT 38
 38 A = uarton
@@ -474,11 +478,12 @@
 332 M = 3
 333 A = nextsns 1
 334 ALARM 30
-335 RETURN
+335 A = pioirq$27
+336 RETURN
 
 
 0 REM SENSOR handler
-@SENSOR 336
+@SENSOR 337
 337 ALARM 0
 338 IF M = 2 THEN 395;
 339 IF M <> 0 THEN 390;
@@ -499,7 +504,8 @@
 353 K = 1
 354 A = pioclr 9
 355 ALARM 5
-356 RETURN
+356 A = pioirq $23
+357 RETURN
 
 360 U = 0;
 361 J = 0;
