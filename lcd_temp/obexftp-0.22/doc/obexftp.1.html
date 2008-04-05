@@ -1,0 +1,323 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>ObexFTP</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:Gentoo@sardines.darkride.net" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#options">OPTIONS</a></li>
+	<ul>
+
+		<li><a href="#transport_options">Transport Options</a></li>
+		<li><a href="#compatibility_options">Compatibility Options</a></li>
+		<li><a href="#setting_the_file_path">Setting The File Path</a></li>
+		<li><a href="#sending_and_retrieving_files">Sending And Retrieving Files</a></li>
+		<li><a href="#experimental_extras">Experimental Extras</a></li>
+		<li><a href="#version_information_and_help">Version Information And Help</a></li>
+	</ul>
+
+	<li><a href="#examples">EXAMPLES</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#bugs">BUGS</a></li>
+	<li><a href="#notes">NOTES</a></li>
+	<li><a href="#author">AUTHOR</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>obexftp - Mobile Equipment file transfer tool</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><strong>obexftp</strong> [<em>OPTION</em>] [<em>COMMANDS</em>]</p>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p><strong>obexftp</strong> is used to access files on mobile equipment,
+i.e. cell phones. With <strong>obexftpd</strong> you can transfer files between any
+computers using <strong>IrDA</strong>, <strong>Bluetooth</strong> and <strong>TCP/IP</strong>.</p>
+<p>This tool lets you access the <strong>ObexFTP</strong> library by the means of
+a command line interface.
+You might consider using the other means available.
+E.g. the <strong>ObexFS</strong> filesystem for Linux.</p>
+<p>
+</p>
+<hr />
+<h1><a name="options">OPTIONS</a></h1>
+<p>The ordering of options is important. Every command will use the most
+recent device set. Every file without command switch will apply to the
+command given most recent. See <strong>EXAMPLES</strong></p>
+<p>
+</p>
+<h2><a name="transport_options">Transport Options</a></h2>
+<dl>
+<dt><strong><a name="item__2di_2c__2d_2dirda"><strong>-i</strong>, <strong>--irda</strong></a></strong>
+
+<dd>
+<p>Connect using the IrDA protocol. This is the default.</p>
+</dd>
+</li>
+<dt><strong><a name="item__2db_device_2c__2d_2dbluetooth_device"><strong>-b</strong> <em>device</em>, <strong>--bluetooth</strong> <em>device</em></a></strong>
+
+<dd>
+<p>Connect to this bluetooth device. If the device is not given the first
+device found will be used.</p>
+</dd>
+</li>
+<dt><strong><a name="item__2db_number_2c__2d_2dchannel_number"><strong>-B</strong> <em>number</em>, <strong>--channel</strong> <em>number</em></a></strong>
+
+<dd>
+<p>Use this bluetooth channel when connecting.
+The channel will be discoverd automatically if this option is not used.</p>
+</dd>
+</li>
+<dt><strong><a name="item__2dd_no_2faddress_2c__2d_2dhci_no_2faddress"><strong>-d</strong> <em>no/address</em>, <strong>--hci</strong> <em>no/address</em></a></strong>
+
+<dd>
+<p>Use the bluetooth device referenced by number or address as
+source device for the connection.</p>
+</dd>
+</li>
+<dt><strong><a name="item__2du_intf_no_2c__2d_2dusb_intf_no"><strong>-u</strong> <em>intf no</em>, <strong>--usb</strong> <em>intf no</em></a></strong>
+
+<dd>
+<p>Connect to this usb interface or list all available usb interfaces.</p>
+</dd>
+</li>
+<dt><strong><a name="item__2dt_device_2c__2d_2dtty_device"><strong>-t</strong> <em>device</em>, <strong>--tty</strong> <em>device</em></a></strong>
+
+<dd>
+<p>Connect to this tty device.</p>
+</dd>
+</li>
+<dt><strong><a name="item__2dn_host_2c__2d_2dnetwork_host"><strong>-n</strong> <em>host</em>, <strong>--network</strong> <em>host</em></a></strong>
+
+<dd>
+<p>Connect to this network host.</p>
+</dd>
+</li>
+</dl>
+<p>
+</p>
+<h2><a name="compatibility_options">Compatibility Options</a></h2>
+<dl>
+<dt><strong><a name="item__2du_uuid_2c__2d_2duuid_uuid"><strong>-U</strong> <em>uuid</em>, <strong>--uuid</strong> <em>uuid</em></a></strong>
+
+<dd>
+<p>Select the UUID to connect with. Recognized values are currently
+``none'' needed by some Nokia mobile devices,
+``FBS'' (default) for the normal file browsing service,
+``IRMC'' for IRMC synchronisation and
+``S45'' when connecting to a Siemens Mobile phone via cable or
+``SHARP'' for PCSOFTWARE UUID with Sharp devices.</p>
+</dd>
+</li>
+<dt><strong><a name="item__2dh_2c__2d_2dnoconn"><strong>-H</strong>, <strong>--noconn</strong></a></strong>
+
+<dd>
+<p>Suppress connection IDs (i.e. send no connection header to the mobile).</p>
+</dd>
+</li>
+<dt><strong><a name="item__2ds_2c__2d_2dnopath"><strong>-S</strong>, <strong>--nopath</strong></a></strong>
+
+<dd>
+<p>Don't use ``setpath'' commands (i.e. send the whole path as filename to the
+mobile).
+Can be used together with <strong>--noconn</strong> and <strong>--uuid none</strong> to send an OBEX-PUSH.</p>
+</dd>
+</li>
+</dl>
+<p>
+</p>
+<h2><a name="setting_the_file_path">Setting The File Path</a></h2>
+<dl>
+<dt><strong><a name="item__2dc_folder_2c__2d_2dchdir_folder"><strong>-c</strong> <em>folder</em>, <strong>--chdir</strong> <em>folder</em></a></strong>
+
+<dd>
+<p>Set the mobiles current working directory.</p>
+</dd>
+</li>
+<dt><strong><a name="item__2dc_folder_2c__2d_2dmkdir_folder"><strong>-C</strong> <em>folder</em>, <strong>--mkdir</strong> <em>folder</em></a></strong>
+
+<dd>
+<p>Set the mobiles current working directory.
+The folder will be created if it doesn't exist.</p>
+</dd>
+</li>
+<dt><strong><a name="item__2dl_folder_2c__2d_2dlist_folder"><strong>-l</strong> <em>folder</em>, <strong>--list</strong> <em>folder</em></a></strong>
+
+<dd>
+<p>List a folder.</p>
+</dd>
+</li>
+</dl>
+<p>
+</p>
+<h2><a name="sending_and_retrieving_files">Sending And Retrieving Files</a></h2>
+<dl>
+<dt><strong><a name="item__2do_path_2c__2d_2doutput_path"><strong>-o</strong> <em>path</em>, <strong>--output</strong> <em>path</em></a></strong>
+
+<dd>
+<p>Specify the target file name, overriding the implicit local name from <strong>--get</strong>
+or the implicit remote name from <strong>--put</strong></p>
+</dd>
+</li>
+<dt><strong><a name="item__2dg_source_2c__2d_2dget_source"><strong>-g</strong> <em>source</em>, <strong>--get</strong> <em>source</em></a></strong>
+
+<dd>
+<p>Retrieve files from mobile.</p>
+</dd>
+</li>
+<dt><strong><a name="item__2dg_source_2c__2d_2dgetdelete_source"><strong>-G</strong> <em>source</em>, <strong>--getdelete</strong> <em>source</em></a></strong>
+
+<dd>
+<p>Retrieve files from mobile and delete them on the mobile</p>
+</dd>
+</li>
+<dt><strong><a name="item__2dp_source_2c__2d_2dput_source"><strong>-p</strong> <em>source</em>, <strong>--put</strong> <em>source</em></a></strong>
+
+<dd>
+<p>Send files to the mobile.</p>
+</dd>
+</li>
+<dt><strong><a name="item__2dk_source_2c__2d_2ddelete_source"><strong>-k</strong> <em>source</em>, <strong>--delete</strong> <em>source</em></a></strong>
+
+<dd>
+<p>Delete files from the mobile.</p>
+</dd>
+</li>
+</dl>
+<p>
+</p>
+<h2><a name="experimental_extras">Experimental Extras</a></h2>
+<dl>
+<dt><strong><a name="item__2dx_2c__2d_2dcapability"><strong>-X</strong>, <strong>--capability</strong></a></strong>
+
+<dd>
+<p>Retrieve the capability object from the mobile (if available).</p>
+</dd>
+<p>Probe and report device characteristics</p>
+</li>
+<dt><strong><a name="item__2dx_2c__2d_2dinfo"><strong>-x</strong>, <strong>--info</strong></a></strong>
+
+<dd>
+<p>Retrieve misc infos from mobile. I.e. memory size and free memory.
+Siemens specific for now.</p>
+</dd>
+</li>
+<dt><strong><a name="item__2dm_src_dest_2c__2d_2dmove_src_dest"><strong>-m</strong> <em>src</em> <em>dest</em>, <strong>--move</strong> <em>src</em> <em>dest</em></a></strong>
+
+<dd>
+<p>Move (rename) files on the mobile. Siemens specific for now.</p>
+</dd>
+</li>
+</dl>
+<p>
+</p>
+<h2><a name="version_information_and_help">Version Information And Help</a></h2>
+<dl>
+<dt><strong><a name="item__2dv_2c__2d_2dverbose"><strong>-v</strong>, <strong>--verbose</strong></a></strong>
+
+<dd>
+<p>Be verbose and give some additional infos.</p>
+</dd>
+</li>
+<dt><strong><a name="item__2dv_2c__2d_2dversion"><strong>-V</strong>, <strong>--version</strong></a></strong>
+
+<dd>
+<p>Print version string and exit.</p>
+</dd>
+</li>
+<dt><strong><a name="item__2dh_2c__2d_2dhelp_2c__2d_2dusage"><strong>-h</strong>, <strong>--help</strong>, <strong>--usage</strong></a></strong>
+
+<dd>
+<p>Print short usage instructions.</p>
+</dd>
+</li>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="examples">EXAMPLES</a></h1>
+<dl>
+<dt><strong><a name="item_to_get_the_directory_listing_from_the_first_irda_d">To get the directory listing from the first irda device:</a></strong>
+
+<dd>
+<p><strong>obexftp -i -l</strong>
+or just
+<strong>obexftp -l</strong>
+as IrDA is the default.</p>
+</dd>
+</li>
+<dt><strong><a name="item_to_get_the_file_bar_from_directory_foo_from_the_fi">To get the file bar from directory foo from the first bluetooth device:</a></strong>
+
+<dd>
+<p><strong>obexftp -b -c foo -g bar</strong></p>
+</dd>
+</li>
+<dt><strong><a name="item_to_send_the_file_bar_to_directory_foo_with_device_">To send the file bar to directory foo with device on first serial port:</a></strong>
+
+<dd>
+<p><strong>obexftp -t /dev/ttyS0 -c foo -p bar</strong></p>
+</dd>
+</li>
+<dt><strong><a name="item_rfcomm">It is possible to use RfComm (serial port over bluetooth):</a></strong>
+
+<dd>
+<p><strong>obexftp -t /dev/rfcomm0 -c foo -p bar</strong></p>
+</dd>
+</li>
+<dt><strong><a name="item_ircomm">And also IrComm (serial port over IrDA):</a></strong>
+
+<dd>
+<p><strong>obexftp -t /dev/ircomm0 -c foo -p bar</strong></p>
+</dd>
+</li>
+<dt><strong><a name="item_to_send_the_file_bar_using_plain_obex_push_3a">To send the file bar using plain OBEX PUSH:</a></strong>
+
+<dd>
+<p><strong>obexftp --bluetooth --nopath --noconn --uuid none --put bar</strong></p>
+</dd>
+</li>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><em>obexftpd</em>(1), <em>openobex</em>(3), <em>obexftp</em>(3), <em>multicobex</em>(3), <em>libbfb</em>(3).</p>
+<p>
+</p>
+<hr />
+<h1><a name="bugs">BUGS</a></h1>
+<p>Bugs ? Features !</p>
+<p>
+</p>
+<hr />
+<h1><a name="notes">NOTES</a></h1>
+<p>The software has been tested and reported working on at least Siemens, Ericsson, and Nokia phones.</p>
+<p>
+</p>
+<hr />
+<h1><a name="author">AUTHOR</a></h1>
+<p>Christian W. Zuckschwerdt &lt;<a href="mailto:zany@triq.net">zany@triq.net</a>&gt;</p>
+
+</body>
+
+</html>

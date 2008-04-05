@@ -1,0 +1,153 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>ObexFTP</title>
+<link rev="made" href="mailto:Gentoo@sardines.darkride.net" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#options">OPTIONS</a></li>
+	<ul>
+
+		<li><a href="#transport_options">Transport Options</a></li>
+		<li><a href="#setting_the_file_path">Setting The File Path</a></li>
+		<li><a href="#version_information_and_help">Version Information And Help</a></li>
+	</ul>
+
+	<li><a href="#examples">EXAMPLES</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#bugs">BUGS</a></li>
+	<li><a href="#notes">NOTES</a></li>
+	<li><a href="#author">AUTHOR</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>obexftpd - Mobile Equipment file transfer server</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><strong>obexftpd</strong> [<em>OPTIONS</em>] [<em>TRANSPORT</em>]</p>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>With <strong>obexftpd</strong> you can set up an obex server on any
+computers using <strong>IrDA</strong>, <strong>Bluetooth</strong> or <strong>TCP/IP</strong>.
+Use e.g. <strong>obexftp</strong> or the <strong>ObexFS</strong> to access the files on this server.</p>
+<p>
+</p>
+<hr />
+<h1><a name="options">OPTIONS</a></h1>
+<p>The ordering of options is important. The first transport option will
+start the server. Use basedir and verbose options prior to any transport.
+See <strong>EXAMPLES</strong></p>
+<p>
+</p>
+<h2><a name="transport_options">Transport Options</a></h2>
+<dl>
+<dt><strong><a name="item__2di_2c__2d_2dirda"><strong>-i</strong>, <strong>--irda</strong></a></strong><br />
+</dt>
+<dd>
+Acceopt connections using the IrDA protocol.
+</dd>
+<p></p>
+<dt><strong><a name="item__2db_2c__2d_2dbluetooth"><strong>-b</strong>, <strong>--bluetooth</strong></a></strong><br />
+</dt>
+<dd>
+Accept connections via bluetooth.
+</dd>
+<p></p>
+<dt><strong><a name="item__2dt_device_2c__2d_2dtty_device"><strong>-t</strong> <em>device</em>, <strong>--tty</strong> <em>device</em></a></strong><br />
+</dt>
+<dd>
+Accept connections from this tty device. NOT WORKING!
+</dd>
+<p></p>
+<dt><strong><a name="item__2dn_host_2c__2d_2dnetwork_host"><strong>-n</strong> <em>host</em>, <strong>--network</strong> <em>host</em></a></strong><br />
+</dt>
+<dd>
+Accept connections from the network to this port.
+</dd>
+<p></p></dl>
+<p>
+</p>
+<h2><a name="setting_the_file_path">Setting The File Path</a></h2>
+<dl>
+<dt><strong><a name="item__2dc_folder_2c__2d_2dchdir_folder"><strong>-c</strong> <em>folder</em>, <strong>--chdir</strong> <em>folder</em></a></strong><br />
+</dt>
+<dd>
+Set the base directory for the server.
+</dd>
+<p></p></dl>
+<p>
+</p>
+<h2><a name="version_information_and_help">Version Information And Help</a></h2>
+<dl>
+<dt><strong><a name="item__2dv_2c__2d_2dverbose"><strong>-v</strong>, <strong>--verbose</strong></a></strong><br />
+</dt>
+<dd>
+Be verbose and give some additional infos.
+</dd>
+<p></p>
+<dt><strong><a name="item__2dv_2c__2d_2dversion"><strong>-V</strong>, <strong>--version</strong></a></strong><br />
+</dt>
+<dd>
+Print version string and exit.
+</dd>
+<p></p>
+<dt><strong><a name="item__2dh_2c__2d_2dhelp_2c__2d_2dusage"><strong>-h</strong>, <strong>--help</strong>, <strong>--usage</strong></a></strong><br />
+</dt>
+<dd>
+Print short usage instructions.
+</dd>
+<p></p></dl>
+<p>
+</p>
+<hr />
+<h1><a name="examples">EXAMPLES</a></h1>
+<dl>
+<dt><strong><a name="item_start_listening_for_bluetooth_connections_and_use_">Start listening for bluetooth connections and use a safe basedir:</a></strong><br />
+</dt>
+<dd>
+<strong>obexftpd -c /tmp/inbox -b</strong>
+</dd>
+<p></p></dl>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><em>obexftp</em>(1), <em>openobex</em>(3), <em>obexftp</em>(3), <em>multicobex</em>(3), <em>libbfb</em>(3).</p>
+<p>
+</p>
+<hr />
+<h1><a name="bugs">BUGS</a></h1>
+<p>Bugs ? Features !</p>
+<p>
+</p>
+<hr />
+<h1><a name="notes">NOTES</a></h1>
+<p>The software has been tested and reported working on at least Siemens, Ericsson, and Nokia phones.</p>
+<p>
+</p>
+<hr />
+<h1><a name="author">AUTHOR</a></h1>
+<p>Christian W. Zuckschwerdt &lt;<a href="mailto:zany@triq.net">zany@triq.net</a>&gt;
+Alan Zhang &lt;<a href="mailto:vibra@tom.com">vibra@tom.com</a>&gt;</p>
+
+</body>
+
+</html>
