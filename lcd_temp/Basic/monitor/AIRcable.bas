@@ -20,7 +20,7 @@
 0 REM P is messages interval
 0 REM Q is prescaled counter for messages
 0 REM O is prescaled counter for updates
-0 REM N message flag
+0 REM N is FREE!!! USE IT
 0 REM M battery message flag
 0 REM L used in some parts of the code as temp
 0 REM K ambient sensor available
@@ -100,7 +100,7 @@
 
 0 REM show WAIT then update screen, disable irqs
 30 A = pioirq $27
-31 A = lcd "WAIT . . . 
+31 A = lcd "WAIT . . . "
 32 GOSUB 400
 33 A = pioirq $23
 34 RETURN
@@ -231,15 +231,15 @@
 0 REM reset prescalled counter
 118 Q = 0
 
-0 REM clear message flag
-119 N = 0
-
 0 REM check update
 120 IF $24[0] >= 57 THEN 936
 
 121 ALARM 5
+0 REM show version number
 122 GOSUB 1010
-123 RETURN
+123 WAIT 1
+0 REM last thing is update screen 
+124 GOTO 30
 
 
 0 REM buttons and power
@@ -275,83 +275,86 @@
 144 A = pioclr 9
 
 0 REM @INIT doesn't call disable, time to do it.
-145 A = disable 3
+145 A = disable 3;
 
 0 REM first boot?
-146 IF U <> 1000 THEN 151
-147 Q = 0
-148 A = zerocnt
-149 A = strlen $3
-150 IF A >= 12 THEN 197
+146 IF U <> 1000 THEN 154;
+147 Q = 0;
+148 A = zerocnt;
+149 A = strlen $3;
+150 IF A >= 12 THEN 197;
+
+151 A = lcd "NOT PAIRED"
+152 U = 0
+153 GOTO 161
+
 
 0 REM Menu been displayed?
-151 IF U <> 0 THEN 550
+154 IF U <> 0 THEN 550;
 
 0 REM check for long button press
-152 IF W = 1 THEN 265
+155 IF W = 1 THEN 265;
 
 0 REM one minute passed?
-153 A = readcnt
-154 IF A >= 60 THEN 165
-155 IF A < 0 THEN 165
+156 A = readcnt;
+157 IF A >= 60 THEN 165;
+158 IF A < 0 THEN 165;
 
 0 REM we support deep sleep
-156 IF I = 1 THEN 158
+159 IF I = 1 THEN 161;
 
 0 REM we can do deep sleep,
 0 REM and we need to sleep
-157 GOSUB 1000
+160 GOSUB 1000;
 
 0 REM next alarm in 30 seconds
-158 ALARM 30
-159 A = pioclr 9
-160 A = pioclr 20
-161 RETURN 
+161 ALARM 30;
+162 A = pioclr 9;
+163 A = pioclr 20;
+164 RETURN 
 
-0 REM no button press
+0 REM disable deep sleep
 0 REM update screen
-165 GOSUB 990
-166 H = H + 1
-168 A = zerocnt
+165 GOSUB 990;
+166 GOSUB 30;
+167 H = H + 1;
+168 A = zerocnt;
 
 0 REM time to send message?
-169 IF H >= 5 THEN 197
+169 IF H >= 5 THEN 199;
 
 0 REM we keep showing the temperature
 0 REM for the next 5 seconds
-170 ALARM 5
+170 ALARM 5;
 171 RETURN
 
-0 REM first update screen
-197 GOSUB 30
 0 REM then reset minute counter, check prescalled
 0 REM counter
 0 REM increment prescalled counter, and check it
-199 H = 0
-200 A = zerocnt
+199 H = 0;
+200 A = zerocnt;
 201 Q = Q + 1;
 202 A = $24[0]+1;
 203 $24[0] = A ;
 
 0 REM only message if paired
-204 A = strlen $3
-205 IF A < 12 THEN 810
+204 A = strlen $3;
+205 IF A < 12 THEN 810;
 
-206 IF Q >= P THEN 210
-207 IF $24[0] >= 57 THEN 936
-
-208 IF U = 1000 THEN 210
-
-0 REM
-209 GOTO 158
-
-210 IF N = 0 THEN 212
-211 GOTO 207
+0 REM first check for update
+206 IF $24[0] >= 57 THEN 936;
+0 REM then see if it's time to message
+207  IF Q >= P THEN 210;
+208 IF U = 1000 THEN 210;
+0 REM we don't have much to do.
+209 GOTO 159;
 
 0 REM send message, check for status first
-212 A = status
-213 IF A >= 1000 THEN 800
+210 A = status;
+211 IF A >= 1000 THEN 800;
 
+0 REM prevent any possible @SENSOR
+212 M = -1
 214 A = lcd "MESSAGE"
 
 0 REM prevent any possible interrupt
@@ -388,20 +391,19 @@
 242 IF A > 0 THEN 254
 243 IF A = 0 THEN 246
 244 A = lcd "FAILED      "
-245 GOTO 260
+245 GOTO 257
 246 A = lcd  "TIMEOUT      "
-247 GOTO 260
+247 GOTO 257
  
 
 0 REM Message was ok, then we clear
 0 REM all the counters and start back from 0
-254 N = 1
-255 Q = 0
-256 U = 0
-257 A = zerocnt
-258 A = lcd "   OK   "
-259 N = 0
+254 Q = 0
+255 U = 0
+256 A = lcd "   OK   "
 
+257 A = zerocnt
+258 M = 3
 260 WAIT 2
 0 REM show last temp again
 261 A = lcd $8
@@ -489,10 +491,10 @@
 
 0 REM SENSOR handler
 @SENSOR 337
-337 ALARM 0
+337 ALARM 0;
 338 IF M = 2 THEN 395;
 339 IF M <> 0 THEN 390;
-340 ALARM 0
+340 ALARM 0;
 341 A = pioset 9;
 342 A = sensor $25;
 343 L = atoi $25;
@@ -501,15 +503,15 @@
 0 REM meassure again in 60 minutes
 346 M = 3;
 347 A = nextsns 3600;
-348 U = 0
-349 B = atoi $25[5]
-350 $25[4] = 0
-351 IF B < 400 THEN 354
-352 X = (B - 500) * 2
-353 K = 1
-354 A = pioclr 9
-355 ALARM 5
-356 A = pioirq $23
+348 U = 0;
+349 B = atoi $25[5];
+350 $25[4] = 0;
+351 IF B < 400 THEN 354;
+352 X = (B - 500) * 2;
+353 K = 1;
+354 A = pioclr 9;
+355 ALARM 5;
+356 A = pioirq $23;
 357 RETURN
 
 360 U = 0;
@@ -539,7 +541,7 @@
 390 M = M -1;
 391 RETURN
 
-395 A = nextsns 1
+395 A = nextsns 3
 396 GOSUB 990
 397 GOTO 390
 
@@ -942,15 +944,21 @@
 
 0 REM print errors
 0 REM --- print status
-800 $0="ST "
+800 $0="BUSY "
 801 PRINTV A
 802 PRINTV"        "
 803 B = lcd $0
-804 GOTO 158
+0 REM time to end @ALARM, we can't do much
+0 REM until status becomes 0
+804 GOTO 159
 
 0 REM --- print not paired
 810 A = lcd"NOT PAIRED"
-811 GOTO 156
+811 Q = 0
+812 U = 0
+813 H = 0
+0 REM time to end @ALARM, we can't do much
+814 RETURN
 
 0 REM do we need this at all???
 @CONTROL 910
@@ -960,13 +968,20 @@
 912 RETURN 
 
 @SLAVE 920
+0 REM we only allow incomming connections
+0 REM from the host XR we're paired
+920 A =  getconn $0
+921 A = strcmp $3
+922 IF A <> 0 THEN 928 
 0 REM LED on
-920 ALARM 0
-921 Q = 0
-922 A = pioset 20
-923 A = shell
-924 RETURN
+923 ALARM 0
+924 Q = 0
+925 A = pioset 20
+926 A = shell
+927 RETURN
 
+928 A = disconnect 0
+929 RETURN
 
 0 REM slave for 60 seconds after boot
 0 REM then stop FTP too
@@ -983,10 +998,8 @@
 937 ALARM 0
 938 A = strlen $3;
 939 IF A < 12 THEN 985;
-940 IF N <> 0 THEN 976;
-941 N = 1
 0 REM make sure battery readings don't bother us
-942 A =  nextsns 3600
+942 M = -1
 944 $24 = "!"
 945 A = pioset 9;
 946 GOSUB 990
@@ -1023,8 +1036,8 @@
 977 O = 0;
 978 U = 0
 979 A = pioirq $23
-980 N = 0
-981 RETURN
+981 M = 3
+982 RETURN
 
 985 A = lcd "not paired"
 986 A = pioirq $23
@@ -1057,9 +1070,4 @@
 1017 A = lcd $0[B]
 1018 NEXT B
 1019 RETURN
-
-
-
-
-
 
