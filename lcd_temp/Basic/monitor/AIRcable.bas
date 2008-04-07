@@ -218,7 +218,7 @@
 105 A = pioset 4
 106 A = pioout 4
 
-108 IF $540[0]<>0 THEN 118
+108 IF $540[0]<>0 THEN 117
 109 $540="BT ADDR "
 110 $541="PEER BT "
 111 $542="CONTRAST"
@@ -229,17 +229,20 @@
 116 $547="UPDATE    "
 
 0 REM reset prescalled counter
-118 Q = 0
+117 Q = 0
 
 0 REM check update
-120 IF $24[0] >= 57 THEN 936
+118 IF $24[0] >= 57 THEN 936
 
-121 ALARM 5
+119 ALARM 5
 0 REM show version number
-122 GOSUB 1010
-123 WAIT 1
-0 REM last thing is update screen 
-124 GOTO 30
+120 GOSUB 1010
+121 WAIT 1
+0 REM update screen
+122 GOSUB 30 
+0 REM make sure @IDLE is called
+123 A = slave 1
+124 RETURN
 
 
 0 REM buttons and power
@@ -985,13 +988,15 @@
 
 0 REM slave for 60 seconds after boot
 0 REM then stop FTP too
-@IDLE 929
-929 IF U=1001 THEN 934
-930 A = pioset 9;
-931 A = disable 3;
-932 ALARM 2;
-933 A = pioclr 9;
-934 RETURN
+@IDLE 930
+930 IF U=1000 THEN 934
+932 A = slave -1
+933 RETURN
+
+0 REM make sure we keep visible for 20 seconds
+0 REM after first boot.
+934 A = slave 20
+935 RETURN
 
 0 REM prepare for updates
 936 A = pioirq"P000000000000"
