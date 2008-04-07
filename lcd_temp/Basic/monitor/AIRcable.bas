@@ -1037,12 +1037,12 @@
 973 IF A < 1000 THEN 975
 974 GOTO 971
 975 A = enable 3;
-976 ALARM 120;
+976 ALARM 125
 977 O = 0;
 978 U = 0
-979 A = pioirq $23
-981 M = 3
-982 RETURN
+979 M = 3
+980 A = slave 120
+981 GOTO 990
 
 985 A = lcd "not paired"
 986 A = pioirq $23
