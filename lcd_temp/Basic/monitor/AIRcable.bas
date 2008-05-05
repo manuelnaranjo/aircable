@@ -990,7 +990,10 @@
 0 REM then stop FTP too
 @IDLE 930
 930 IF U=1000 THEN 934
-932 A = slave -1
+0 REM slave -1 invisible, no page scan
+0 REM slave 0 no more @IDLE
+931 A = slave -1
+932 A = slave 0
 933 RETURN
 
 0 REM make sure we keep visible for 20 seconds
@@ -1053,14 +1056,14 @@
 990 S = 0
 991 A = pioirq $23
 992 A = uarton
-0 REM 933 A = pioclr 5
+993 A = pioclr 5
 994 RETURN
 
 0 REM enable deep sleep
 1000 IF I = 1 THEN 1005
 1001 S = 1
 1002 A = pioirq $22
-0 REM 1003 A = pioset 5 
+1003 A = pioset 5 
 1004 A = uartoff
 1005 RETURN
 
