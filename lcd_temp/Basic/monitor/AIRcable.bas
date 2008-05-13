@@ -990,9 +990,9 @@
 0 REM then stop FTP too
 @IDLE 930
 930 IF U=1000 THEN 934
-0 REM slave -1 invisible, no page scan
+0 REM disable 3 will disable page scan
 0 REM slave 0 no more @IDLE
-931 A = slave -1
+931 A = disable 3
 932 A = slave 0
 933 RETURN
 
