@@ -245,32 +245,6 @@
 124 RETURN
 
 
-0 REM buttons and power
-@PIO_IRQ 125
-0 REM press button starts alarm for long press recognition
-125 IF $0[2]=48 THEN 130;
-126 IF $0[3]=48 THEN 130;
-127 IF $0[12]=49 THEN 130;
-0 REM was it a release, handle it
-128 IF W <> 0 THEN 310;
-129 RETURN
-
-0 REM button press, save state, start ALARM
-130 IF I = 1 THEN 132;
-131 IF S = 1 THEN 136;
-132 $2 = $0;
-133 W = 1;
-134 ALARM 3
-135 RETURN
-
-0 REM leave deep sleep
-136 GOSUB 990;
-137 ALARM 60;
-138 A = pioset 9;
-139 GOSUB 30;
-140 W = 0
-141 RETURN
-
 
 0 REM @ALARM handler
 @ALARM 143
@@ -986,6 +960,35 @@
 928 A = disconnect 0
 929 RETURN
 
+
+0 REM buttons and power
+@PIO_IRQ 840
+840 GOSUB 990
+0 REM press button starts alarm for long press recognition
+841 IF $0[2]=48 THEN 855;
+842 IF $0[3]=48 THEN 855;
+843 IF $0[12]=49 THEN 855;
+0 REM was it a release, handle it
+844 IF W <> 0 THEN 310;
+845 GOSUB 1000
+846 RETURN
+
+0 REM button press, save state, start ALARM
+855 IF I = 1 THEN 857;
+856 IF S = 1 THEN 861;
+857 $2 = $0;
+858 W = 1;
+859 ALARM 3
+860 RETURN
+
+0 REM leave deep sleep
+861 GOSUB 990;
+862 ALARM 60;
+863 A = pioset 9;
+864 GOSUB 30;
+865 W = 0
+866 RETURN
+
 0 REM slave for 60 seconds after boot
 0 REM then stop FTP too
 @IDLE 930
@@ -1054,7 +1057,7 @@
 
 0 REM disable deep sleep
 990 S = 0
-991 A = pioirq $23
+0 REM 991 A = pioirq $23
 992 A = uarton
 993 A = pioclr 5
 994 RETURN
@@ -1062,7 +1065,7 @@
 0 REM enable deep sleep
 1000 IF I = 1 THEN 1005
 1001 S = 1
-1002 A = pioirq $22
+0 REM 1002 A = pioirq $22
 1003 A = pioset 5 
 1004 A = uartoff
 1005 RETURN
