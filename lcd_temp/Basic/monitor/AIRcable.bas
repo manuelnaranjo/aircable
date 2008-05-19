@@ -254,7 +254,7 @@
 144 A = pioclr 9
 
 0 REM first boot?
-146 IF U <> 1000 THEN 154;
+146 IF U <> 2000 THEN 154;
 147 Q = 0;
 148 A = zerocnt;
 149 A = strlen $3;
@@ -316,7 +316,7 @@
 206 IF $24[0] >= 57 THEN 936;
 0 REM then see if it's time to message
 207  IF Q >= P THEN 210;
-208 IF U = 1000 THEN 210;
+208 IF U = 2000 THEN 210;
 0 REM we don't have much to do.
 209 GOTO 159;
 
@@ -991,7 +991,7 @@
 @IDLE 920
 0 REM this shouldn't happen but just in case
 920 A = uarton;
-921 IF U=1000 THEN 930
+921 IF U = 1000 THEN 930
 0 REM disable 3 will unregister OPUSH, and FTP
 0 REM no more SDP records, so it will disable
 0 REM PAGE SCAN.
@@ -1002,6 +1002,7 @@
 0 REM make sure we keep visible for 10 seconds
 0 REM after first boot.
 930 A = slave 20
+931 U = 2000
 932 RETURN
 
 0 REM prepare for updates
