@@ -20,9 +20,9 @@
 0 REM P is messages interval
 0 REM Q is prescaled counter for messages
 0 REM O is prescaled counter for updates
-0 REM N is FREE!!! USE IT
+0 REM N LCD bias
 0 REM M battery message flag
-0 REM L used in some parts of the code as temp
+0 REM L used in some parts of the code as temporary
 0 REM K ambient sensor available
 0 REM J used in @SENSOR
 0 REM I hardware supports deep sleep
@@ -106,7 +106,8 @@
 34 RETURN
 
 @INIT 38
-38 A = uarton
+0 REM make sure deep sleep is really disabled
+38 A = uarton;
 39 A = baud 1152
 40 Z = 0
 
@@ -133,16 +134,16 @@
 52 A = pioset 9
 
 0 REM LCD contrast between 160 and 260
-53 L = atoi $6
-54 IF L > 260 THEN 57
-55 IF L = 0 THEN 57
+53 N = atoi $6
+54 IF N > 260 THEN 57
+55 IF N = 0 THEN 57
 56 GOTO 61
-57 L = 200
+57 N = 200
 58 $0[0] = 0
-59 PRINTV L
+59 PRINTV N 
 60 $6 = $0
 0 REM LCD bias
-61 A = auxdac L
+61 A = auxdac N
 
 0 REM show welcome message
 62 $0[0] = 0
@@ -234,7 +235,6 @@
 0 REM check update
 118 IF $24[0] >= 57 THEN 936
 
-119 ALARM 5
 0 REM show version number
 120 GOSUB 1010
 121 WAIT 1
@@ -242,24 +242,24 @@
 122 GOSUB 30 
 0 REM make sure @IDLE is called
 123 A = slave 1
+0 REM @IDLE will call ALARM
 124 RETURN
 
 
 
 0 REM @ALARM handler
-@ALARM 143
+@ALARM 142
+0 REM make sure @ALARM is handled in non deep sleep mode
+142 A = uarton;
 143 A = pioset 9;
 144 A = pioclr 9
-
-0 REM @INIT doesn't call disable, time to do it.
-145 A = disable 3;
 
 0 REM first boot?
 146 IF U <> 1000 THEN 154;
 147 Q = 0;
 148 A = zerocnt;
 149 A = strlen $3;
-150 IF A >= 12 THEN 197;
+150 IF A >= 12 THEN 199;
 
 151 A = lcd "NOT PAIRED"
 152 U = 0
@@ -277,18 +277,13 @@
 157 IF A >= 60 THEN 165;
 158 IF A < 0 THEN 165;
 
-0 REM we support deep sleep
-159 IF I = 1 THEN 161;
-
-0 REM we can do deep sleep,
-0 REM and we need to sleep
-160 GOSUB 1000;
-
 0 REM next alarm in 30 seconds
-161 ALARM 30;
-162 A = pioclr 9;
-163 A = pioclr 20;
-164 RETURN 
+159 ALARM 30;
+160 A = pioclr 9;
+161 A = pioclr 20;
+0 REM now it's time to enable back deep sleep
+0 REM if needed
+162 GOTO 1000
 
 0 REM disable deep sleep
 0 REM update screen
@@ -336,7 +331,7 @@
 
 0 REM prevent any possible interrupt
 215 ALARM 0
-216 A = pioirq"P000000000000"
+216 A = pioirq$27
 217 GOSUB 450;
 
 218 A =pioset 20
@@ -375,18 +370,20 @@
 
 0 REM Message was ok, then we clear
 0 REM all the counters and start back from 0
+0 REM if we were booting we also need to clear up U
 254 Q = 0
-255 U = 0
+255 U = 0 
 256 A = lcd "   OK   "
 
 257 A = zerocnt
 258 M = 3
-260 WAIT 2
+259 WAIT 2
 0 REM show last temp again
-261 A = lcd $8
-262 ALARM 5
-263 A = pioirq $23
-264 RETURN
+0 REM keep in non deep sleep mode
+260 A = lcd $8
+261 ALARM 5
+262 A = pioirq $23
+263 RETURN
 
 
 0 REM long button press
@@ -424,7 +421,7 @@
 290 A = slave 120;
 291 A = enable 1;
 292 A = lcd "VISIBLE     ";
-293 ALARM 120
+293 ALARM 0
 294 W = 0
 295 RETURN
 
@@ -467,60 +464,63 @@
 
 
 0 REM SENSOR handler
-@SENSOR 337
-337 ALARM 0;
-338 IF M = 2 THEN 395;
-339 IF M <> 0 THEN 390;
-340 ALARM 0;
-341 A = pioset 9;
-342 A = sensor $25;
-343 L = atoi $25;
-344 IF L <= 2100 THEN 380;
-345 IF U = 100 THEN 360;
+@SENSOR 340
+0 REM make sure we don't go to sleep
+340 A = uarton;
+341 ALARM 0;
+342 IF M = 2 THEN 393;
+343 IF M <> 0 THEN 390;
+344 ALARM 0;
+345 A = pioset 9;
+346 A = sensor $25;
+347 L = atoi $25;
+348 IF L <= 2100 THEN 385;
+349 IF U = 100 THEN 365;
 0 REM meassure again in 60 minutes
-346 M = 3;
-347 A = nextsns 3600;
-348 U = 0;
-349 B = atoi $25[5];
-350 $25[4] = 0;
-351 IF B < 400 THEN 354;
-352 X = (B - 500) * 2;
-353 K = 1;
-354 A = pioclr 9;
-355 ALARM 5;
-356 A = pioirq $23;
-357 RETURN
+350 M = 3;
+351 A = nextsns 3600;
+352 U = 0;
+353 B = atoi $25[5];
+354 $25[4] = 0;
+355 IF B < 400 THEN 358;
+356 X = (B - 500) * 2;
+357 K = 1;
+358 A = pioclr 9;
+359 ALARM 5;
+360 A = pioirq $23;
+361 RETURN
 
-360 U = 0;
-361 J = 0;
-362 IF L < 3000 THEN 364;
-363 J = J + 20;
-364 IF L < 2820 THEN 366;
-365 J = J + 20;
-366 IF L < 2640 THEN 368;
-367 J = J + 20;
-368 IF L < 2460 THEN 370;
-369 J = J + 20;
-370 IF L < 2280 THEN 372;
-371 J = J + 20;
-372 $0="BAT 
-373 PRINTV J;
-374 PRINTV"    
-375 A = lcd $0;
-376 GOTO 346; 
+365 U = 0;
+366 J = 0;
+367 IF L < 3000 THEN 369;
+368 J = J + 20;
+369 IF L < 2820 THEN 371;
+370 J = J + 20;
+371 IF L < 2640 THEN 373;
+372 J = J + 20;
+373 IF L < 2460 THEN 375;
+374 J = J + 20;
+375 IF L < 2280 THEN 377;
+376 J = J + 20;
+377 $0="BAT 
+378 PRINTV J;
+379 PRINTV"    
+380 A = lcd $0;
+381 GOTO 350; 
 
-380 $26="LOW BATT";
-381 A = lcd $26;
-382 A = ring;
-383 WAIT 2
-384 GOTO 346
+385 $26="LOW BATT";
+386 A = lcd $26;
+387 A = ring;
+388 WAIT 2
+389 GOTO 350
 
 390 M = M -1;
-391 RETURN
+391 A = uartoff
+392 RETURN
 
-395 A = nextsns 3
-396 GOSUB 990
-397 GOTO 390
+393 A = nextsns 3
+394 GOSUB 990
+395 GOTO 390
 
 0 REM display temp handler ------
 400 GOSUB 450
@@ -937,14 +937,9 @@
 0 REM time to end @ALARM, we can't do much
 814 RETURN
 
-0 REM do we need this at all???
-@CONTROL 910
-0 REM remote request for DTR, disconnect
-910 IF $0[0] = 49 THEN 912;
-911 REM A = disconnect 1
-912 RETURN 
 
-@SLAVE 920
+@SLAVE 919
+919 A = uarton;
 0 REM we only allow incomming connections
 0 REM from the host XR we're paired
 920 A =  getconn $0
@@ -957,23 +952,25 @@
 926 A = shell
 927 RETURN
 
+0 REM @IDLE will get called, and that will launch
+0 REM alarms, and then alarms enable deep sleep back.
 928 A = disconnect 0
 929 RETURN
 
 
 0 REM buttons and power
 @PIO_IRQ 840
-840 GOSUB 990
+840 A = uarton;
 0 REM press button starts alarm for long press recognition
 841 IF $0[2]=48 THEN 855;
 842 IF $0[3]=48 THEN 855;
 843 IF $0[12]=49 THEN 855;
 0 REM was it a release, handle it
 844 IF W <> 0 THEN 310;
-845 GOSUB 1000
-846 RETURN
+845 GOTO 1000
 
 0 REM button press, save state, start ALARM
+0 REM prevent deep sleep
 855 IF I = 1 THEN 857;
 856 IF S = 1 THEN 861;
 857 $2 = $0;
@@ -981,7 +978,7 @@
 859 ALARM 3
 860 RETURN
 
-0 REM leave deep sleep
+0 REM enable LCD
 861 GOSUB 990;
 862 ALARM 60;
 863 A = pioset 9;
@@ -989,23 +986,26 @@
 865 W = 0
 866 RETURN
 
-0 REM slave for 60 seconds after boot
+0 REM slave for 20 seconds after boot
 0 REM then stop FTP too
-@IDLE 930
-930 IF U=1000 THEN 934
-0 REM disable 3 will disable page scan
-0 REM slave 0 no more @IDLE
-931 A = disable 3
-932 A = slave 0
-933 RETURN
+@IDLE 920
+0 REM this shouldn't happen but just in case
+920 A = uarton;
+921 IF U=1000 THEN 930
+0 REM disable 3 will unregister OPUSH, and FTP
+0 REM no more SDP records, so it will disable
+0 REM PAGE SCAN.
+922 A = disable 3
+923 ALARM 1
+924 RETURN
 
-0 REM make sure we keep visible for 20 seconds
+0 REM make sure we keep visible for 10 seconds
 0 REM after first boot.
-934 A = slave 20
-935 RETURN
+930 A = slave 20
+932 RETURN
 
 0 REM prepare for updates
-936 A = pioirq"P000000000000"
+936 A = pioirq$27
 937 ALARM 0
 938 A = strlen $3;
 939 IF A < 12 THEN 985;
@@ -1057,18 +1057,19 @@
 
 0 REM disable deep sleep
 990 S = 0
-0 REM 991 A = pioirq $23
-992 A = uarton
+991 A = auxdac N
 993 A = pioclr 5
 994 RETURN
 
 0 REM enable deep sleep
 1000 IF I = 1 THEN 1005
 1001 S = 1
-0 REM 1002 A = pioirq $22
-1003 A = pioset 5 
-1004 A = uartoff
-1005 RETURN
+1002 A = auxdac 0
+1003 A = pioset 5
+0 REM make sure that nothing happens between enabling deep
+0 REM sleep and RETURN
+1004 A = uartoff;
+1005 RETURN;
 
 1010 $0[0] = 0
 1011 A = getuniq $0
