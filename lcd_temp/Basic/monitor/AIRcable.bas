@@ -246,7 +246,6 @@
 124 RETURN
 
 
-
 0 REM @ALARM handler
 @ALARM 142
 0 REM make sure @ALARM is handled in non deep sleep mode
@@ -331,7 +330,7 @@
 
 0 REM prevent any possible interrupt
 215 ALARM 0
-216 A = pioirq$27
+216 A = pioirq $27
 217 GOSUB 450;
 
 218 A =pioset 20
@@ -349,14 +348,14 @@
 229 PRINTV K
 
 
-230 A = unpair $3
-231 A = message $3;
-232 WAIT 10
+230 A = message $3;
+231 WAIT 10
 
 0 REM check message transmission
-234 C = status
-235 IF C < 1000 THEN 240
-236 GOTO 231
+232 C = status
+233 IF C < 1000 THEN 240
+234 A = unpair $3
+235 GOTO 230
 
 240 A = pioclr 20
 241 A = success
@@ -459,7 +458,7 @@
 332 M = 3
 333 A = nextsns 1
 334 ALARM 30
-335 A = pioirq$27
+335 A = pioirq $27
 336 RETURN
 
 
@@ -937,27 +936,6 @@
 0 REM time to end @ALARM, we can't do much
 814 RETURN
 
-
-@SLAVE 919
-919 A = uarton;
-0 REM we only allow incomming connections
-0 REM from the host XR we're paired
-920 A =  getconn $0
-921 A = strcmp $3
-922 IF A <> 0 THEN 928 
-0 REM LED on
-923 ALARM 0
-924 Q = 0
-925 A = pioset 20
-926 A = shell
-927 RETURN
-
-0 REM @IDLE will get called, and that will launch
-0 REM alarms, and then alarms enable deep sleep back.
-928 A = disconnect 0
-929 RETURN
-
-
 0 REM buttons and power
 @PIO_IRQ 840
 840 A = uarton;
@@ -986,6 +964,28 @@
 865 W = 0
 866 RETURN
 
+
+
+@SLAVE 900
+900 A = uarton;
+0 REM we only allow incomming connections
+0 REM from the host XR we're paired
+901 A =  getconn $0
+902 A = strcmp $3
+903 IF A <> 0 THEN 910
+0 REM LED on
+904 ALARM 0
+905 Q = 0
+906 A = pioset 20
+907 A = shell
+908 RETURN
+
+0 REM @IDLE will get called, and that will launch
+0 REM alarms, and then alarms enable deep sleep back.
+910 A = disconnect 0
+911 RETURN
+
+
 0 REM slave for 20 seconds after boot
 0 REM then stop FTP too
 @IDLE 920
@@ -1005,12 +1005,12 @@
 932 RETURN
 
 0 REM prepare for updates
-936 A = pioirq$27
-937 ALARM 0
-938 A = strlen $3;
-939 IF A < 12 THEN 985;
+936 A = pioirq $27
+940 ALARM 0
+941 A = strlen $3;
+942 IF A < 12 THEN 985;
 0 REM make sure battery readings don't bother us
-942 M = -1
+943 M = -1
 944 $24 = "!"
 945 A = pioset 9;
 946 GOSUB 990
@@ -1034,7 +1034,6 @@
 964 PRINTV "|"
 965 PRINTV $17
 
-
 968 A = zerocnt
 969 A = unpair $3
 970 A = message $3;
@@ -1048,7 +1047,8 @@
 978 U = 0
 979 M = 3
 980 A = slave 120
-981 GOTO 990
+981 A = pioirq $23
+982 GOTO 990
 
 985 A = lcd "not paired"
 986 A = pioirq $23
@@ -1082,4 +1082,3 @@
 1017 A = lcd $0[B]
 1018 NEXT B
 1019 RETURN
-
