@@ -27,7 +27,8 @@
 0 REM J used in @SENSOR
 0 REM I hardware supports deep sleep
 0 REM H increments on every minute that passes
-0 REM ABCDEFG
+0 REM G amount of tries, we try 3 times to send the message
+0 REM ABCDEF
 
 0 REM S = 1 sleeping
 0 REM S = 0 not sleeping
@@ -258,11 +259,11 @@
 147 Q = 0;
 148 A = zerocnt;
 149 A = strlen $3;
-150 IF A >= 12 THEN 199;
+150 IF A >= 12 THEN 190;
 
 151 A = lcd "NOT PAIRED"
 152 U = 0
-153 GOTO 161
+153 GOTO 159
 
 
 0 REM Menu been displayed?
@@ -292,7 +293,7 @@
 168 A = zerocnt;
 
 0 REM time to send message?
-169 IF H >= 5 THEN 199;
+169 IF H >= 5 THEN 190;
 
 0 REM we keep showing the temperature
 0 REM for the next 5 seconds
@@ -302,77 +303,84 @@
 0 REM then reset minute counter, check prescalled
 0 REM counter
 0 REM increment prescalled counter, and check it
-199 H = 0;
-200 A = zerocnt;
-201 Q = Q + 1;
-202 A = $24[0]+1;
-203 $24[0] = A ;
+190 H = 0;
+191 A = zerocnt;
+192 Q = Q + 1;
+193 A = $24[0]+1;
+194 $24[0] = A ;
 
 0 REM only message if paired
-204 A = strlen $3;
-205 IF A < 12 THEN 810;
+195 A = strlen $3;
+196 IF A < 12 THEN 810;
 
 0 REM first check for update
-206 IF $24[0] >= 57 THEN 936;
+197 IF $24[0] >= 57 THEN 936;
 0 REM then see if it's time to message
-207  IF Q >= P THEN 210;
-208 IF U = 2000 THEN 210;
+198  IF Q >= P THEN 201;
+199 IF U = 2000 THEN 201;
 0 REM we don't have much to do.
-209 GOTO 159;
+200 GOTO 159;
 
 0 REM send message, check for status first
-210 A = status;
-211 IF A >= 1000 THEN 800;
+201 A = status;
+202 IF A >= 1000 THEN 800;
 
 0 REM prevent any possible @SENSOR
-212 M = -1
-214 A = lcd "MESSAGE"
+203 M = -1
+204 G = 3
 
 0 REM prevent any possible interrupt
-215 ALARM 0
-216 A = pioirq $27
-217 GOSUB 450;
+205 ALARM 0
+206 A = pioirq $27
 
-218 A =pioset 20
+207 A = lcd"PRE MSG "
+208 GOSUB 450;
 
-219 $0[0]=0;
-220 PRINTV"$";
-221 PRINTV $25
-222 PRINTV ":";
-223 PRINTV Y;
-224 PRINTV"!";
-225 PRINTV X;
-226 PRINTV"#";
-227 PRINTV $7;
-228 PRINTV"#"
-229 PRINTV K
+217 $0[0]=0;
+218 PRINTV"$";
+219 PRINTV $25
+220 PRINTV ":";
+221 PRINTV Y;
+222 PRINTV"!";
+223 PRINTV X;
+224 PRINTV"#";
+225 PRINTV $7;
+226 PRINTV"#"
+227 PRINTV K
 
+228 A = lcd "MESSAGE"
+229 A = pioset 20
 
 230 A = message $3;
 231 WAIT 10
 
 0 REM check message transmission
+0 REM wait until the connection closes
 232 C = status
 233 IF C < 1000 THEN 240
-234 A = unpair $3
-235 GOTO 230
+234 WAIT 5
+235 GOTO 232
 
 240 A = pioclr 20
 241 A = success
 242 IF A > 0 THEN 254
 243 IF A = 0 THEN 246
 244 A = lcd "FAILED      "
-245 GOTO 257
+245 GOTO 247
 246 A = lcd  "TIMEOUT      "
-247 GOTO 257
- 
+
+0 REM check if we had tried 3 times
+247 G = G -1
+248 IF G > 0 THEN 228
+249 GOTO 255
 
 0 REM Message was ok, then we clear
+0 REM or reached the 3 times counter
 0 REM all the counters and start back from 0
 0 REM if we were booting we also need to clear up U
-254 Q = 0
-255 U = 0 
-256 A = lcd "   OK   "
+254 A = lcd "   OK   "
+255 Q = 0
+256 U = 0 
 
 257 A = zerocnt
 258 M = 3
@@ -396,7 +404,7 @@
 269 IF A = 1 THEN 275;
 0 REM ignore other long presses
 270 W = 0;
-271 GOTO 206
+271 GOTO 197
 
 0 REM exit
 275 A = lcd "GOOD BYE";
@@ -440,13 +448,13 @@
 313 IF $2[2] = 48 THEN 330;
 314 IF $2[3] = 48 THEN 320;
 315 IF $2[12] = 49 THEN 325;
-316 GOTO 204
+316 GOTO 195
 
 0 REM send current temp
 320 A = strlen $3
 321 IF A < 12 THEN 334
 322 A = lcd "WAIT . . . "
-323 GOTO 212
+323 GOTO 203
 
 0 REM show current temp
 325 ALARM 30
@@ -465,8 +473,10 @@
 0 REM SENSOR handler
 @SENSOR 340
 0 REM make sure we don't go to sleep
+0 REM we don't know the state of the app actually
+0 REM so just in case we don't enable deep sleep back
+0 REM we leave that part to @ALARM
 340 A = uarton;
-341 ALARM 0;
 342 IF M = 2 THEN 393;
 343 IF M <> 0 THEN 390;
 344 ALARM 0;
@@ -513,13 +523,14 @@
 388 WAIT 2
 389 GOTO 350
 
-390 M = M -1;
-391 A = uartoff
-392 RETURN
+0 REM make sure we don't enable deep sleep
+390 M = M - 1;
+391 RETURN
 
 393 A = nextsns 3
-394 GOSUB 990
-395 GOTO 390
+394 ALARM 0
+395 GOSUB 990
+396 GOTO 390
 
 0 REM display temp handler ------
 400 GOSUB 450
@@ -945,7 +956,7 @@
 843 IF $0[12]=49 THEN 855;
 0 REM was it a release, handle it
 844 IF W <> 0 THEN 310;
-845 GOTO 1000
+845 RETURN
 
 0 REM button press, save state, start ALARM
 0 REM prevent deep sleep
