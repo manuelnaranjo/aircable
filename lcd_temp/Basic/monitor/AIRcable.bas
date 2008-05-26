@@ -1,5 +1,9 @@
 @ERASE
 
+0 REM security meassure
+1022 A = name"Broken Code"
+1023 A = lcd"BRK CODE"
+
 0 REM PIO LIST:
 0 REM 1 IR OFF
 0 REM 2 RIGHT BUTTON
@@ -153,6 +157,9 @@
 65 PRINTV $7
 66 PRINTV"         "
 67 A = lcd $0
+
+0 REM check code is complete
+68 GOSUB 1022
 
 0 REM set name
 69 A = getuniq $18
@@ -1094,3 +1101,6 @@
 1017 A = lcd $0[B]
 1018 NEXT B
 1019 RETURN
+
+1022 RETURN
+
