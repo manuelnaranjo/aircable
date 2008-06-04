@@ -1,10 +1,10 @@
 #!/usr/bin/python
 """ This file is used for managing obex-server sessions, as every good project
     it uses obex-data-server for the hard part of the work.
-    
+ 
     Copyright 2008 Wireless Cables Inc. <www.aircable.net>
     Copyright 2008 Naranjo, Manuel Francisco <manuel@aircable.net>
-   
+
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
@@ -24,23 +24,58 @@ import dbus.glib
 import gobject
 import sys
 import re
-
+import inspect
+import os
 import logging
 from signal import *
+from dbus.bus import *
 
 from obex_message import ObexMessage
+
+def ods_disposed_cb(*kargs):
+    if len(kargs) >= 3:
+	if (kargs[0]=='org.openobex' and kargs[2]==''):
+	    logging.info( 'ODS has gone down, time to go' )
+	    main_loop.quit()
+	    sys.exit(0)
+
 
 class MessageServer:
     """ Main class used for receiving Obex Messages """
     
     __bt_address = '00:00:00:00:00:00'
     __profile = 'opp' # opp = Obex Object Push
-    __bus = None
     __manager = None
     ReceivedCB = None
     StoppedCB = None
     ErrorCB = None
     
+    __sessions = dict()
+
+    def __transfer_started_cb(self, filename, local_path, size, path, *args):
+	self.__sessions[path].__local_path = local_path
+	logging.info('Session: %s file: %s' % (path , local_path))
+	
+    def __transfer_completed_cb(self, path, *kargs):
+	session = self.__sessions[path]
+	logging.debug('Session: %s Transfer completed' % path )
+
+	try:
+		f = open( session.__local_path , 'r' )
+		__content = f.read()
+		logging.debug('Content:\n%s' % __content )
+		os.remove(session.__local_path)
+		logging.debug('Deleted file: %s' % session.__local_path )
+	except:
+		logging.warning('Error while reading content') 
+
+	try:
+		self.received_cb( __content, session.info )
+	except:
+		logging.debug('Session: %s has no or a wrong parent asociated'
+			% path)
+		print sys.exc_info()
+
 
     def received_cb ( self, content , session_info ):
 	""" Internal call back that's called when a file has been received """
@@ -56,17 +91,26 @@ class MessageServer:
 	    find out there's no ods connected to dbus ;)
 	"""
 	logging.debug ( 'Connecting to DBUS'  )
-	self.__bus = dbus.SystemBus()	 
+	bus = dbus.SystemBus()	 
 	logging.debug ( 'Connected to DBUS' )
 	
 	logging.debug ( 'Checking for ODS' )
-	manager_obj = self.__bus.get_object('org.openobex', '/org/openobex')	
+	manager_obj = bus.get_object('org.openobex', '/org/openobex')	
 	logging.debug ( 'ODS is up and ready'  )
 	
 	self.__manager = dbus.Interface(manager_obj, 'org.openobex.Manager')
 	self.__path = path
 	
+	bus.add_signal_receiver( 
+	    ods_disposed_cb, 
+	    signal_name = 'NameOwnerChanged'
+	)
+	
 	logging.info ( 'System up and ready, you can start the server now' )
+    
+    def __del__( self ):
+	logging.info( 'Obex Server going down, bye')
+	exit()
 
     def setServerAddress( self,  bt_address = '00:00:00:00:00:00' ):
 	""" You should call this function if you want the obex-server to attach 
@@ -106,16 +150,25 @@ class MessageServer:
     def __session_created_cb(self, session_object_path):
 	""" Call back for the ObexServer, not used from outside """
 	logging.debug( "Session Created: %s" % session_object_path )
-	session_info = self.__server.GetServerSessionInfo( session_object_path )
+	session_info = self.__server.GetServerSessionInfo( 
+	    session_object_path )
 	logging.info( 'Created Session with: %s' % 
 	    session_info['BluetoothAddress'] )
-	session = ObexSession( session_object_path, session_info, self )
+	self.__sessions[session_object_path] = ObexSession( session_info )
 	
     def __session_removed_cb(self, session_object_path):
 	""" Call back for the ObexServer, not used from outside """
 	logging.debug( 'Session Removed: %s' % session_object_path )
 	
-    def startServer( self , path , pairing = False ):
+    def __mighty_helper(self, filename, local_path, size, path, *args):
+	print path
+	print filename
+	print local_path
+	print size
+	
+
+	
+    def startServer( self , path = '/tmp/message' , pairing = False ):
 	""" Starts the server it self, prepare for receiving connections
 	    Arguments:
 		needed:
@@ -132,18 +185,47 @@ class MessageServer:
 	logging.debug ('Server object: %s' % server_path)
 	
 	#now get the real server Object
-	server_obj = self.__bus.get_object('org.openobex', server_path)
+	self.bus = dbus.SystemBus()
+	server_obj = self.bus.get_object('org.openobex', server_path)
 	self.__server = dbus.Interface(server_obj, 'org.openobex.Server')
 	
-	#Connect to signals
+	#Connect to org.openobex.Server signals
 	self.__server.connect_to_signal('Started', self.__started_cb)
 	self.__server.connect_to_signal('Stoped', self.__stopped_cb)
 	self.__server.connect_to_signal('Closed', self.__closed_cb)
 	self.__server.connect_to_signal('ErrorOcurred', self.error_ocurred_cb)
-	self.__server.connect_to_signal('SessionCreated', self.__session_created_cb)
-	self.__server.connect_to_signal('SessionRemoved', self.__session_removed_cb)
+	self.__server.connect_to_signal('SessionCreated',
+						self.__session_created_cb)
+	self.__server.connect_to_signal('SessionRemoved',
+						self.__session_removed_cb)
+						
+	#Connect to org.openobex.ServerSession signals
+	self.bus.add_signal_receiver( 
+		self.__transfer_started_cb,
+		signal_name = 'TransferStarted',
+		dbus_interface = 'org.openobex.ServerSession',
+		path_keyword = 'path'
+	    	#arg0 = 'filename',
+	    	#arg1 = 'local_path',
+	    	#arg2 = 'size'
+	)
 	
-	self.__server.Start( self.__path, True, True )
+	self.bus.add_signal_receiver(
+		self.__transfer_completed_cb,
+		signal_name = 'TransferCompleted',
+		dbus_interface = 'org.openobex.ServerSession',
+		path_keyword = 'path'
+#		sender_keyword = 'sender' ,
+#		destination_keyword = 'destination' ,
+#		interface_keyword = 'interface' ,
+#		member_keyword = 'member' ,
+#		message_keyword = 'message'
+#		
+	)
+	
+	logging.info('Starting....')
+	
+	self.__server.Start( path, True, False ) # No auto accept
 
     def stopServer ( self ):
 	""" Stops the server, it will close any connection that's going on
@@ -158,85 +240,13 @@ class MessageServer:
 	    as argument, so make sure your transfers are short.
 	"""
 	self.ReceivedCB = receivedCB
-	
 
 class ObexSession:
     """ This class is used internally to provide session backend """
-    
-    __parent = None
-    
-    def __init__(self, session_path, session_info, message_server):
+    def __init__(self, session_info):
 	""" internal builder """
-	logging.debug("Initialization ObexSession for path: %s" % session_path)
-	self.__path = session_path
-	self.__info = session_info
-	self.__parent = message_server
-	self.bus = dbus.SystemBus()
-	
-	#Get session object
-	session_obj = self.bus.get_object('org.openobex', session_path)
-	self.session = dbus.Interface(session_obj, 'org.openobex.ServerSession')
-	
-	#Connect signals
-	self.session.connect_to_signal('Disconnected', self.__disconnect_cb)
-	self.session.connect_to_signal('Cancelled', self.__cancelled_cb)
-	self.session.connect_to_signal('TransferCompleted', 
-		self.__transfer_completed_cb)
-	self.session.connect_to_signal('ErrorOcurred', 
-		self.__error_ocurred_cb)
-	
-	self.__local_path = self.session.GetTransferInfo()['LocalPath']
-	logging.debug('Session: %s file: %s' % (self.__path , 
-	    self.__local_path))
-	#self.session.Accept()
-	
-    def __transfer_completed_cb(self):
-	logging.debug('Session: %s Transfer completed' % self.__path )
-	
-	f = open( self.__local_path , 'r' )
-	
-	self.__content = f.read()
-	logging.debug('Content:\n%s' % self.__content )
-	
-	try:
-	    self.__parent.received_cb( self.__content, self.__info )
-	except:
-	    logging.debug('Session: %s has no or a wrong parent asociated' % 
-		self.__path)
-	    print sys.exc_info()
-
-	
-    def __disconnect_cb(self):
-	logging.debug('Session %s has been disconnected' % self.__path )
-	try:
-	    self.__parent.error_ocurred_cb( 'disconnected', 
-		self.__info['BluetoothAddress'] ) 
-	except:
-	    logging.debug('Session: %s has no or a wrong parent asociated' %
-		self.__path )
-
-	
-    def __cancelled_cb(self):
-	logging.debug('Session %s has been cancelled' % self.__path)
-	try:
-	    self.__parent.error_ocurred_cb( 'cancelled', 
-		self.__info['BluetoothAddress'] )
-	except:
-	    logging.debug('Session: %s has no or a wrong parent asociated' %
-		self.__path )
-	        
-    def __error_ocurred_cb(self, error_name, error_message):
-	logging.debug('Session %s, error ocurred %s: %s' % 
-	    (  self.__path , error_name, error_message ) )
-
-	try:
-	    self.__parent.error_ocurred_cb( error_name , 
-		    '%s: %s' % (self.__info['BluetoothAddress'] , 
-			error_message ) )
-	except:
-	    logging.debug( 'Session: %s has no or a wrong parent asociated' %
-		self.__path )
-    
+	self.info = session_info
+	logging.debug('Session created')
 	
 if __name__ == '__main__':
 
