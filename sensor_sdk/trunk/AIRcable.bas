@@ -207,7 +207,7 @@
 0 REM we need to automatically message?
 158 IF V > 0 THEN 170
 
-0 REM alarm ended
+0 REM @alarm ended
 0 REM trigger again
 159 ALARM 15
 160 A = pioirq $6
@@ -228,31 +228,33 @@
 0 REM prepare msg
 183 A = lcd"MESSAGE     "
 184 $0[0] = 0
-185 PRINTV"READ:"
-186 PRINTV $10
-187 A = message $5
-188 WAIT 5
+185 PRINTV"BATT|"
+186 PRINTV$7
+187 PRINTV"|"
+188 PRINTV $10
+189 A = message $5
+190 WAIT 5
 
 0 REM wait for completion
-189 A = status
-190 IF A > 1000 THEN 188
+191 A = status
+192 IF A > 1000 THEN 188
 
-191 A = success
-192 IF A > 0 THEN 199
-193 IF A = 0 THEN 196
-194 A = lcd "FAILED      "
-195 GOTO 200
-196 A = lcd "TIMEOUT     "
-197 GOTO 200
+193 A = success
+194 IF A > 0 THEN 205
+195 IF A = 0 THEN 198
+196 A = lcd "FAILED      "
+197 GOTO 206
+198 A = lcd "TIMEOUT     "
+199 GOTO 206
 
-199 A = lcd "SUCCESS    "
+205 A = lcd "SUCCESS    "
 
 0 REM leave it on the screen
-200 A = zerocnt
-201 WAIT 2
+206 A = zerocnt
+207 WAIT 2
 
-202 A = lcd $11
-203 GOTO 159
+208 A = lcd $11
+209 GOTO 159
 
 0 REM PIO interrupts
 @PIO_IRQ 299
@@ -277,16 +279,17 @@
 0 REM button released for a short press
 320 W = 0;
 321 ALARM 0
-322 IF$14[$1[0]-64]=48THEN330;
-0 REM short middle button press: update reading
-323 IF$14[$1[1]-64]=49THEN110;
+0 REM middle send message
+322 IF$14[$1[1]-64]=49THEN330;
+323 IF$14[$1[0]-64]=48THEN110;
 324 IF$14[$1[2]-64]=48THEN340;
 325 RETURN
 
 0 REM short left button press: message
 330 A = strlen $5;
-331 IF A > 11 THEN 183;
-332 RETURN
+331 GOSUB 800
+332 IF A > 11 THEN 183;
+333 RETURN
 
 0 REM short left button press: battery reading
 340 $0 = "BATT "
@@ -313,15 +316,17 @@
 0 REM turn off
 370 A = lcd "GOOD BYE";
 371 ALARM 0;
-372 A = pioget($1[1]-64);
-373 IF A = 1 THEN 372;
-374 A = pioclr($1[4]-64);
-375 A = lcd;
-376 A = reboot;
-377 FOR E = 0 TO 10;
-378   WAIT 1
-379 NEXT E;
-380 RETURN
+372 A = pioset($1[3]-64)
+373 A = pioclr($1[3]-64);
+374 A = pioget($1[1]-64);
+375 IF A = 1 THEN 372;
+376 A = pioclr($1[4]-64);
+377 A = lcd;
+378 A = reboot;
+379 FOR E = 0 TO 10;
+380   WAIT 1
+381 NEXT E;
+382 RETURN
 
 0 REM menu prepare
 385 Q = 390
@@ -525,6 +530,12 @@
 641 T = 0
 642 GOTO 600
 
+@SLAVE 650
+650 A = pioset($1[4]-64)
+651 A = shell
+652 RETURN
+
+
 0 REM 690 TO 699
 0 REM for inquiry results
 688 CANCEL
@@ -540,15 +551,16 @@
 754 RETURN;
 
 0 REM wait for both readings
-760 P = P -1;
+760 P = P - 1;
 761 RETURN;
 
 0 REM 800 put your sensor reading code here
-800 $11 = "0000|0000"
+800 $10 = "0000|0000"
 801 RETURN
 
 0 REM 900 put your sensor display code here
-900 $10 = "READING    "
+900 $11 = "READING    "
 901 RETURN
+
 
 
