@@ -124,7 +124,7 @@ class MessageServer:
 	    use ftp (FTP over OBEX)
 	"""
 	logging.debug ( 'Setting profile from %s to %s ' 
-	    % (self.profile, profile) )
+	    % (self.__profile, profile) )
 	self.__profile = profile
 	
     def __started_cb(self):
