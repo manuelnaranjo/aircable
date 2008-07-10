@@ -1,6 +1,6 @@
 from socket import *
 
-class rfcommClient:
+class sppClient:
 	__socket  = None;
 	__address  = None;
 	__channel = None;
