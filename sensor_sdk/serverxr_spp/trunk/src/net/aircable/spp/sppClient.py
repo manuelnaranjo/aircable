@@ -18,131 +18,103 @@
 """
 
 import socket
+import dbus
 
 from re import compile
 from errors import *
+from sppBase import *
+from xml.dom.minidom import parseString
+
+
 
 __pattern = compile(r'.*\n');
 
-def getDefaultDeviceAddress():
-    pass
+class sppClient(sppBase):
+	__bus = dbus.SystemBus()
 
-class sppClient:
-	'''
-	    Simple wrapper for an spp client, actually it is an rfcomm client, 
-	    not only spp.
-	'''
-        __socket  = None;
-	__address  = None;
-        __channel = None;
-	__service = None;
-	__device  = None;
-	
-	def __init__(self, socket):
-	    '''
-		    You use this constructor when you all ready have a socket
-	        
-		arguments:
-		    socket descriptor
-	    '''
-	    self.__socket = socket;
-
-	def __init__( self,
-			target  = '', 
-			channel = -1, 
-			service = 'spp',
-			device  = getDefaultDeviceAddress() ):
-	    '''
-		More general constructor. You will use this one when you want
-		sppClient to make the conneciton.
+	def __browsexml(self, doc):
+	    record=doc.documentElement
 	    
-		arguments:
-	    	    target:  Bluetooth Address of the device you want to connect to,
-		    channel: Channel to be used for establishing the connection.
-		    service: Service to use when you want sppClient to do service
-			     Discovery.
-		    device:  Bluetooth Address of the local device you want to 
-			     use for making the connection.
-	    '''
+	    for node in record.childNodes:
+	        if node.nodeType == node.ELEMENT_NODE and node.getAttribute('id') == '0x0004':
+			val = node.getElementsByTagName('uint8')
+			return int(val[0].getAttribute('value'), 16)
+				    
+	def resolveService(self, target, service='spp' ):
+	    self.logInfo("Resolving service %s for device %s...."
+		    %(service, target) 
+		);
 	    
-	    self.__address = target;
-	    self.__channel = int(channel);
-	    self.__service = service;
-	    self.__device  = device;
+	    bluez_path   = self.__bus.get_object( 'org.bluez', '/org/bluez' )
+	    manager = dbus.Interface( bluez_path, 'org.bluez.Manager' )
+	    
+	    adapter_path = self.__bus.get_object( 'org.bluez', 
+			    manager.FindAdapter(self.device) 
+			)
+	    adapter = dbus.Interface( adapter_path, 'org.bluez.Adapter' )
+	    
+	    aservices = adapter.GetRemoteServiceHandles( target, service )
+	    
+	    for x in aservices:
+		self.logWarning("Trying with rec Handle 0x%X" % x)
+		
+		xml=adapter.GetRemoteServiceRecordAsXML( target, x )
+		self.logDebug(xml)
+		
+		doc=parseString(xml)
+		
+		return self.__browsexml(doc)
+		
+	    raise SPPException, "Service not available"
 
 	def connect(self):
 	    '''
 		Starts the connection
 	    '''
-	    if self.__channel < 1:
-		    raise SPPNotImplemented, 'Profiles resolving isn\'t implemented yet'
+	    if not self.target:
+		raise SPPNotImplemented, 'Scanning is not supported, you need to do that by your own'
+	    
+	    if self.channel < 1:
+		self.channel = self.resolveService( self.target, self.service)
 		    
-	    if (self.__socket == None):
+	    if (self.socket == None):
 		print 'creating socket'    
-		self.__socket = socket.socket( socket.AF_BLUETOOTH, 
+		self.socket = socket.socket( socket.AF_BLUETOOTH, 
 						socket.SOCK_STREAM, 
 						socket.BTPROTO_RFCOMM );
 	    #Let BlueZ decide outgoing port
-	    print 'binding to %s, %i' % ( self.__device , 0 )
-	    self.__socket.bind( (self.__device,0) );
+	    print 'binding to %s, %i' % ( self.device , 0 )
+	    self.socket.bind( (self.device,0) );
 		
-	    print 'connecting to %s, %i' % ( self.__address, self.__channel )
-	    self.__socket.connect( (self.__address, self.__channel) );
+	    print 'connecting to %s, %i' % ( self.target, self.channel )
+	    self.socket.connect( (self.target, self.channel) );
 
-	def __checkConnected(self, message =''):
-		if self.__socket == None:
-		    raise SPPNotConnectedException, message
-
-	def send(self, text):
-	    '''
-		Send something to the port.
-	    
-		Arguments: what to send
-	    '''
-	    self.__checkConnected('Can\'t send if not connected');
-		
-	    self.__socket.sendall(text);
-
-	def read(self, bytes=10):
-	    '''
-		Read binary data from the port.
-	    
-		Arguments:
-		    bytes: Amount of bytes to read
-	    '''
-	    self.__checkConnected('Can\'t read if not connected');
-		
-	    return self.__socket.recv(bytes);
-
-	
-
-	def readLine(self):
-	    '''
-		Reads until \n is detected
-	    '''
-	    out = buffer("");
-		
-	    while ( 1 ):
-		out += self.read(1);
-
-		if __pattern.match(out):
-			return replace(out, '\n', '');
 
 if __name__ == '__main__':
     import sys
     
-    if ( len(sys.argv) < 4 ):
-	print "Usage %s <target> <channel> <adapter>" % (sys.argv[0])
+    if ( len(sys.argv) < 2 ):
+	print "Usage %s <target> [ <channel>  <adapter> ]" % (sys.argv[0])
 	sys.exit(1)
-
+    
+    if ( len(sys.argv) > 2 ):
+	chan = sys.argv[2]
+    else:
+	chan = -1
+    
+    if ( len(sys.argv) > 3 ):
+	dev = sys.argv[3]
+    else:
+	dev = None
+	
     a = sppClient(
 	    target	=sys.argv[1],
-	    channel	=sys.argv[2],
-	    device	=sys.argv[3]
+	    channel	=chan,
+	    device	=dev
 	);
     
     a.connect()
     
-    a.readLine();
-    
-    a.send('1234');
+    print a.readLine();
+    a.sendLine('1234');
+    print a.readLine();    
