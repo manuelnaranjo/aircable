@@ -20,17 +20,19 @@
 import socket
 import dbus
 
-from re import compile
 from errors import *
 from sppBase import *
 from xml.dom.minidom import parseString
 
-
-
-__pattern = compile(r'.*\n');
-
 class sppClient(sppBase):
-	__bus = dbus.SystemBus()
+	target = None
+	
+	def __init__(self, target, channel, service, device):
+	    sppBase.__init__(self, channel, service, device);
+	    self.logInfo("sppClient.__init__")
+	    self.logInfo("target: %s" % target )
+	    self.target = target
+
 
 	def __browsexml(self, doc):
 	    record=doc.documentElement
@@ -45,18 +47,13 @@ class sppClient(sppBase):
 		    %(service, target) 
 		);
 	    
-	    bluez_path   = self.__bus.get_object( 'org.bluez', '/org/bluez' )
-	    manager = dbus.Interface( bluez_path, 'org.bluez.Manager' )
-	    
-	    adapter_path = self.__bus.get_object( 'org.bluez', 
-			    manager.FindAdapter(self.device) 
-			)
-	    adapter = dbus.Interface( adapter_path, 'org.bluez.Adapter' )
+	    adapter = dbus.Interface( self.getAdapterObjectPath(), 
+						    'org.bluez.Adapter' )
 	    
 	    aservices = adapter.GetRemoteServiceHandles( target, service )
 	    
 	    for x in aservices:
-		self.logWarning("Trying with rec Handle 0x%X" % x)
+		self.logDebug("Trying with rec Handle 0x%X" % x)
 		
 		xml=adapter.GetRemoteServiceRecordAsXML( target, x )
 		self.logDebug(xml)
@@ -117,4 +114,4 @@ if __name__ == '__main__':
     
     print a.readLine();
     a.sendLine('1234');
-    print a.readLine();    
+    print a.readLine();

@@ -25,22 +25,21 @@ from errors import *
 import logging
 import dbus
 
-
-
-
 class sppBase:
 	'''
 	    Base class for rfcomm wrappers regardless of it\'s master or slave
 	    behaviour.
 	'''
         socket  = None;
-	target  = None;
         channel = None;
 	service = None;
 	device  = None;
+	
 	__logger  = None;
-	__bus 	  = dbus.SystemBus();
+	bus 	  = dbus.SystemBus();
 	__pattern = compile(r'.*\n');
+	
+	new_bluez_api = False;
 	
 	def logInfo(self, text):
 	    self.__logger.info(text);
@@ -64,13 +63,21 @@ class sppBase:
 	    self.__logger.setLevel(logging.DEBUG)
 	    
 	def getDefaultDeviceAddress(self):
-	    obj     = self.__bus.get_object( 'org.bluez', '/org/bluez' )
+	    obj     = self.bus.get_object( 'org.bluez', '/org/bluez' )
 	    manager = dbus.Interface( obj, 'org.bluez.Manager' )
-	    obj     = self.__bus.get_object( 'org.bluez', 
+	    obj     = self.bus.get_object( 'org.bluez', 
 						    manager.DefaultAdapter() )
 	    adapter = dbus.Interface( obj, 'org.bluez.Adapter' )
 	    address = adapter.GetAddress()
 	    return address
+	    
+	def getAdapterObjectPath(self):
+            bluez_path   = self.bus.get_object( 'org.bluez', '/org/bluez' )
+            manager = dbus.Interface( bluez_path, 'org.bluez.Manager' )
+
+            return self.bus.get_object( 'org.bluez',
+                            manager.FindAdapter(self.device)
+                        )
 
 	def __init__(self, socket):
 	    '''
@@ -83,7 +90,6 @@ class sppBase:
 	    self.__init_logger();
 
 	def __init__( self,
-			target  = None, 
 			channel = -1, 
 			service = 'spp',
 			device  = None  ):
@@ -92,7 +98,6 @@ class sppBase:
 		sppClient to make the conneciton.
 	    
 		arguments:
-	    	    target:  Bluetooth Address of the device you want to connect. to,
 		    channel: Channel to be used for establishing the connection.
 		    service: Service to use when you want sppClient to do service
 			     Discovery.
@@ -100,8 +105,7 @@ class sppBase:
 			     use for making the connection, None for default.
 	    '''
 	    self.__init_logger();
-	    
-	    self.target = target;
+
 	    self.channel = int(channel);
 	    self.service = service;
 	    
@@ -110,7 +114,7 @@ class sppBase:
 	    
 	    self.device  = device;
 	    
-	    self.logInfo("Target: %s"  % target  );
+	    self.logInfo("sppBase.__init__");
 	    self.logInfo("Channel: %s" % channel );
 	    self.logInfo("Service: %s" % service );
 	    self.logInfo("Device: %s"  % device  );
@@ -118,6 +122,12 @@ class sppBase:
 	def checkConnected(self, message =''):
 		if self.socket == None:
 		    raise SPPNotConnectedException, message
+		    
+	def disconnect(self):
+	    self.checkConnected("Can't close if it's opened");
+	    self.logInfo("Closing socket");
+	    self.socket.shutdown(socket.SHUT_RDWR);
+	    self.socket.close()
 
 	def send(self, text):
 	    '''
@@ -148,8 +158,6 @@ class sppBase:
 	    self.checkConnected('Can\'t read if not connected');
 		
 	    return self.socket.recv(bytes);
-
-	
 
 	def readLine(self):
 	    '''
