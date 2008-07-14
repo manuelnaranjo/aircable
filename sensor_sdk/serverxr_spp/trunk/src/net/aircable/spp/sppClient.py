@@ -27,8 +27,14 @@ from xml.dom.minidom import parseString
 class sppClient(sppBase):
 	target = None
 	
-	def __init__(self, target, channel, service, device):
-	    sppBase.__init__(self, channel, service, device);
+	def __init__( self, target, 
+                        channel = -1,
+                        service = 'spp',
+                        device  = None  ):
+	    sppBase.__init__(self, 
+			    channel = channel, 
+			    service = service, 
+			    device  = device);
 	    self.logInfo("sppClient.__init__")
 	    self.logInfo("target: %s" % target )
 	    self.target = target
@@ -107,11 +113,15 @@ if __name__ == '__main__':
     a = sppClient(
 	    target	=sys.argv[1],
 	    channel	=chan,
+	    service	='spp',
 	    device	=dev
 	);
     
     a.connect()
     
+    a.sendLine('hi');
     print a.readLine();
-    a.sendLine('1234');
-    print a.readLine();
+    a.sendLine('bye');
+                
+    a.disconnect();
+                    

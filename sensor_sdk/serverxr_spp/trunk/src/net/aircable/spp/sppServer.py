@@ -26,7 +26,10 @@ from xml.dom.minidom import parseString
 class sppServer(sppBase):
 	__RecHandle = 0
 	
-	def __init__(self, channel=1, service='spp', device = None):
+	def __init__(self, 
+		    channel=1, 
+		    service='spp', 
+		    device = None):
 	    sppBase.__init__(self, channel, service, device);
 	    self.logInfo("sppServer.__init__")
 	    
@@ -201,6 +204,8 @@ if __name__ == '__main__':
     a.listenAndWait()
     a.unregisterSDP()
     
+    print a.readLine()
+    a.sendLine('How are you?')
     print a.readLine()
     
     a.disconnect()
