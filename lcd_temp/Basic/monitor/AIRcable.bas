@@ -85,7 +85,7 @@
 13 RESERVED
 14 RESERVED
 
-15 0.1.16
+15 0.1.17beta
 16 SMARTauto
 17 SMART
 
@@ -107,8 +107,9 @@
 30 A = pioirq $27
 31 A = lcd "WAIT . . . "
 32 GOSUB 400
-33 A = pioirq $23
-34 RETURN
+33 IF U >= 1000 THEN 35
+34 A = pioirq $23
+35 RETURN
 
 @INIT 38
 0 REM make sure deep sleep is really disabled
@@ -122,6 +123,9 @@
 
 0 REM mark we don't have ambient sensor
 43 K = 0
+
+0 REM no interrupts we're booting
+44 A = pioirq $27
 
 0 REM check if we can do deep sleep
 0 REM I = 1 no deep sleep hardware
@@ -266,11 +270,11 @@
 147 Q = 0;
 148 A = zerocnt;
 149 A = strlen $3;
-150 IF A >= 12 THEN 190;
+150 IF A >= 12 THEN 200;
 
 151 A = lcd "NOT PAIRED"
 152 U = 0
-153 GOTO 159
+153 GOTO 173
 
 
 0 REM Menu been displayed?
@@ -279,62 +283,42 @@
 0 REM check for long button press
 155 IF W = 1 THEN 265;
 
-0 REM one minute passed?
-156 A = readcnt;
-157 IF A >= 60 THEN 165;
-158 IF A < 0 THEN 165;
-
-0 REM next alarm in 30 seconds
-159 ALARM 30;
-160 A = pioclr 9;
-161 A = pioclr 20;
-0 REM now it's time to enable back deep sleep
-0 REM if needed
-162 GOTO 1000
-
 0 REM disable deep sleep
 0 REM update screen
-165 GOSUB 990;
-166 GOSUB 30;
-167 H = H + 1;
-168 A = zerocnt;
+156 GOSUB 990;
+157 GOSUB 30;
+158 H = H + 1;
+159 A = zerocnt;
 
-0 REM time to send message?
-169 IF H >= 5 THEN 190;
-
-0 REM we keep showing the temperature
-0 REM for the next 5 seconds
-170 ALARM 5;
-171 RETURN
-
-0 REM then reset minute counter, check prescalled
-0 REM counter
-0 REM increment prescalled counter, and check it
-190 H = 0;
-191 A = zerocnt;
-192 Q = Q + 1;
-193 A = $24[0]+1;
-194 $24[0] = A ;
+160 Q = Q + 1;
+161 A = $24[0]+1;
+162 $24[0] = A ;
 
 0 REM only message if paired
-195 A = strlen $3;
-196 IF A < 12 THEN 810;
+165 A = strlen $3;
+166 IF A < 12 THEN 810;
 
 0 REM first check for update
-197 IF $24[0] >= 57 THEN 936;
+170 IF $24[0] >= 250 THEN 936;
 0 REM then see if it's time to message
-198  IF Q >= P THEN 201;
-199 IF U = 2000 THEN 201;
-0 REM we don't have much to do.
-200 GOTO 159;
+171  IF Q >= P THEN 200;
+172 IF U = 2000 THEN 200;
+
+0 REM we don't have much to do,
+0 REM keep showing temp for 5 seconds
+0 REM then enable deep sleep, and schedule again
+173 WAIT 5
+174 GOSUB 1000
+175 ALARM 300
+176 RETURN
 
 0 REM send message, check for status first
-201 A = status;
-202 IF A >= 1000 THEN 800;
+200 A = status;
+201 IF A >= 1000 THEN 800;
 
 0 REM prevent any possible @SENSOR
 203 M = -1
-204 G = 3
+
 
 0 REM prevent any possible interrupt
 205 ALARM 0
@@ -373,13 +357,11 @@
 242 IF A > 0 THEN 254
 243 IF A = 0 THEN 246
 244 A = lcd "FAILED      "
-245 GOTO 247
+245 GOTO 255
 246 A = lcd  "TIMEOUT      "
 
-0 REM check if we had tried 3 times
-247 G = G -1
-248 IF G > 0 THEN 228
-249 GOTO 255
+0 REM no matter what happens we don't try again
+247 GOTO 255
 
 0 REM Message was ok, then we clear
 0 REM or reached the 3 times counter
@@ -395,9 +377,8 @@
 0 REM show last temp again
 0 REM keep in non deep sleep mode
 260 A = lcd $8
-261 ALARM 5
-262 A = pioirq $23
-263 RETURN
+261 A = pioirq $23
+262 GOTO 173
 
 
 0 REM long button press
@@ -411,7 +392,7 @@
 269 IF A = 1 THEN 275;
 0 REM ignore other long presses
 270 W = 0;
-271 GOTO 197
+271 GOTO 170
 
 0 REM exit
 275 A = lcd "GOOD BYE";
@@ -455,7 +436,7 @@
 313 IF $2[2] = 48 THEN 330;
 314 IF $2[3] = 48 THEN 320;
 315 IF $2[12] = 49 THEN 325;
-316 GOTO 195
+316 GOTO 173
 
 0 REM send current temp
 320 A = strlen $3
@@ -944,7 +925,7 @@
 803 B = lcd $0
 0 REM time to end @ALARM, we can't do much
 0 REM until status becomes 0
-804 GOTO 159
+804 GOTO 173
 
 0 REM --- print not paired
 810 A = lcd"NOT PAIRED"
@@ -952,7 +933,7 @@
 812 U = 0
 813 H = 0
 0 REM time to end @ALARM, we can't do much
-814 RETURN
+814 GOTO 173
 
 0 REM buttons and power
 @PIO_IRQ 840
@@ -1061,7 +1042,7 @@
 973 IF A < 1000 THEN 975
 974 GOTO 971
 975 A = enable 3;
-976 ALARM 125
+976 ALARM 30
 977 O = 0;
 978 U = 0
 979 M = 3
