@@ -20,13 +20,16 @@
 0 REM $4 is PIO for button
 4 P000000000001
 
-@INIT 49
-49 Z = 0
-50 A = uarton
-51 A = baud 1152
+@INIT 48
+48 Z = 0
+49 A = uarton
+50 A = baud 1152
 
 0 REM BLUE LED PIO
-52 X = 10
+51 X = 10
+
+0 REM middle button PIO
+52 Y = 12
 
 53 A = getuniq
 54 $1 = $0
@@ -49,8 +52,8 @@
 66 A = pioset 5
 67 A = pioout 5
 0 REM PIO12 goes high when pressed, add 
-68 A = pioclr 12
-69 A = pioin 12
+68 A = pioclr Y
+69 A = pioin Y
 
 0 REM check for button
 70 A = pioirq $4
@@ -81,14 +84,14 @@
 205 ALARM 30
 206 RETURN
 
-220 A = pioget 12
+220 A = pioget Y
 221 IF A = 0 THEN 201
 
 0 REM long button press, time to shutdown
 222 ALARM 0
 223 A = pioset X;
 224 A = pioclr X
-225 A = pioget 12;
+225 A = pioget Y;
 226 IF A = 1 THEN 223
 227 A = reboot
 228 FOR B = 0 TO 10
@@ -137,7 +140,7 @@
 456 GOTO 201
 
 @PIO_IRQ 500
-500 IF $0[12]=49 THEN 510;
+500 IF $0[Y]=49 THEN 510;
 501 RETURN
 
 0 REM button press, save state, start ALARM
