@@ -51,6 +51,7 @@
 0 REM $16 device name
 0 REM $17 Welcome message
 0 REM $18 reserved
+0 REM $19 is own bluetooth address
 
 0 REM $10 - $14 types of sensor
 0 REM $20 min value to compare
@@ -88,6 +89,8 @@
 15 0.1.17beta
 16 SMARTauto
 17 SMART
+18 RESERVED
+19 RESERVED
 
 20 RESERVED
 21 RESERVED
@@ -252,10 +255,18 @@
 121 WAIT 1
 0 REM update screen
 122 GOSUB 30 
-0 REM make sure @IDLE is called
-123 A = slave 1
+
+0 REM 09/26/08 MN, Fixed bug.
+0 REM no need for this any more
+0 REM this leads to some fancy states
+0 REM 123 A = slave 1
+
+0 REM get own address and store in $19
+123 A = getaddr
+124 $19=$0
+
 0 REM @IDLE will call ALARM
-124 RETURN
+125 RETURN
 
 
 0 REM @ALARM handler
@@ -327,17 +338,19 @@
 207 A = lcd"PRE MSG "
 208 GOSUB 450;
 
-217 $0[0]=0;
-218 PRINTV"$";
-219 PRINTV $25
-220 PRINTV ":";
-221 PRINTV Y;
-222 PRINTV"!";
-223 PRINTV X;
-224 PRINTV"#";
-225 PRINTV $7;
-226 PRINTV"#"
-227 PRINTV K
+210 $0[0]=0;
+211 PRINTV"$";
+212 PRINTV $25
+213 PRINTV ":";
+214 PRINTV Y;
+215 PRINTV"!";
+216 PRINTV X;
+217 PRINTV"#";
+218 PRINTV $7;
+219 PRINTV"#"
+220 PRINTV K
+221 PRINTV "#"
+222 PRINTV $19
 
 228 A = lcd "MESSAGE"
 229 A = pioset 20

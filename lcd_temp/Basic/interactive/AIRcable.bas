@@ -147,11 +147,8 @@
 89 A = strlen $3
 90 IF A >= 12 THEN 100
 91 $0[0]=0
-92 PRINTV"NOT PAIRED
-93 A = strlen $0
-94 FOR B = 0 TO A-8
-95 C = lcd$0[0]
-96 NEXT B
+92 PRINTV"NOT PAIR
+93 C = lcd$0
 
 
 0 REM let's start up
@@ -467,7 +464,7 @@
 0 REM substract 273.15 to get Celsius
 0 REM temp / 0.02 is K
 0 REM F = address: 6 is ambient, 7 object
-443 F = 7;
+443 F = 6;
 0 REM E is repeat limit
 444 E = 0;
 445 $0[0] = 0;
