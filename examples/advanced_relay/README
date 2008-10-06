@@ -1,0 +1,12 @@
+This code is an advanced relay based on our simple relay code. 
+
+Main difference with the base code is that this code will dumping to UART,
+it will also wait for button press, when the button is pressed the device
+will scan the air and pair again. It will also make use of 2 leds if those
+are available.
+
+Long button press will turn the device off.
+
+For pairing this code uses name filtering.
+
+If button is pressed while booting then the device will try to repair.
