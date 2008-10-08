@@ -20,6 +20,12 @@
 0 REM $5 PIN CODE
 5 1234
 
+0 REM $6 Name
+6 AIRelay
+
+0 REM $7 uniq
+7 RESERVED
+
 
 0 REM E is the state variable
 0 REM E = 0 means slave disconnected
@@ -74,12 +80,28 @@
 80 W = 0
 81 A = uartint
 
-82 A = pioget U
-83 IF A = 1 THEN 310
+0 REM set name
+82 A = getuniq $7
+83 $0=$6
+84 PRINTV " "
+85 PRINTV $7
+86 A = name $0
 
-84 RETURN
+87 A = pioget U
+88 IF A = 1 THEN 310
 
+89 A = nextsns 200
 
+0 REM check if all ready paired
+90 A = strlen $1
+91 IF A < 11 THEN 310
+92 RETURN
+
+0 REM sensor is used to disable
+0 REM obex and ftp
+@SENSOR 95
+95 A = disable 3
+96 RETURN
 
 @SLAVE 99
 99 PRINTU"@SLAVE\n\r"
@@ -97,7 +119,8 @@
 115 RETURN
 
 
-@MASTER 159
+@MASTER 158
+158 IF T >= 100 THEN 165
 159 PRINTU"@MASTER\n\r"
 160 A = link 3
 161 E = 2
@@ -105,7 +128,14 @@
 163 A = pioset J
 164 RETURN
 
-@IDLE 179
+165 T = 0
+166 E = 0
+167 A = disconnect 1
+168 ALARM 3
+169 RETURN
+
+@IDLE 178
+178 IF T = 100 THEN 186
 179 PRINTU"@IDLE\n\r"
 180 A = slave 200
 181 ALARM 3
@@ -117,13 +147,14 @@
 
 @ALARM 199
 199 PRINTU"@ALARM\n\r"
-200 T = 0
-201 IF W = 1 THEN 340
-202 IF E = 0 THEN 210
-203 IF E = 1 THEN 220
-204 IF E = 2 THEN 250
-205 IF E = 3 THEN 280
-206 RETURN
+200 IF T = 100 THEN 207
+201 T = 0
+202 IF W = 1 THEN 340
+203 IF E = 0 THEN 210
+204 IF E = 1 THEN 220
+205 IF E = 2 THEN 250
+206 IF E = 3 THEN 280
+207 RETURN
 
 210 A = pioset J;
 211 A = pioclr J
@@ -136,7 +167,7 @@
 221 A = pioclr J
 222 A = status
 223 IF A > 1 THEN 228
-224 PRINTU"A = master
+224 PRINTU"A = master "
 225 PRINTU  $1
 226 PRINTU"\n\r
 227 A = master $1
@@ -150,7 +181,7 @@
 254 A = A - 1000
 255 IF A < 100 THEN 257
 256 A = A - 100
-0 REM 257 IF A <> 11 THEN 270
+257 IF A <> 11 THEN 270
 258 ALARM 10
 259 RETURN
 
@@ -171,7 +202,7 @@
 301 W = 0
 302 RETURN
 
-310 T = 0
+310 T = 100
 311 ALARM 0
 312 W = 0
 313 $4=""
@@ -202,7 +233,8 @@
 349 RETURN
 
 
-@INQUIRY 350
+@INQUIRY 349
+349 IF T = 101 THEN 358
 350 PRINTU"Found: 
 351 PRINTU $0
 352 PRINTU"\n\r"
@@ -213,15 +245,19 @@
 357 PRINTU"NO MATCH\n\r"
 358 RETURN
 
-360 A = cancel
-361 PRINTU"MATCH\n\r"
-362 $1=$349
-363 E = 0
-364 FOR B = 0 TO 3
-365 A = pioset J;
-366 A = pioclr J
-367 NEXT B
-368 RETURN
+360 ALARM 0
+361 A = cancel
+362 PRINTU"MATCH\n\r"
+363 $1=$349
+364 E = 0
+366 A = unlink $1
+367 FOR B = 0 TO 3
+368 A = pioset J;
+369 A = pioclr J
+370 NEXT B
+371 A = master $1
+372 ALARM 20
+373 RETURN
 
 @UART 400
 400 INPUTU $0
