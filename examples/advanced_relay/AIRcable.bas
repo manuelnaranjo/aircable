@@ -87,21 +87,18 @@
 85 PRINTV $7
 86 A = name $0
 
-87 A = pioget U
-88 IF A = 1 THEN 310
+0 REM let's be nice and disable
+0 REM all the profiles
+87 A = disable 3
 
-89 A = nextsns 200
+88 A = pioget U
+89 IF A = 1 THEN 310
 
 0 REM check if all ready paired
 90 A = strlen $1
 91 IF A < 11 THEN 310
-92 RETURN
 
-0 REM sensor is used to disable
-0 REM obex and ftp
-@SENSOR 95
-95 A = disable 3
-96 RETURN
+92 RETURN
 
 @SLAVE 99
 99 PRINTU"@SLAVE\n\r"
@@ -257,7 +254,8 @@
 370 NEXT B
 371 A = master $1
 372 ALARM 20
-373 RETURN
+373 T = 101
+374 RETURN
 
 @UART 400
 400 INPUTU $0
