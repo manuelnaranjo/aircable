@@ -19,6 +19,13 @@
 0 REM W used for button
 0 REM V used for debug menu
 0 REM U used for lcd state
+0 REM U = 0 no activity
+0 REM U = 1 sending message
+0 REM U = 10 getting into menu
+0 REM U > 10 & U < 1000 displaying menu
+0 REM U = 1000 booting
+0 REM U = 2000 second stage boot
+
 0 REM T, R used for i2c
 0 REM S shows deep sleep state
 0 REM P is messages interval
@@ -86,7 +93,7 @@
 13 RESERVED
 14 RESERVED
 
-15 0.1.17beta
+15 0.1.17beta2
 16 SMARTauto
 17 SMART
 18 RESERVED
@@ -285,43 +292,45 @@
 
 151 A = lcd "NOT PAIRED"
 152 U = 0
-153 GOTO 173
-
-
-0 REM Menu been displayed?
-154 IF U <> 0 THEN 550;
+153 GOTO 172
 
 0 REM check for long button press
-155 IF W = 1 THEN 265;
+154 IF W = 1 THEN 265;
 
-0 REM disable deep sleep
-0 REM update screen
-156 GOSUB 990;
-157 GOSUB 30;
-158 H = H + 1;
-159 A = zerocnt;
+0 REM Menu been displayed?
+155 IF U >= 10 THEN 550;
 
-160 Q = Q + 1;
-161 A = $24[0]+1;
-162 $24[0] = A ;
+0 REM check if we're sending a message
+156 IF U = 1 THEN 238
+
+0 REM ok then it should be time to update
+0 REM screen. First disable deep sleep
+160 GOSUB 990;
+161 GOSUB 30;
+162 H = H + 1;
+163 A = zerocnt;
+
+164 Q = Q + 1;
+165 A = $24[0]+1;
+166 $24[0] = A ;
 
 0 REM only message if paired
-165 A = strlen $3;
-166 IF A < 12 THEN 810;
+167 A = strlen $3;
+168 IF A < 12 THEN 810;
 
 0 REM first check for update
-170 IF $24[0] >= 250 THEN 936;
+169 IF $24[0] >= 250 THEN 936;
 0 REM then see if it's time to message
-171  IF Q >= P THEN 200;
-172 IF U = 2000 THEN 200;
+170  IF Q >= P THEN 200;
+171 IF U = 2000 THEN 200;
 
 0 REM we don't have much to do,
 0 REM keep showing temp for 5 seconds
 0 REM then enable deep sleep, and schedule again
-173 WAIT 5
-174 GOSUB 1000
-175 ALARM 300
-176 RETURN
+172 WAIT 5
+173 GOSUB 1000
+174 ALARM 300
+175 RETURN
 
 0 REM send message, check for status first
 200 A = status;
@@ -356,15 +365,16 @@
 229 A = pioset 20
 
 230 A = message $3;
-231 WAIT 10
+231 U = 1
+0 REM check in 5 seconds
+232 ALARM 5
+233 RETURN
 
-0 REM check message transmission
-0 REM wait until the connection closes
-232 C = status
-233 IF C < 1000 THEN 240
-234 WAIT 5
-235 GOTO 232
-
+0 REM this gets called on a new @ALARM
+0 REM we check for status, and then if it's cleared
+0 REM we check for success
+238 A = status
+239 IF A >= 100 THEN 232
 240 A = pioclr 20
 241 A = success
 242 IF A > 0 THEN 254
@@ -391,7 +401,7 @@
 0 REM keep in non deep sleep mode
 260 A = lcd $8
 261 A = pioirq $23
-262 GOTO 173
+262 GOTO 172
 
 
 0 REM long button press
@@ -405,7 +415,7 @@
 269 IF A = 1 THEN 275;
 0 REM ignore other long presses
 270 W = 0;
-271 GOTO 170
+271 GOTO 169
 
 0 REM exit
 275 A = lcd "GOOD BYE";
@@ -449,7 +459,7 @@
 313 IF $2[2] = 48 THEN 330;
 314 IF $2[3] = 48 THEN 320;
 315 IF $2[12] = 49 THEN 325;
-316 GOTO 173
+316 GOTO 172
 
 0 REM send current temp
 320 A = strlen $3
@@ -938,7 +948,7 @@
 803 B = lcd $0
 0 REM time to end @ALARM, we can't do much
 0 REM until status becomes 0
-804 GOTO 173
+804 GOTO 172
 
 0 REM --- print not paired
 810 A = lcd"NOT PAIRED"
@@ -946,7 +956,7 @@
 812 U = 0
 813 H = 0
 0 REM time to end @ALARM, we can't do much
-814 GOTO 173
+814 GOTO 172
 
 0 REM buttons and power
 @PIO_IRQ 840
@@ -1050,11 +1060,14 @@
 968 A = zerocnt
 969 A = unpair $3
 970 A = message $3;
-971 WAIT 10
-972 A = status
-973 IF A < 1000 THEN 975
-974 GOTO 971
+971 WAIT 15
+0 REM this might get into a loop
+0 REM 972 A = status
+0 REM 973 IF A < 1000 THEN 975
+0 REM 974 GOTO 971
 975 A = enable 3;
+0 REM if no update request then 30 seconds
+0 REM is a big enough update window
 976 ALARM 30
 977 O = 0;
 978 U = 0
