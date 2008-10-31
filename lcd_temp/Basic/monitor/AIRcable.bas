@@ -38,7 +38,7 @@
 0 REM J used in @SENSOR
 0 REM I hardware supports deep sleep
 0 REM H increments on every minute that passes
-0 REM G amount of tries, we try 3 times to send the message
+0 REM G used for consistent status/sucess checking
 0 REM ABCDEF
 
 0 REM S = 1 sleeping
@@ -93,7 +93,7 @@
 13 RESERVED
 14 RESERVED
 
-15 0.1.17beta2
+15 0.1.17beta3
 16 SMARTauto
 17 SMART
 18 RESERVED
@@ -340,7 +340,8 @@
 203 M = -1
 
 
-0 REM prevent any possible interrupt
+0 REM prevent any possible interrupt while
+0 REM generating message
 205 ALARM 0
 206 A = pioirq $27
 
@@ -373,12 +374,12 @@
 0 REM this gets called on a new @ALARM
 0 REM we check for status, and then if it's cleared
 0 REM we check for success
-238 A = status
-239 IF A >= 100 THEN 232
+238 G = status
+239 IF G >= 100 THEN 232
 240 A = pioclr 20
-241 A = success
-242 IF A > 0 THEN 254
-243 IF A = 0 THEN 246
+241 G = success
+242 IF G > 0 THEN 254
+243 IF G = 0 THEN 246
 244 A = lcd "FAILED      "
 245 GOTO 255
 246 A = lcd  "TIMEOUT      "
@@ -455,7 +456,7 @@
 0 REM right, left, middle
 310 W = 0
 311 ALARM 30
-312 IF U <> 0 THEN 560;
+312 IF U > 1 THEN 560;
 313 IF $2[2] = 48 THEN 330;
 314 IF $2[3] = 48 THEN 320;
 315 IF $2[12] = 49 THEN 325;
