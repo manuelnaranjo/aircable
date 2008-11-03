@@ -375,7 +375,7 @@
 0 REM we check for status, and then if it's cleared
 0 REM we check for success
 238 G = status
-239 IF G >= 100 THEN 232
+239 IF G > 100 THEN 232
 240 A = pioclr 20
 241 G = success
 242 IF G > 0 THEN 254
