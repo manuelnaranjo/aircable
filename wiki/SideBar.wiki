@@ -1,0 +1,34 @@
+=Forum=
+*[http://groups.google.com/group/aircable AIRcable(tm) Google Group]*
+
+=Samples=
+==Slave Code==
+  # *[http://code.google.com/p/aircable/wiki/Micro_Slave Micro Slave]*
+  # *[http://code.google.com/p/aircable/wiki/Little_Slave Little Slave]*
+  # *[http://code.google.com/p/aircable/wiki/Filtered_Salve Filtered Service Slave]*
+  # *[http://code.google.com/p/aircable/wiki/Restrictive_Slave Restrictive Slave]*
+  # *[http://code.google.com/p/aircable/wiki/ImprovedSlave Improved Slave]*
+
+== Master Code ==
+  # *[http://code.google.com/p/aircable/wiki/Mini_Master Mini Master]*
+  # *[http://code.google.com/p/aircable/wiki/Filtered_Master Filtered Service Master]*
+  # *[http://code.google.com/p/aircable/wiki/Listed_Master Listed Master]*
+  # *[http://code.google.com/p/aircable/wiki/Cable_Master Cable Master]*
+
+== Interactive Code ==
+  # *[http://code.google.com/p/aircable/wiki/Interactive_PIO Interactive Code]*
+  # *[http://code.google.com/p/aircable/wiki/CommandLineOverSPP Wireless Command Line]*
+ 
+== Networking ==
+  # *[http://code.google.com/p/aircable/wiki/Relay Relay Mode Code]*
+  # *[http://code.google.com/p/aircable/wiki/DUN_SPP DUN SPP]*
+
+== Hardware Interfacing ==
+  # *[http://code.google.com/p/aircable/wiki/GPS_Data_Logging GPS and Data Logging]*
+  # *[http://code.google.com/p/aircable/wiki/vCard vCard Sender]*
+  # *[http://code.google.com/p/aircable/wiki/smsSender SMS Sender]*
+  # *[http://code.google.com/p/aircable/wiki/GenericI2Ccode I2C Example]*
+
+== Miscellaneous == 
+  # *[http://code.google.com/p/aircable/wiki/BitwiseOperations Bitwise Operations]*
+  # *[http://www.aircable.net-a.googlepages.com/proximitymarketingstandalonesolution Publisher]*
