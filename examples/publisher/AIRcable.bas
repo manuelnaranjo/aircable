@@ -5,6 +5,7 @@
 
 0 REM file to upload
 2 images.jpg
+0 REM 2 hello.txt
 
 0 REM number of devices in hash table
 3 541
@@ -14,6 +15,12 @@
 
 0 REM visible name
 6 AIRpublisher
+
+0 REM policy configuration
+0 REM if $7[0]=49 '1' then we disconnect after 30
+0 REM secs no matter if we're still sending or not
+0 REM $7[0]=49 means just uploaded, don't clean
+7 11
 
 0 REM temp
 19 temp
@@ -73,14 +80,16 @@
 0 REM button status in V
 54 V = 0
 
-55 A = pioget 12
-56 IF A = 0 THEN 280
-57 ALARM 3
-58 RETURN
+55 IF $7[1]= 49 THEN 58
+56 A = pioget 12
+57 IF A = 0 THEN 280
+58 $7[1]=48
+59 ALARM 3
+60 RETURN
 
-@IDLE 60
-60 REM A = slave 8
-61 RETURN
+@IDLE 70
+70 REM A = slave 8
+71 RETURN
 
 90 ALARM 30
 91 RETURN
@@ -159,7 +168,8 @@
 148 A = open $2
 149 PRINTU "\n\rto "
 150 PRINTU $(L+D)
-151 $0 = $2
+0 REM set sending name
+151 $0=$2
 152 A = bizcard $(L+D)
 
 0 REM next state check status of sending in 30 secs
@@ -182,25 +192,31 @@
 0 REM check status
 170 A = status
 171 K = 3
-172 ALARM 3
-173 IF A = 0 THEN 180
+172 IF A = 0 THEN 185
+173 IF $7[1] = 48 THEN 179
 0 REM still connected, we disconnect forcefully
 174 A = disconnect 3
-175 PRINTU "\n\rTIMEOUT"
+175 PRINTU "\n\rPOLICY DISCONN"
 176 A = pioclr J
 177 A = pioset J
 178 A = pioclr G
-179 RETURN
+179 ALARM 5
+180 RETURN
 
 0 REM back to state send message
-180 A = pioclr G
-181 A = success
-182 IF A > 0 THEN 185
-183 PRINTU"\n\rFAILED SENDING"
-184 RETURN
+185 A = pioclr G
+186 B = success
+187 IF B > 0 THEN 195
+188 IF B = 0 THEN 191
+189 PRINTU"\n\rERROR SENDING"
+190 GOTO 196
+191 PRINTU"\n\rTIMEOUT
+192 GOTO 196
 
-185 PRINTU"\n\rFILE SENT"
-186 RETURN
+195 PRINTU"\n\rFILE SENT"
+196 A = close
+197 ALARM 5
+198 RETURN
 
 
 0 REM hash calc function
@@ -258,11 +274,11 @@
 
 280 A = pioclr J; 
 281 PRINTU"\n\rCleaning Table";
-282 FOR A = 0 TO X;
-283 $(A+E)="";
+282 FOR B = 0 TO X;
+283 $(B+E)="";
 284 A = pioset G;
 285 A = pioclr G;
-286 NEXT A;
+286 NEXT B;
 287 PRINTU"\n\rDone";
 288 A = pioset J;
 289 ALARM 1
