@@ -24,8 +24,8 @@
 0 REM update reading.
 800 $799 = $13[5]
 801 $799[4] = 0
-802 L = atoi $799
-803 L = (L - 520) * 2
+802 M = atoi $799
+803 M = (M - 520) * 2
 804 $0 = "TAMB|
 805 PRINTV$799
 806 $10 = $0
@@ -33,7 +33,7 @@
 
 0 REM display value generator
 850 $0="AMB "
-851 N = L / 20
+851 N = M / 20
 852 PRINTV N
 853 PRINTV "%C"
 854 $11 = $0

@@ -18,10 +18,12 @@
 
 0 REM base code functions
 0 REM settings menu handler 285
+0 REM nice update shower 540
 0 REM turn off 550
 0 REM make visible 570
 0 REM enable deep sleep 580
-0 REM disable deep sleep 590
+0 REM disable deep sleep 585
+0 REM battery reading show 590
 
 0 REM user code is handled with pointers
 0 REM we provide some base samples,
@@ -108,6 +110,9 @@
 0 REM uniq
 18 RES
 
+0 REM WAIT . . . (used lots of times)
+19 "WAIT . . . 
+
 
 0 REM non persistance variables -----------------------
 0 REM Y = lcd contrast
@@ -120,7 +125,7 @@
 0 REM R = inquiry counter
 0 REM Q = status
 0 REM P = @SENSOR flag
-0 REM F to L reserved for 'user' sensor code
+0 REM F to N reserved for 'user' sensor code
 
 0 REM END global variables -----------------------------
 
@@ -130,7 +135,7 @@
 20 RETURN
 
 0 REM user @ALARM pointer
-21 GOTO 660;
+21 GOTO 760;
 
 0 REM user @IDLE
 22 RETURN
@@ -142,22 +147,22 @@
 31 RETURN
 
 0 REM left long button press
-34 GOTO 600;
+34 GOTO 700;
 
 0 REM middle long button press
-35 GOTO 610;
+35 GOTO 710;
 
 0 REM right long button press
-36 GOTO 620;
+36 GOTO 720;
 
 0 REM left short button press
-37 GOTO 630;
+37 GOTO 730;
 
 0 REM middle short button press 
-38 GOTO 640;
+38 GOTO 740;
 
 0 REM right short button press
-39 GOTO 650;
+39 GOTO 750;
 
 0 REM display and scroll
 0 REM you can pass variable E
@@ -169,13 +174,14 @@
 42 $0 = $8;
 43 PRINTV"                        ";
 44 $8 = $0;
-45 IF B <= 9 THEN 55
-46 FOR D = 0 TO E
-47 FOR C = 0 TO B
-48 A = lcd $8[C]
-49 NEXT C
-50 NEXT D
-51 GOTO 55;
+45 IF E = 0 THEN 55;
+46 IF B <= 9 THEN 55;
+47 FOR D = 0 TO E
+48 FOR C = 0 TO B
+49 A = lcd $8[C]
+50 NEXT C
+51 NEXT D
+52 GOTO 55;
 
 55 A = lcd $8
 56 RETURN
@@ -199,7 +205,7 @@
 
 0 REM show welcome message
 71 $8 = $3
-72 GOSUB 40;
+72 GOSUB 40
 
 0 REM setup friendly name
 73 A = getuniq $8
@@ -250,7 +256,7 @@
 
 0 REM idle handler
 @IDLE 110
-110 IF Q = 110 THEN 125
+110 IF Q = 100 THEN 125
 111 A = disable 3
 112 IF Q > 0 THEN 114
 113 ALARM 1
@@ -259,7 +265,7 @@
 0 REM first boot, update display
 0 REM visible for 30 seconds
 0 REM don't message
-125 A = lcd "WAIT . . . "
+125 A = lcd $19[1]
 126 GOSUB 30
 127 GOSUB 31
 128 $8=$11
@@ -410,7 +416,7 @@
 294 INQUIRY
 295 EXIT
 
-300 IF Q = 520 THEN 540;
+300 IF Q = 520 THEN 530;
 301 A = pioirq $6;
 302 $8=$Q;
 303 T = 0;
@@ -580,7 +586,7 @@
 517 GOTO 40 
 
 0 REM middle is option chooser
-520 IF S < 2 THEN 530;
+520 IF S < 2 THEN 526;
 521 $5 = $(178+S);
 522 Q = 290;
 523 A = lcd"DONE         "
@@ -588,17 +594,28 @@
 525 RETURN
 
 0 REM cancel or unpair?
-530 IF S = 0 THEN 522;
+526 IF S = 0 THEN 522;
 0 REM unpair
-531 $5 = "";
-532 GOTO 522;
+527 $5 = "";
+528 GOTO 522;
 
-540 A = pioirq $6;
-541 T = 0;
-542 GOTO 515;
+530 A = pioirq $6;
+531 T = 0;
+532 GOTO 515;
 
 
 0 REM same base functions -----------------------------------
+0 REM nice sensor reading displayer, useful when 
+0 REM you want to update the reading and let the
+0 REM user know what you're doing (for example
+0 REM after an update button press).
+540 A = lcd $19[1]
+541 GOSUB 30
+542 GOSUB 31
+543 $8=$11
+544 GOSUB 40
+545 RETURN
+
 0 REM turn off
 550 A = lcd "GOOD BYE";
 551 ALARM 0;
@@ -630,9 +647,14 @@
 583 RETURN;
 
 0 REM disable deep sleep
-590 A = auxdac N
-591 A = pioclr $1[5]
-592 RETURN
+585 A = auxdac N
+586 A = pioclr $1[5]
+587 RETURN
+
+590 $0 = "BATT "
+591 PRINTV $7
+592 $8=$0
+593 GOTO 41
 
 
 0 REM --------------------------------------------------------------------
@@ -642,20 +664,20 @@
 0 REM don't forget to call ALARM before calling 
 0 REM RETURN when needed
 
-600 A = lcd"Long Left "
+700 A = lcd"Long Left "
 0 REM we suggess this handler to display settings
 0 REM menu
-601 ALARM 5
-602 RETURN
+701 ALARM 5
+702 RETURN
 
 
-610 A = lcd"Long Mid  "
+710 A = lcd"Long Mid  "
 0 REM we suggest this handler turn off
-611 GOTO 601
+711 GOTO 701
 
-620 A = lcd "Long Right"
+720 A = lcd "Long Right"
 0 REM we suggest this handler to make visible
-621 GOTO 601
+721 GOTO 701
 
 0 REM -------------------------------------------------------------------
 
@@ -664,25 +686,25 @@
 0 REM don't forget to call ALARM before calling 
 0 REM RETURN
 
-630 A = lcd"Short Left "
-631 ALARM 5
-632 RETURN
+730 A = lcd"Short Left "
+731 ALARM 5
+732 RETURN
 
 
 0 REM 700 short middle button handler starts here
-640 A = lcd"Short Mid  "
-641 GOTO 631
+740 A = lcd"Short Mid  "
+741 GOTO 731
 
 0 REM 730 short left button handler starts here
 
 0 REM 760 short right button handler starts here
-650 A = lcd"Short Right"
-651 GOTO 631
+750 A = lcd"Short Right"
+751 GOTO 731
 0 REM -------------------------------------------------------------------
 
 
 0 REM User ALARM code, user is responsable
 0 REM of calling ALARM again.
-660 ALARM 15
-661 RETURN
+760 ALARM 15
+761 RETURN
 
