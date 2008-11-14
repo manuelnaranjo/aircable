@@ -8,15 +8,20 @@
 0 REM 20/39 user code jump table
 0 REM 40      automatic scrolling display
 0 REM @INIT 60
-0 REM @IDLE 100
+0 REM @IDLE 110
 0 REM @SLAVE 140
 0 REM @SENSOR 150
 0 REM inquiry results from 178 to 199
 0 REM @INQUIRY 200
 0 REM @PIO_IRQ 210
 0 REM @ALARM 250
-0 REM settings menu handler 285
 
+0 REM base code functions
+0 REM settings menu handler 285
+0 REM turn off 550
+0 REM make visible 570
+0 REM enable deep sleep 580
+0 REM disable deep sleep 590
 
 0 REM user code is handled with pointers
 0 REM we provide some base samples,
@@ -155,19 +160,22 @@
 39 GOTO 650;
 
 0 REM display and scroll
-40 B = strlen $8
-41 PRINTU$8
+0 REM you can pass variable E
+0 REM to tell how many times you want
+0 REM to scroll. If you do then start at line 41
+0 REM otherwise call line 40
+40 E = 2
+41 B = strlen $8
 42 $0 = $8;
-43 PRINTV"                  \n";
+43 PRINTV"                        ";
 44 $8 = $0;
 45 IF B <= 9 THEN 55
-46 FOR D = 1 TO 3
-47 FOR C = 0 TO B - 8
+46 FOR D = 0 TO E
+47 FOR C = 0 TO B
 48 A = lcd $8[C]
-49 NEXT C;
-50 WAIT 1
-51 NEXT D
-52 GOTO 55;
+49 NEXT C
+50 NEXT D
+51 GOTO 55;
 
 55 A = lcd $8
 56 RETURN
@@ -226,7 +234,7 @@
 91 U = 0
 
 0 REM read message rate
-162 V = atoi $16
+92 V = atoi $16
 
 0 REM mark for botting
 93 Q = 100
@@ -236,31 +244,33 @@
 95 T = 0
 96 A = nextsns 1
 97 WAIT 5
-98 GOTO 20;
+98 A = pioout $1[5]
+99 A = pioclr $1[5]
+100 GOTO 20;
 
 0 REM idle handler
-@IDLE 100
-100 IF Q = 100 THEN 110
-101 A = disable 3
-102 IF Q > 0 THEN 104
-103 ALARM 1
-104 GOTO 22
+@IDLE 110
+110 IF Q = 110 THEN 125
+111 A = disable 3
+112 IF Q > 0 THEN 114
+113 ALARM 1
+114 GOTO 22
 
 0 REM first boot, update display
 0 REM visible for 30 seconds
 0 REM don't message
-110 A = lcd "WAIT . . . "
-111 GOSUB 30
-112 GOSUB 31
-113 $8=$11
-114 GOSUB 40
-115 P = 1
-116 A = nextsns 1
-117 A = slave 30
-118 Q = 0
-119 P = 1
-120 A = pioirq $6
-121 RETURN
+125 A = lcd "WAIT . . . "
+126 GOSUB 30
+127 GOSUB 31
+128 $8=$11
+129 GOSUB 40
+130 P = 1
+131 A = nextsns 1
+132 A = slave 30
+133 Q = 0
+134 P = 1
+135 A = pioirq $6
+136 RETURN
 
 0 REM @SLAVE enable shell
 0 REM THIS IS NOT SECURE!!! 
@@ -588,7 +598,44 @@
 542 GOTO 515;
 
 
+0 REM same base functions -----------------------------------
+0 REM turn off
+550 A = lcd "GOOD BYE";
+551 ALARM 0;
+552 A = pioset($1[3]-64)
+553 A = pioclr($1[3]-64);
+554 A = pioget($1[1]-64);
+555 IF A = 1 THEN 552;
+556 A = pioclr($1[4]-64);
+557 A = lcd;
+558 A = reboot;
+559 FOR E = 0 TO 10;
+560   WAIT 1
+561 NEXT E;
+562 RETURN
 
+0 REM make it visible, enable services
+570 A = lcd "VISIBLE  "
+571 A = slave 120
+572 ALARM 140
+573 A = enable 3
+574 RETURN
+
+0 REM enable deep sleep
+580 A = auxdac 0
+581 A = pioset $1[5]
+0 REM make sure that nothing happens between enabling deep
+0 REM sleep and RETURN
+582 A = uartoff;
+583 RETURN;
+
+0 REM disable deep sleep
+590 A = auxdac N
+591 A = pioclr $1[5]
+592 RETURN
+
+
+0 REM --------------------------------------------------------------------
 0 REM sample handling code
 
 0 REM long button press handlers -------------------------

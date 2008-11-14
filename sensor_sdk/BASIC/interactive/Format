@@ -1,0 +1,32 @@
+WWXXYYZZMESSAGE
+WW Hexadecimal level, 0 for root, always valid
+XX Hexadecimal next level, valid only if action <> !
+YY Hexadecimal previous level, valid if level > 0
+ZZ action, !! for none action, MESSAGE takes an special
+	meaning in this case
+	
+for backward compatibility all lines have fixed length = 31 chars
+If you need to extend to 32 chars you just don't add a line feed after each one
+Line feeds are just \n as any UNIX system, \n\r from windows is not ok.
+	
+Each level can have up to 20 childs or system becames
+too slow, still we don't recommend so many levels, it will
+not be friendly for the user
+
+A BACK menu option is not provided by the core code
+but rather by the menu code to give way more flexibility
+
+WARNING: There's no runtime check on the BASIC code, user code has
+to do the check
+
+Actions:
+	t read temperature, show on screen
+	l read temperature check colder than MESSAGE (in C)
+	h read temperature check hotter than MESSAGE (in C)
+	r read temperature check in range, message=XXXX YYYY
+		XXXX lower value, YYYY higher one
+	m read temperature send message to pair
+	
+	More actions can be added if you need them
+	
+

@@ -8,11 +8,14 @@
 21 GOTO 900;
 
 0 REM left long button press
-34 GOTO 630;
-0 REM middle long button press
-35 GOTO 600;
+0 REM edit menu
+34 GOTO 285;
+0 REM middle long button press 
+0 REM turn off
+35 GOTO 550;
 0 REM right long button press
-36 GOTO 660;
+0 REM make visible
+36 GOTO 570;
 0 REM left short button press
 37 GOTO 730;
 0 REM middle short button press 
@@ -26,31 +29,7 @@
 0 REM long middle off
 0 REM long left device menu
 0 REM long right visible
-
-0 REM turn off
-600 A = lcd "GOOD BYE";
-601 ALARM 0;
-602 A = pioset($1[3]-64)
-603 A = pioclr($1[3]-64);
-604 A = pioget($1[1]-64);
-605 IF A = 1 THEN 602;
-606 A = pioclr($1[4]-64);
-607 A = lcd;
-608 A = reboot;
-609 FOR E = 0 TO 10;
-610   WAIT 1
-611 NEXT E;
-612 RETURN
-
-0 REM enable MENU
-630 GOTO 285
-
-0 REM make it visible, enable services
-660 A = lcd "VISIBLE  "
-661 A = slave 120
-662 ALARM 140
-663 A = enable 3
-664 RETURN
+0 REM we just calls functions from BASE code
 
 0 REM EO LONG BUTTON HANDLE -----------------------
 
