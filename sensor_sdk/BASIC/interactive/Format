@@ -1,8 +1,10 @@
 WWXXYYZZMESSAGE
 WW Hexadecimal level, 0 for root, always valid
-XX Hexadecimal next level, valid only if action <> !
-YY Hexadecimal previous level, valid if level > 0
-ZZ action, !! for none action, MESSAGE takes an special
+XX Hexadecimal next level, valid only if action <> !!
+YY Hexadecimal option pointer (from 0 to 19), valid only if action <> !!
+	when user presses button, then menu from menu level XX, option
+	YY will get shown first.
+ZZ action, !! for child menu action, MESSAGE takes an special
 	meaning in this case
 	
 for backward compatibility all lines have fixed length = 31 chars
@@ -19,14 +21,13 @@ but rather by the menu code to give way more flexibility
 WARNING: There's no runtime check on the BASIC code, user code has
 to do the check
 
-Actions:
-	t read temperature, show on screen
-	l read temperature check colder than MESSAGE (in C)
-	h read temperature check hotter than MESSAGE (in C)
-	r read temperature check in range, message=XXXX YYYY
-		XXXX lower value, YYYY higher one
-	m read temperature send message to pair
+Actions (in order of processing):
+	!! browse next level
+	HI send history
+	ex exit menu
+	
 	
 	More actions can be added if you need them
+	Checks lines 770-789
 	
 
