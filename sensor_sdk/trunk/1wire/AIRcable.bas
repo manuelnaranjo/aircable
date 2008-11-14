@@ -7,10 +7,12 @@
 0 REM pio handler
 6 P000000000001
 
-0 REM we need to initializate the rs232
-0 REM port, so then we need to 
-0 REM override @INIT
-@INIT 950
+0 REM set our interrupt points
+20 GOTO 950;
+30 GOTO 800;
+
+
+0 REM @INIT
 0 REM RS232_off set
 950 A = pioout 11
 951 A = pioset 11
@@ -28,13 +30,14 @@
 0 REM go back to original init
 959 GOTO 65
 
+0 REM temporary 799
 0 REM sensor reading
 800 PRINTU"D"
 801 TIMEOUTU 10
-802 INPUTU $0
-803 $10=$0[17]
-804 $0="1-WIRE|"
+802 INPUTU $799
+803 $10=$799[17]
+804 $799="1-WIRE|"
 805 PRINTV $10
-806 $10=$0
+806 $10=$799
 807 RETURN
 

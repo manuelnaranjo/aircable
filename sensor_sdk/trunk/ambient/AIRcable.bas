@@ -13,26 +13,31 @@
 0 REM reading display handler needs to start at
 0 REM line 900.
 
-0 REM we'll store reading in $20
+0 REM set our interrupt points
+30 GOTO 800;
+31 GOTO 850;
+
+
+0 REM we'll store reading in $799
 
 
 0 REM update reading.
-800 $20 = $13[5]
-801 $20[4] = 0
-802 L = atoi $20
+800 $799 = $13[5]
+801 $799[4] = 0
+802 L = atoi $799
 803 L = (L - 520) * 2
 804 $0 = "TAMB|
-805 PRINTV$20
+805 PRINTV$799
 806 $10 = $0
 807 RETURN
 
 0 REM display value generator
-900 $0="AMB "
-901 N = L / 20
-902 PRINTV N
-903 PRINTV "%C"
-904 $11 = $0
-905 RETURN
+850 $0="AMB "
+851 N = L / 20
+852 PRINTV N
+853 PRINTV "%C"
+854 $11 = $0
+855 RETURN
 
 
 
