@@ -349,13 +349,14 @@
 210 IF T = 1 THEN 216;
 0 REM button press while in settings menu?
 211 IF Q > 200 THEN 310;
+0 REM 212 is free, you code can hack here.
 0 REM button press starts long button recognition
-212 IF$0[$1[0]-64]=48THEN220;
-213 IF$0[$1[1]-64]=49THEN220;
-214 IF$0[$1[2]-64]=48THEN220;
+213 IF$0[$1[0]-64]=48THEN220;
+214 IF$0[$1[1]-64]=49THEN220;
+215 IF$0[$1[2]-64]=48THEN220;
 0 REM was it a release for a short press?
-215 IF W <> 0 THEN 225;
-216 RETURN
+216 IF W <> 0 THEN 225;
+217 RETURN
 
 0 REM this was a new press
 220 $14 = $0;
