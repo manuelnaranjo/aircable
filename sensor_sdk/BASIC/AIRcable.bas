@@ -37,9 +37,9 @@
 0 REM 	ALARM for periodic readings)
 0 REM 22 @IDLE extra
 0 REM 30 sensor reading (for compatibility we
-0 REM 	recommend this in the 600-699 range)
+0 REM 	recommend this in the 500-599 range)
 0 REM 31 sensor displaying (for compatibility we
-0 REM 	recommend this in the 600-699 range)
+0 REM 	recommend this in the 500-599 range)
 0 REM 34 left long button press
 0 REM 35 middle long button press
 0 REM 36 right long button press
@@ -115,7 +115,7 @@
 18 RES
 
 0 REM WAIT . . . (used lots of times)
-19 "WAIT . . . 
+19 "WAIT
 
 
 0 REM non persistance variables -----------------------
@@ -179,13 +179,14 @@
 43 PRINTV"                        ";
 44 $8 = $0;
 45 IF E = 0 THEN 55;
-46 IF B <= 9 THEN 55;
-47 FOR D = 0 TO E
-48 FOR C = 0 TO B
-49 A = lcd $8[C]
-50 NEXT C
-51 NEXT D
-52 GOTO 55;
+46 IF B <= 9 THEN 55
+47 A = lcd $8
+49 WAIT 1
+50 FOR D = 0 TO E
+51 FOR C = 0 TO B-8
+52 A = lcd $8[C]
+53 NEXT C
+54 NEXT D
 
 55 A = lcd $8
 56 RETURN
@@ -269,7 +270,7 @@
 0 REM first boot, update display
 0 REM visible for 30 seconds
 0 REM don't message
-115 A = lcd $19[1]
+115 A = lcd "WAIT . . . "
 116 GOSUB 30
 117 GOSUB 31
 118 $8=$11
@@ -332,28 +333,31 @@
 0 REM passed, might be a target
 163 $(150+R) = $0;
 164 R=R+1;
-165 $0=$8;
+165 $0=$339;
 166 PRINTV R;
 167 A = lcd $0
 168 RETURN
 
+0 REM stores PIO
+169 RESERVED
 0 REM PIO interrupts
 @PIO_IRQ 170
+170 $169=$0;
 0 REM check for flag
-170 IF T = 1 THEN 176;
+171 IF T = 1 THEN 176;
 0 REM button press while in settings menu?
-171 IF Q > 100 THEN 230;
-0 REM 172 is free, you code can hack here.
+172 IF Q > 100 THEN 230;
+0 REM 173 is free, you code can hack here.
 0 REM button press starts long button recognition
-173 IF$0[$1[0]-64]=48THEN180;
-174 IF$0[$1[1]-64]=49THEN180;
-175 IF$0[$1[2]-64]=48THEN180;
+174 IF$169[$1[0]-64]=48THEN180;
+175 IF$169[$1[1]-64]=49THEN180;
+176 IF$169[$1[2]-64]=48THEN180;
 0 REM was it a release for a short press?
-176 IF W <> 0 THEN 184;
-177 RETURN
+177 IF W <> 0 THEN 184;
+178 RETURN
 
 0 REM this was a new press
-180 $14 = $0;
+180 $14 = $169;
 181 W = 1;
 182 ALARM 3;
 183 RETURN
@@ -423,9 +427,9 @@
 232 IF Q = 510 THEN 315;
 233 IF Q = 520 THEN 350;
 0 REM 234 can be hacked to add more entry levels
-235 IF$0[$1[0]-64]=48THEN240;
-236 IF$0[$1[1]-64]=49THEN250;
-237 IF$0[$1[2]-64]=48THEN245;
+235 IF$169[$1[0]-64]=48THEN240;
+236 IF$169[$1[1]-64]=49THEN250;
+237 IF$169[$1[2]-64]=48THEN245;
 238 RETURN
 
 0 REM decrease
@@ -490,9 +494,9 @@
 285 Q = 500 ;
 286 RETURN
 
-290 IF$0[$1[0]-64]=48THEN300;
-291 IF$0[$1[1]-64]=49THEN304;
-292 IF$0[$1[2]-64]=48THEN295;
+290 IF$169[$1[0]-64]=48THEN300;
+291 IF$169[$1[1]-64]=49THEN304;
+292 IF$169[$1[2]-64]=48THEN295;
 293 RETURN
 
 295 IF Y > 260 THEN 280;
@@ -517,9 +521,9 @@
 313 Q = 510;
 314 GOTO 40
 
-315 IF$0[$1[0]-64]=48THEN322;
-316 IF$0[$1[1]-64]=49THEN327;
-317 IF$0[$1[2]-64]=48THEN320;
+315 IF$169[$1[0]-64]=48THEN322;
+316 IF$169[$1[1]-64]=49THEN327;
+317 IF$169[$1[2]-64]=48THEN320;
 318 RETURN
 
 320 V = V + 10;
@@ -532,7 +536,7 @@
 325 V = 0;
 326 GOTO 310;
 
-327 Q = 290;
+327 Q = 210;
 328 $0[0]=0;
 329 PRINTV V;
 330 $16 = $0;
@@ -545,12 +549,13 @@
 337 ALARM 1
 338 RETURN
 
+339 RESERVED
 0 REM inquiry handler
-340 $8="FOUND "
+340 $339="FOUND "
 341 R = 0;
 342 Q = 520;
 343 S = 0;
-344 A = lcd "SCAN. . . ";
+344 A = lcd "SCAN . . . ";
 345 T = 1;
 346 A = pioirq $12;
 347 A = inquiry 9;
@@ -558,9 +563,9 @@
 349 RETURN
 
 0 REM inquiry button handler
-350 IF$0[$1[0]-64]=48THEN355;
-351 IF$0[$1[1]-64]=49THEN370;
-352 IF$0[$1[2]-64]=48THEN360;
+350 IF$169[$1[0]-64]=48THEN355;
+351 IF$169[$1[1]-64]=49THEN370;
+352 IF$169[$1[2]-64]=48THEN360;
 353 RETURN
 
 0 REM left handler shows previous result
@@ -568,7 +573,7 @@
 356 S = S - 1;
 357 GOTO 365;
 
-358 S = R+2;
+358 S = R+1;
 359 GOTO 365;
 
 0 REM right handler shows next result
@@ -580,9 +585,8 @@
 364 GOTO 365;
 
 0 REM show on screen
-365 A = lcd "            ";
-366 $8=$(148+S);
-367 GOTO 40 
+365 $8=$(148+S);
+366 GOTO 40 
 
 0 REM middle is option chooser
 370 IF S < 2 THEN 380;
@@ -608,12 +612,13 @@
 0 REM you want to update the reading and let the
 0 REM user know what you're doing (for example
 0 REM after an update button press).
-400 A = lcd $19[1]
+400 A = lcd "WAIT . . . "
 401 GOSUB 30
 402 GOSUB 31
 403 $8=$11
 404 GOSUB 40
-405 RETURN
+405 ALARM 15
+406 RETURN
 
 0 REM turn off
 410 A = lcd "GOOD BYE";
@@ -656,6 +661,21 @@
 462 PRINTV $7
 463 $8=$0
 464 GOTO 41
+
+469 RESERVED
+0 REM send contents from opened file over
+0 REM MASTER channel
+470 A = seek 0
+471 A = read 32
+472 IF A = 0 THEN 478 
+473 PRINTM $0
+474 TIMEOUTM 5
+475 INPUTM $469
+476 A = strcmp "GO\n"
+477 IF A = 0 THEN 471
+
+478 PRINTS"DONE\n"
+479 RETURN
 
 
 0 REM --------------------------------------------------------------------

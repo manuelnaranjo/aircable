@@ -9,19 +9,22 @@
 
 0 REM left long button press
 0 REM edit menu
-34 GOTO 285;
+34 GOTO 205;
 0 REM middle long button press 
 0 REM turn off
-35 GOTO 550;
+35 GOTO 410;
 0 REM right long button press
 0 REM make visible
-36 GOTO 570;
+36 GOTO 430;
 0 REM left short button press
-37 GOTO 730;
-0 REM middle short button press 
+0 REM display batt level
+37 GOTO 460;
+0 REM middle short button press
+0 REM send message if paired
 38 GOTO 700;
 0 REM right short button press
-39 GOTO 760;
+0 REM update reading
+39 GOTO 400;
 
 0 REM LONG BUTTON PRESS HANDLER ----------------
 
@@ -32,7 +35,6 @@
 0 REM we just calls functions from BASE code
 
 0 REM EO LONG BUTTON HANDLE -----------------------
-
 
 0 REM SHORT BUTTON PRESS HANDLER --------------
 0 REM middle button send message
@@ -47,21 +49,6 @@
 704 ALARM 5
 705 RETURN
 
-0 REM battery reading
-730 $0 = "BATT "
-731 PRINTV $7
-732 $8=$0
-733 ALARM 5
-734 GOTO 40
-
-0 REM update reading
-760 ALARM 30 
-761 A = lcd"WAIT . . . "
-762 GOSUB 30
-763 GOSUB 31
-764 $8=$11
-765 GOSUB 40
-766 RETURN
 
 0 REM EO SHORT BUTTON HANDLER --------------------
 
