@@ -3,27 +3,29 @@
 0 REM this is the common code for both monitor
 0 REM and interactive mode
 
+0 REM DOCS NEEDS UPDATING
+
 0 REM code structure:
 0 REM 1/19   variables
 0 REM 20/39 user code jump table
 0 REM 40      automatic scrolling display
 0 REM @INIT 60
-0 REM @IDLE 110
-0 REM @SLAVE 140
-0 REM @SENSOR 150
-0 REM inquiry results from 178 to 199
-0 REM @INQUIRY 200
-0 REM @PIO_IRQ 210
-0 REM @ALARM 250
+0 REM @IDLE 105
+0 REM @SLAVE 130
+0 REM @SENSOR 135
+0 REM inquiry results from 150 to 159
+0 REM @INQUIRY 160
+0 REM @PIO_IRQ 170
+0 REM @ALARM 200
 
 0 REM base code functions
-0 REM settings menu handler 285
-0 REM nice update shower 540
-0 REM turn off 550
-0 REM make visible 570
-0 REM enable deep sleep 580
-0 REM disable deep sleep 585
-0 REM battery reading show 590
+0 REM settings menu handler 205
+0 REM nice reading shower 400
+0 REM turn off 410
+0 REM make visible 430
+0 REM enable deep sleep 440
+0 REM disable deep sleep 450
+0 REM battery reading show 460
 
 0 REM user code is handled with pointers
 0 REM we provide some base samples,
@@ -41,9 +43,9 @@
 0 REM 34 left long button press
 0 REM 35 middle long button press
 0 REM 36 right long button press
-0 REM 37 left short button press
-0 REM 38 middle short button press
-0 REM 39 right short button press
+0 REM 37 left short button press, call ALARM
+0 REM 38 middle short button press, call ALARM
+0 REM 39 right short button press, call ALARM
 
 0 REM global variables      -------------------------
 0 REM persistance variables -------------------------
@@ -257,354 +259,348 @@
 100 GOTO 20;
 
 0 REM idle handler
-@IDLE 110
-110 IF Q = 100 THEN 125
-111 A = disable 3
-112 IF Q > 0 THEN 114
-113 ALARM 1
-114 GOTO 22
+@IDLE 105
+105 IF Q = 100 THEN 115
+106 A = disable 3
+107 IF Q > 0 THEN 109
+108 ALARM 1
+109 GOTO 22
 
 0 REM first boot, update display
 0 REM visible for 30 seconds
 0 REM don't message
-125 A = lcd $19[1]
-126 GOSUB 30
-127 GOSUB 31
-128 $8=$11
-129 GOSUB 40
-130 P = 1
-131 A = nextsns 1
-132 A = slave 30
-133 Q = 0
-134 P = 1
-135 A = pioirq $6
-136 RETURN
+115 A = lcd $19[1]
+116 GOSUB 30
+117 GOSUB 31
+118 $8=$11
+119 GOSUB 40
+120 P = 1
+121 A = nextsns 1
+122 A = slave 30
+123 Q = 0
+124 P = 1
+125 A = pioirq $6
+126 RETURN
 
 0 REM @SLAVE enable shell
 0 REM THIS IS NOT SECURE!!! 
 0 REM don't use this in production
-@SLAVE 140
-140 A = pioset($1[4]-64);
-141 A = shell;
-142 RETURN
+@SLAVE 130
+130 A = pioset($1[4]-64);
+131 A = shell;
+132 RETURN
 
-0 REM BATTERY READING
-@SENSOR 150
-150 IF P > 0 THEN 160;
+0 REM AIO0 and AIO1 reading
+@SENSOR 135
+135 IF P > 0 THEN 140;
 
-151 A = sensor $13;
-152 $7 = $13;
-153 $7[4] = 0;
-154 RETURN;
+136 A = sensor $13;
+137 $7 = $13;
+138 $7[4] = 0;
+139 RETURN;
 
 0 REM wait for both readings
-160 P = P - 1;
-161 RETURN;
+140 P = P - 1;
+141 RETURN;
 
 
 0 REM we need this so free line calculator
 0 REM can do it's job.
-178 CANCEL
-179 UNPAIR
-180 RESULTS
-181 RESULTS
-182 RESULTS
-183 RESULTS
-184 RESULTS
-185 RESULTS
-186 RESULTS
-187 RESULTS
-188 RESULTS
-189 RESULTS
-190 RESULTS
-191 RESULTS
-192 RESULTS
-193 RESULTS
-194 RESULTS
-195 RESULTS
-196 RESULTS
-197 RESULTS
-198 RESULTS
-199 RESULTS
+148 CANCEL
+149 UNPAIR
+150 RESULTS
+151 RESULTS
+152 RESULTS
+153 RESULTS
+154 RESULTS
+155 RESULTS
+156 RESULTS
+157 RESULTS
+158 RESULTS
+159 RESULTS
 
-0 REM 180 RESULTS
+0 REM 150 RESULTS
 0 REM  ...
-0 REM 199 RESULTS
+0 REM 159 RESULTS
 0 REM inquiry results
-@INQUIRY 200
+@INQUIRY 160
 0 REM we can store as much as 20 results
-200 IF R >= 20 THEN 208;
+160 IF R >= 10 THEN 168;
 0 REM check filter
-201 A= strcmp $15;
-202 IF A <> 0 THEN 208;
+161 A= strcmp $15;
+162 IF A <> 0 THEN 168;
 0 REM passed, might be a target
-203 $(180+R) = $0;
-204 R=R+1;
-205 $0=$8;
-206 PRINTV R;
-207 A = lcd $0
-208 RETURN
+163 $(150+R) = $0;
+164 R=R+1;
+165 $0=$8;
+166 PRINTV R;
+167 A = lcd $0
+168 RETURN
 
 0 REM PIO interrupts
-@PIO_IRQ 210
+@PIO_IRQ 170
 0 REM check for flag
-210 IF T = 1 THEN 216;
+170 IF T = 1 THEN 176;
 0 REM button press while in settings menu?
-211 IF Q > 200 THEN 310;
-0 REM 212 is free, you code can hack here.
+171 IF Q > 100 THEN 230;
+0 REM 172 is free, you code can hack here.
 0 REM button press starts long button recognition
-213 IF$0[$1[0]-64]=48THEN220;
-214 IF$0[$1[1]-64]=49THEN220;
-215 IF$0[$1[2]-64]=48THEN220;
+173 IF$0[$1[0]-64]=48THEN180;
+174 IF$0[$1[1]-64]=49THEN180;
+175 IF$0[$1[2]-64]=48THEN180;
 0 REM was it a release for a short press?
-216 IF W <> 0 THEN 225;
-217 RETURN
+176 IF W <> 0 THEN 184;
+177 RETURN
 
 0 REM this was a new press
-220 $14 = $0;
-221 W = 1;
-222 ALARM 3;
-223 RETURN
+180 $14 = $0;
+181 W = 1;
+182 ALARM 3;
+183 RETURN
 
 
 0 REM button released for a short press
-225 W = 0;
-226 ALARM 0
+184 W = 0;
+185 ALARM 0
 0 REM left button
-227 IF$14[$1[0]-64]=48THEN37;
+186 IF$14[$1[0]-64]=48THEN37;
 0 REM middle button
-228 IF$14[$1[1]-64]=49THEN38;
+187 IF$14[$1[1]-64]=49THEN38;
 0 REM right button
-229 IF$14[$1[2]-64]=48THEN39;
-230 RETURN
+188 IF$14[$1[2]-64]=48THEN39;
+189 RETURN
+
+0 REM long button press, called by @ALARM
+190 W = 0;
+0 REM long left
+191 IF$14[$1[0]-64]=48THEN34;
+0 REM long middle
+192 IF$14[$1[1]-64]=49THEN35;
+0 REM long right
+193 IF$14[$1[2]-64]=48THEN36;
+0 REM should never get here
+194 A = lcd "ALRM ERROR      "
+195 ALARM 5
+196 RETURN
 
 
 0 REM ALARM handler
-@ALARM 250
+@ALARM 200
 
 0 REM settings menu running?
-250 IF Q >= 390 THEN 300;
+200 IF Q > 100 THEN 220;
 
 0 REM check for long button press
-251 IF W <> 0 THEN 260;
+201 IF W <> 0 THEN 190;
 
 0 REM no more to do on vanilla code we call your
 0 REM your code
-252 GOTO 21;
-
-0 REM long button press
-260 W = 0;
-0 REM long left
-261 IF$14[$1[0]-64]=48THEN34;
-0 REM long middle
-262 IF$14[$1[1]-64]=49THEN35;
-0 REM long right
-263 IF$14[$1[2]-64]=48THEN36;
-0 REM should never get here
-264 A = lcd "ALRM ERROR      "
-265 ALARM 5
-266 RETURN
+202 GOTO 21;
 
 
 0 REM settings menu handler
 0 REM menu prepare
-285 Q = 290
-286 GOTO 300
+205 Q = 210
+206 GOTO 220
 
 0 REM options to show
-290 ADDRESS
-291 PEER
-292 CONTRAST
-293 RATE
-294 INQUIRY
-295 EXIT
+210 ADDRESS
+211 PEER
+212 CONTRAST
+213 RATE
+214 INQUIRY
+215 EXIT
 
-300 IF Q = 520 THEN 530;
-301 A = pioirq $6;
-302 $8=$Q;
-303 T = 0;
-304 GOTO 40
+220 IF Q = 520 THEN 385;
+221 A = pioirq $6;
+222 $8=$Q;
+223 T = 0;
+224 GOTO 40
 
 0 REM menu button manager
-310 ALARM 0;
-311 IF Q = 500 THEN 380;
-312 IF Q = 510 THEN 420;
-313 IF Q = 520 THEN 480;
-314 IF$0[$1[0]-64]=48THEN320;
-315 IF$0[$1[1]-64]=49THEN340;
-316 IF$0[$1[2]-64]=48THEN330;
-317 RETURN
+230 ALARM 0;
+231 IF Q = 500 THEN 290;
+232 IF Q = 510 THEN 315;
+233 IF Q = 520 THEN 350;
+0 REM 234 can be hacked to add more entry levels
+235 IF$0[$1[0]-64]=48THEN240;
+236 IF$0[$1[1]-64]=49THEN250;
+237 IF$0[$1[2]-64]=48THEN245;
+238 RETURN
 
 0 REM decrease
-320 IF Q < 291 THEN 323;
-321 Q = Q - 1;
-322 GOTO 300;
+240 IF Q < 211 THEN 243;
+241 Q = Q - 1;
+242 GOTO 220;
 
-323 Q = 295;
-324 GOTO 300;
+0 REM you should modify this line to add more
+0 REM entries
+243 Q = 215;
+244 GOTO 220;
 
 0 REM increase
-330 IF Q > 294 THEN 333;
-331 Q = Q + 1;
-332 GOTO 300;
+0 REM modify this line if you add more entries
+245 IF Q > 214 THEN 248;
+246 Q = Q + 1;
+247 GOTO 220;
 
-333 Q = 290;
-334 GOTO 300;
+248 Q = 210;
+249 GOTO 220;
 
 0 REM option selected
 0 REM self address
-340 IF Q = 290 THEN 350;
+250 IF Q = 210 THEN 260;
 0 REM peer address
-341 IF Q = 291 THEN 360;
+251 IF Q = 211 THEN 270;
 0 REM contrast
-342 IF Q = 292 THEN 370;
+252 IF Q = 212 THEN 280;
 0 REM message rate
-343 IF Q = 293 THEN 410;
+253 IF Q = 213 THEN 310;
 0 REM inquiry
-344 IF Q = 294 THEN 460;
+254 IF Q = 214 THEN 340;
 0 REM exit
-345 IF Q = 295 THEN 450;
+255 IF Q = 215 THEN 335;
+0 REM you can add more options here
 0 REM just in case.
-346 A = lcd"MENU ERROR"
-347 RETURN
+256 A = lcd"MENU ERROR"
+257 RETURN
 
 0 REM show own address
-350 A = getaddr $8;
-351 GOSUB 40;
-352 WAIT 3
-353 GOTO 300
+260 A = getaddr $8;
+261 GOSUB 40;
+262 WAIT 3
+263 GOTO 220
 
 0 REM show peer address
-360 A = strlen $5;
-361 IF A < 12 THEN 365; 
-362 $8=$5;
-363 GOSUB 40;
-364 GOTO 352
+270 A = strlen $5;
+271 IF A < 12 THEN 275; 
+272 $8=$5;
+273 GOSUB 40;
+274 GOTO 262
 
-365 $8="NO PAIR";
-366 GOTO 363
+275 $8="NO PAIR";
+276 GOTO 273
 
 0 REM contrast handler
-370 $0="TEST "
-371 PRINTV Y;
-372 PRINTV"    "
-373 A = auxdac Y;
-374 A = lcd $0;
-375 Q = 500 ;
-376 RETURN
+280 $0="TEST "
+281 PRINTV Y;
+282 PRINTV"    "
+283 A = auxdac Y;
+284 A = lcd $0;
+285 Q = 500 ;
+286 RETURN
 
-380 IF$0[$1[0]-64]=48THEN390;
-381 IF$0[$1[1]-64]=49THEN400;
-382 IF$0[$1[2]-64]=48THEN385;
-383 RETURN
+290 IF$0[$1[0]-64]=48THEN300;
+291 IF$0[$1[1]-64]=49THEN304;
+292 IF$0[$1[2]-64]=48THEN295;
+293 RETURN
 
-385 IF Y > 260 THEN 370;
-386 Y = Y + 10;
-387 GOTO 370;
+295 IF Y > 260 THEN 280;
+296 Y = Y + 10;
+297 GOTO 280;
 
-390 IF Y < 160 THEN 370;
-391 Y = Y - 10;
-392 GOTO 370;
+300 IF Y < 160 THEN 280;
+301 Y = Y - 10;
+302 GOTO 280;
 
-400 Q = 290;
-401 $0[0]=0;
-402 PRINTV Y;
-403 $2 = $0;
-404 ALARM 1;
-405 RETURN
+304 Q = 290;
+305 $0[0]=0;
+306 PRINTV Y;
+307 $2 = $0;
+308 ALARM 1;
+309 RETURN
 
 0 REM rate setting
-410 $0="SEGS ";
-411 PRINTV V;
-412 PRINTV"    ";
-413 A = lcd $0;
-414 Q = 510 ;
-415 RETURN
+310 $0="SEGS ";
+311 PRINTV V;
+312 $8=$0
+313 Q = 510;
+314 GOTO 40
 
-420 IF$0[$1[0]-64]=48THEN430;
-421 IF$0[$1[1]-64]=49THEN440;
-422 IF$0[$1[2]-64]=48THEN425;
-423 RETURN
+315 IF$0[$1[0]-64]=48THEN322;
+316 IF$0[$1[1]-64]=49THEN327;
+317 IF$0[$1[2]-64]=48THEN320;
+318 RETURN
 
-425 V = V + 10;
-426 GOTO 410;
+320 V = V + 10;
+321 GOTO 310;
 
-430 IF V < 0 THEN 435;
-431 V = V - 10;
-432 GOTO 410;
+322 IF V < 0 THEN 325;
+323 V = V - 10;
+324 GOTO 310;
 
-435 V = 0;
-436 GOTO 410;
+325 V = 0;
+326 GOTO 310;
 
-440 Q = 290;
-441 $0[0]=0;
-442 PRINTV V;
-443 $16 = $0;
-444 ALARM 1;
-445 RETURN
+327 Q = 290;
+328 $0[0]=0;
+329 PRINTV V;
+330 $16 = $0;
+331 ALARM 1;
+332 RETURN
 
 0 REM exit handler
-450 Q = 0;
-451 A=lcd"BYE       "
-452 ALARM 1
-453 RETURN
+335 Q = 0;
+336 A=lcd"BYE       "
+337 ALARM 1
+338 RETURN
 
 0 REM inquiry handler
-460 $8="FOUND "
-461 R = 0;
-462 Q = 520;
-463 S = 0;
-464 A = lcd "SCAN. . . ";
-465 T = 1;
-466 A = pioirq $12;
-467 A = inquiry 9;
-468 ALARM 30;
-469 RETURN
+340 $8="FOUND "
+341 R = 0;
+342 Q = 520;
+343 S = 0;
+344 A = lcd "SCAN. . . ";
+345 T = 1;
+346 A = pioirq $12;
+347 A = inquiry 9;
+348 ALARM 30;
+349 RETURN
 
 0 REM inquiry button handler
-480 IF$0[$1[0]-64]=48THEN490;
-481 IF$0[$1[1]-64]=49THEN520;
-482 IF$0[$1[2]-64]=48THEN505;
-483 RETURN
+350 IF$0[$1[0]-64]=48THEN355;
+351 IF$0[$1[1]-64]=49THEN370;
+352 IF$0[$1[2]-64]=48THEN360;
+353 RETURN
 
 0 REM left handler shows previous result
-490 IF S = 0 THEN 500;
-491 S = S - 1;
-492 GOTO 515;
+355 IF S = 0 THEN 358;
+356 S = S - 1;
+357 GOTO 365;
 
-500 S = R+2;
-501 GOTO 515;
+358 S = R+2;
+359 GOTO 365;
 
 0 REM right handler shows next result
-505 IF S >= R+1 THEN 510;
-506 S = S + 1;
-507 GOTO 515;
+360 IF S >= R+1 THEN 363;
+361 S = S + 1;
+362 GOTO 365;
 
-510 S = 0;
-511 GOTO 515;
+363 S = 0;
+364 GOTO 365;
 
 0 REM show on screen
-515 A = lcd "            ";
-516 $8=$(178+S);
-517 GOTO 40 
+365 A = lcd "            ";
+366 $8=$(148+S);
+367 GOTO 40 
 
 0 REM middle is option chooser
-520 IF S < 2 THEN 526;
-521 $5 = $(178+S);
-522 Q = 290;
-523 A = lcd"DONE         "
-524 ALARM 3;
-525 RETURN
+370 IF S < 2 THEN 380;
+371 $5 = $(178+S);
+372 Q = 210;
+373 A = lcd"DONE         "
+374 ALARM 3;
+375 RETURN
 
 0 REM cancel or unpair?
-526 IF S = 0 THEN 522;
+380 IF S = 0 THEN 372;
 0 REM unpair
-527 $5 = "";
-528 GOTO 522;
+381 $5 = "";
+382 GOTO 372;
 
-530 A = pioirq $6;
-531 T = 0;
-532 GOTO 515;
+385 A = pioirq $6;
+386 T = 0;
+387 GOTO 365;
 
 
 0 REM same base functions -----------------------------------
@@ -612,53 +608,54 @@
 0 REM you want to update the reading and let the
 0 REM user know what you're doing (for example
 0 REM after an update button press).
-540 A = lcd $19[1]
-541 GOSUB 30
-542 GOSUB 31
-543 $8=$11
-544 GOSUB 40
-545 RETURN
+400 A = lcd $19[1]
+401 GOSUB 30
+402 GOSUB 31
+403 $8=$11
+404 GOSUB 40
+405 RETURN
 
 0 REM turn off
-550 A = lcd "GOOD BYE";
-551 ALARM 0;
-552 A = pioset($1[3]-64)
-553 A = pioclr($1[3]-64);
-554 A = pioget($1[1]-64);
-555 IF A = 1 THEN 552;
-556 A = pioclr($1[4]-64);
-557 A = lcd;
-558 A = reboot;
-559 FOR E = 0 TO 10;
-560   WAIT 1
-561 NEXT E;
-562 RETURN
+410 A = lcd "GOOD BYE";
+411 ALARM 0;
+412 A = pioset($1[3]-64)
+413 A = pioclr($1[3]-64);
+414 A = pioget($1[1]-64);
+415 IF A = 1 THEN 412;
+416 A = pioclr($1[4]-64);
+417 A = lcd;
+418 A = reboot;
+419 FOR E = 0 TO 10;
+420   WAIT 1
+421 NEXT E;
+422 RETURN
 
 0 REM make it visible, enable services
-570 A = lcd "VISIBLE  "
-571 A = slave 120
-572 ALARM 140
-573 A = enable 3
-574 RETURN
+430 A = lcd "VISIBLE  "
+431 A = slave 120
+432 ALARM 140
+433 A = enable 3
+434 RETURN
 
 0 REM enable deep sleep
-580 A = auxdac 0
-581 A = pioset $1[5]
+440 A = auxdac 0
+441 A = pioset $1[5]
 0 REM make sure that nothing happens between enabling deep
 0 REM sleep and RETURN
-582 A = uartoff;
-583 RETURN;
+442 A = uartoff;
+443 RETURN;
 
 0 REM disable deep sleep
-585 A = auxdac N
-586 A = pioclr $1[5]
-587 RETURN
+450 A = auxdac N
+451 A = pioclr $1[5]
+452 RETURN
 
-590 ALARM 20
-591 $0 = "BATT "
-592 PRINTV $7
-593 $8=$0
-594 GOTO 41
+0 REM display battery reading
+460 ALARM 20
+461 $0 = "BATT "
+462 PRINTV $7
+463 $8=$0
+464 GOTO 41
 
 
 0 REM --------------------------------------------------------------------
@@ -708,7 +705,8 @@
 
 
 0 REM User ALARM code, user is responsable
-0 REM of calling ALARM again.
+0 REM of calling ALARM again, and nextsns
 760 ALARM 15
-761 RETURN
+761 A = nextsns 1
+762 RETURN
 
