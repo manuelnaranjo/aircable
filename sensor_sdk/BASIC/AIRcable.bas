@@ -34,8 +34,10 @@
 0 REM 21 @ALARM (user is responsible of calling 
 0 REM 	ALARM for periodic readings)
 0 REM 22 @IDLE extra
-0 REM 30 sensor reading
-0 REM 31 sensor displaying
+0 REM 30 sensor reading (for compatibility we
+0 REM 	recommend this in the 600-699 range)
+0 REM 31 sensor displaying (for compatibility we
+0 REM 	recommend this in the 600-699 range)
 0 REM 34 left long button press
 0 REM 35 middle long button press
 0 REM 36 right long button press
@@ -125,7 +127,7 @@
 0 REM R = inquiry counter
 0 REM Q = status
 0 REM P = @SENSOR flag
-0 REM F to N reserved for 'user' sensor code
+0 REM O to N reserved for 'user' sensor code
 
 0 REM END global variables -----------------------------
 
@@ -652,10 +654,11 @@
 586 A = pioclr $1[5]
 587 RETURN
 
-590 $0 = "BATT "
-591 PRINTV $7
-592 $8=$0
-593 GOTO 41
+590 ALARM 20
+591 $0 = "BATT "
+592 PRINTV $7
+593 $8=$0
+594 GOTO 41
 
 
 0 REM --------------------------------------------------------------------

@@ -12,10 +12,10 @@
 0 REM more information about it.
 
 0 REM @INIT extension
-20 GOTO 600;
+20 GOTO 700;
 
 0 REM @ALARM extension
-21 GOTO 650;
+21 GOTO 750;
 
 0 REM @IDLE extension
 22 RETURN;
@@ -32,40 +32,40 @@
 36 GOTO 570;
 
 0 REM left short button press
-37 GOTO 630;
+37 GOTO 740;
 0 REM middle short button press 
-38 GOTO 610;
+38 GOTO 720;
 0 REM right short button press
-39 GOTO 640;
+39 GOTO 745;
 
 
-0 REM state variable L
-0 REM L = -1 not showing menu
-0 REM L = 0 showing root
-0 REM L = 1 showing menu 1
-0 REM L = N, N<255 showing menu N
-0 REM L = N, N> 255 doing X activity
+0 REM state variable O
+0 REM O = -1 not showing menu
+0 REM O = 0 showing root
+0 REM O = 1 showing menu 1
+0 REM O = N, N<255 showing menu N
+0 REM O = N, N> 255 doing X activity
 0 REM K internal counter
-0 REM J = 0 no files open
-0 REM J = 1 history file opened
-0 REM J = 2 menu file opened
-0 REM H menu buffer length
-0 REM G menu buffer pointer
-0 REM F history buffer length (equals pointer)
+0 REM N = 0 no files open
+0 REM N = 1 history file opened
+0 REM N = 2 menu file opened
+0 REM M menu buffer length
+0 REM L menu buffer pointer
+0 REM K history buffer length (equals pointer)
 
 0 REM hack @PIO_IRQ to make it faster
-212 IF L>-1 THEN 680;
+212 IF O>-1 THEN 790;
 
 0 REM some more init
-600 L = -1;
-601 K = 0;
-602 J = 0;
+700 O = -1;
+701 M = 0;
+702 N = 0;
 0 REM we assume there's no buffer at all
 0 REM and history buffer has been flused
-603 H = 0;
-604 G = 0;
-605 F = 0;
-606 RETURN
+703 M = 0;
+704 L = 0;
+705 K = 0;
+706 RETURN
 
 
 0 REM SHORT BUTTON PRESS HANDLER --------------
@@ -84,30 +84,30 @@
 
 0 REM middle button, show menu,
 0 REM but first check there's something to show
-610 IF L > -1 THEN 619;
-611 A = exist $1011
-612 IF A = 0 THEN 620
+720 IF O > -1 THEN 729;
+721 A = exist $1011
+722 IF A = 0 THEN 730
 0 REM point to root, load menu, start the magic
-613 L = 0
-614 G = 0
-615 GOSUB 700
-616 GOTO 760
+723 O = 0
+724 L = 0
+725 GOSUB 800
+726 GOTO 880
 
 0 REM RETURN on button release
-619 RETURN
+729 RETURN
 
 0 REM ohoh! no menu file found.
-620 A = lcd"NO MENU  "
-621 ALARM 10
-622 RETURN
+730 A = lcd"NO MENU  "
+731 ALARM 10
+732 RETURN
 
 0 REM left button
-630 IF L>-1 THEN 619;
-631 GOSUB 590
+740 IF O>-1 THEN 729;
+741 GOTO 590
 
 0 REM right button
-640 IF L>-1 THEN 619;
-641 GOTO 540
+745 IF O>-1 THEN 729;
+746 GOTO 540
 
 0 REM EO SHORT BUTTON HANDLER --------------------
 
@@ -115,219 +115,227 @@
 0 REM ALARM HANDLER ---------------------------------------
 0 REM if more than 1 hour happened since last time
 0 REM we sent our records, then we send again.
-650 A = readcnt;
-651 IF A > 3600 THEN 660;
+750 A = readcnt;
+751 IF A > 3600 THEN 760;
 0 REM jf you need any more
 0 REM checkings, you can do a GOSUB
 0 REM in line 652 to your code.
-653 IF L > -1 THEN 675;
-654 A = lcd "READY     ";
-655 ALARM 15;
-656 RETURN
+752 REM reserved
+753 IF O > -1 THEN 780;
+754 A = lcd "READY     ";
+755 ALARM 15;
+0 REM if we're not busy then
+0 REM get new reading.
+756 A = nextsns 1
+757 RETURN
 
 0 REM send content
-660 A = strlen $5
-661 IF A > 11 THEN 670
-662 A = zerocnt
-663 GOTO 654
+760 A = strlen $5
+761 IF A > 11 THEN 770
+762 A = zerocnt
+763 GOTO 754
 
 0 REM go, get connected
-670 A = master $5
-671 ALARM 10
-672 RETURN
+770 A = master $5
+771 ALARM 10
+772 RETURN
 
 0 REM not busy, then scroll screen once
 0 REM scroll again in 4 seconds
-675 E = 1
-676 ALARM 5
-677 $8=$(G+900)[8];
-678 GOTO 41
+780 E = 1
+781 ALARM 5
+782 $8=$(L+960)[8];
+783 A = nextsns 4
+784 GOTO 41
 
 0 REM EO ALARM HANDLER --------------------------------
 
 0 REM while showing menu detect press
 0 REM and not release, so user see things faster
-680 IF$0[$1[0]-64]=48THEN750;
-681 IF$0[$1[1]-64]=49THEN770;
-682 IF$0[$1[2]-64]=48THEN755;
-683 W=0
-684 RETURN
+790 IF$0[$1[0]-64]=48THEN860;
+791 IF$0[$1[1]-64]=49THEN890;
+792 IF$0[$1[2]-64]=48THEN870;
+793 W=0
+794 RETURN
 
 
 0 REM MENU HANDLER ---------------------------------------
 
 0 REM MENU READING, BUFFER FILLING ------------
-0 REM menu buffer is stored in lines 900 to 919
-0 REM history buffer is stored in lines 920 to 949
+0 REM menu buffer is stored in lines 960 to 979
+0 REM history buffer is stored in lines 980 to 999
 
 
 0 REM check if we have our file opened
-700 A = lcd$19[1]
-701 H = 0
-702 IF J = 1 THEN 707;
-703 IF J = 0 THEN 705;
+800 A = lcd$19[1]
+801 M = 0
+802 IF N = 1 THEN 807;
+803 IF N = 0 THEN 805;
 0 REM time expensive
-704 A = close ;
-705 A = open $1011 ;
-706 J = 1 ;
+804 A = close ;
+805 A = open $1011 ;
+806 N = 1 ;
 
 0 REM move pointer to first byte
-707 A = seek 0;
+807 A = seek 0;
 
 0 REM be FAST! no interrupts what's so ever
-708 A = pioirq$12;
+808 A = pioirq$12;
 
 0 REM init $1012
-709 A = hex8 L;
-710 $1012=$0
+809 A = hex8 L;
+810 $1012=$0
 
 0 REM go through file until buffer gets filled, or
 0 REM there are no more menu options on L level
 
-711 B = read 32;
-712 IF B = 0 THEN 718;
+811 B = read 32;
+812 IF B = 0 THEN 818;
 
 0 REM check level
-713 A = strcmp $1012;
-714 IF A <> 0 THEN 711;
+813 A = strcmp $1012;
+814 IF A <> 0 THEN 811;
 
 0 REM same level
-715 $(H+900)=$0;
-716 H=H+1;
+815 $(M+960)=$0;
+816 M=M+1;
 
 0 REM loop
-717 GOTO 711;
+817 GOTO 811;
 0 REM enable interrupts back
-718 A = pioirq $6
-719 RETURN
+818 A = pioirq $6
+819 RETURN
 
 0 REM -------------------------------------------------------------------
 
 0 REM HISTORY BUFFER FILLING, FLUSHING
 0 REM save it
-720 $(F+920)=$0;
-721 F=F+1;
+830 $(K+980)=$0;
+831 K=K+1;
 
 0 REM check if we filled the buffer
-722 IF F>=20 THEN 725
-723 RETURN
+832 IF K>=20 THEN 840
+833 RETURN
 
 0 REM disable interrupts, get lock on files
-725 A = pioirq$12
-726 A =lcd"FLUSHING"
-727 IF J=0 THEN 731;
-728 IF J=1 THEN 733;
+840 A = pioirq$12
+841 A =lcd"FLUSHING"
+842 IF N=0 THEN 845;
+843 IF N=1 THEN 847;
 0 REM menu was opened, now close it
 0 REM this will take a while
-730 A = close;
-731 J = 1;
+844 A = close;
+845 N = 1;
 
 0 REM open and point to last byte,
 0 REM this will create the file if needed
-732 A = append $1010;
+846 A = append $1010;
 
-733 FOR B=0 TO H
-734 $0=$(H+920);
+847 FOR B=0 TO K
+848 $0=$(B+980);
 0 REM assume length
-735 A = write 32;
-736 NEXT B
+849 A = write 32;
+850 NEXT B
 
 0 REM now do the really time consuming thingy
-737 A = close;
-738 J=0;
-739 H = 0;
+851 A = close;
+852 N = 0;
+853 K = 0;
 0 REM enable interrupts back
-740 A = pioirq $6
-741 A = lcd"DONE       "
-742 RETURN
+854 A = pioirq $6
+855 A = lcd"DONE       "
+856 RETURN
 
 0 REM -------------------------------------------------------------------
 
 0 REM short button press handlers for while in menu
 0 REM left button press, decrement menu options
-750 G=G-1;
-751 IF G>-1 THEN 760;
-752 G=H-1;
-753 GOTO 760;
+860 L=L-1;
+861 IF L>-1 THEN 880;
+862 L=M-1;
+863 GOTO 880;
 
 0 REM right button press, increment menu options
-755 G=G+1
-756 IF G<H THEN 760;
-757 G=0;
-758 GOTO 760;
+870 L=L+1
+871 IF L<M THEN 880;
+872 L=0;
+873 GOTO 880;
 
 0 REM real display handler
 0 REM register for ALARM so we give some time
 0 REM to the user to think before we start scrolling
-760 $8=$(G+900)[8];
-761 E=0;
-762 ALARM 7
-763 GOTO 41;
+880 $8=$(L+960)[8];
+881 E=0;
+882 ALARM 7
+883 GOTO 41;
 
 0 REM middle button press, here's where the real
 0 REM magic takes place....
 0 REM first check for action
-770 $0=$(G+900)[6];
-771 A = strcmp"!!" ;
-772 A = strcmp"ex";
-773 IF A =0 THEN 800;
+890 $0=$(L+960)[6];
+891 A = strcmp"!!" ;
+892 IF A = 0 THEN 910;
+894 A = strcmp"ex";
+895 IF A =0 THEN 920;
 0 REM you could add more options here
-0 REM just overwrite line 775
-0 REM up to line 789 are free because of API
-774 RETURN
+0 REM just overwrite line 896
+0 REM up to line 909 are free because of API
+896 RETURN
 
 0 REM show next level
 0 REM update history (might sound crazy in
 0 REM production enviroment, but while testing
 0 REM this allows you to tell which options your users
 0 REM uses most).
-790 $0=$(G+900);
-791 GOSUB 720;
+910 $0=$(L+960);
+911 GOSUB 830;
 0 REM get new pointers
-792 L=x8toi$(G+900)[2];
-793 A=x8toi$(G+900)[4];
-794 G=A;
+912 O=x8toi$(L+960)[2];
+913 A=x8toi$(L+960)[4];
+914 G=A;
 0 REM update menu
-795 GOSUB 700;
+915 GOSUB 800;
 0 REM display menu
-796 GOTO 760;
+916 GOTO 880;
 
 0 REM exit from the menu
-800 L = -1
-801 A =lcd"BYE            "
-802 ALARM 3
-803 RETURN
+920 O = -1
+921 A =lcd"BYE            "
+922 ALARM 3
+923 RETURN
 
 
 0 REM we got connected to the server
 0 REM send our content
-@MASTER 850
-850 PRINTM"INTERACTIVE\n"
-851 INPUTM$0
-852 A = enable 3
-853 A = strcmp "GO\n"
-854 IF A <> 0 THEN
-855 IF J = 0 THEN 860; 
-856 WAIT 1
-857 GOTO 854;
+@MASTER 930
+930 PRINTM"INTERACTIVE\n"
+931 INPUTM$0
+932 A = enable 3
+933 A = strcmp "GO\n"
+934 IF A <> 0 THEN
+935 IF N = 0 THEN 938; 
+936 WAIT 1
+937 GOTO 934;
 
 0 REM the semaphore is free
 0 REM lock it
-860 J = 1;
-861 PRINTM"HISTORY READY\n"
+938 N = 1;
+939 PRINTM"HISTORY\n"
 0 REM let the server get our history
-862 WAIT 10
-863 A = status;
-864 IF A >= 100 THEN 958;
+940 WAIT 10
+941 A = status;
+942 IF A >= 100 THEN 948;
 0 REM release semaphore
-865 J = 0
+943 N = 0
 
 0 REM check for menu lock
-866 IF H = 0 THEN 870
-867 WAIT 1
-868 GOTO 866;
+944 IF N = 0 THEN 947
+945 WAIT 1
+946 GOTO 944;
 
 0 REM lock semaphore
-870 H = 1
-871 PRINTM"MENU READY\n"
+947 N = 2
+948 PRINTM"MENU READY\n"
+949 RETURN
+
 

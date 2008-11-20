@@ -14,30 +14,30 @@
 0 REM line 990.
 
 0 REM set our interrupt points
-30 GOTO 981;
-31 GOTO 990;
+30 GOTO 600;
+31 GOTO 610;
 
 
 0 REM we'll store reading in $980
-980 READING
+609 READING
 
 0 REM update reading.
-981 $980 = $13[5]
-982 $980[4] = 0
-983 M = atoi $980
-984 M = (M - 520) * 2
-985 $0 = "TAMB|
-986 PRINTV$980
-987 $10 = $0
-988 RETURN
+600 $609 = $13[5]
+601 $609[4] = 0
+602 M = atoi $609
+603 M = (M - 520) * 2
+604 $0 = "TAMB|
+605 PRINTV$609
+606 $10 = $0
+607 RETURN
 
 0 REM display value generator
-990 $0="AMB "
-991 N = M / 20
-992 PRINTV N
-993 PRINTV "%C"
-994 $11 = $0
-995 RETURN
+610 $0="AMB "
+611 N = M / 20
+612 PRINTV N
+613 PRINTV "%C"
+614 $11 = $0
+615 RETURN
 
 
 
