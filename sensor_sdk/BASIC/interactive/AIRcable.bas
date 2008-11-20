@@ -1,11 +1,11 @@
 0 REM history file
-1010 history.txt
+1020 history.txt
 
 0 REM menu file
-1011 menu.txt
+1021 menu.txt
 
 0 REM RESERVED
-1012 RES
+1022 RES
 
 0 REM lines format XXYYZZMESSAGE
 0 REM check Format in sensor_sdk/BASIC/interactive for
@@ -23,13 +23,13 @@
 0 REM long button handlers ----------------------------------
 0 REM left long button press
 0 REM edit menu
-34 GOTO 285;
+34 GOTO 205;
 0 REM middle long button press 
 0 REM turn off
-35 GOTO 550;
+35 GOTO 410;
 0 REM right long button press
 0 REM make visible
-36 GOTO 570;
+36 GOTO 430;
 
 0 REM left short button press
 37 GOTO 740;
@@ -54,7 +54,7 @@
 0 REM K history buffer length (equals pointer)
 
 0 REM hack @PIO_IRQ to make it faster
-212 IF O>-1 THEN 790;
+172 IF O>-1 THEN 790;
 
 0 REM some more init
 700 O = -1;
@@ -85,7 +85,7 @@
 0 REM middle button, show menu,
 0 REM but first check there's something to show
 720 IF O > -1 THEN 729;
-721 A = exist $1011
+721 A = exist $1021
 722 IF A = 0 THEN 730
 0 REM point to root, load menu, start the magic
 723 O = 0
@@ -167,13 +167,13 @@
 
 
 0 REM check if we have our file opened
-800 A = lcd$19[1]
+800 A = lcd"WAIT . . . "
 801 M = 0
 802 IF N = 1 THEN 807;
 803 IF N = 0 THEN 805;
 0 REM time expensive
 804 A = close ;
-805 A = open $1011 ;
+805 A = open $1021 ;
 806 N = 1 ;
 
 0 REM move pointer to first byte
@@ -184,7 +184,7 @@
 
 0 REM init $1012
 809 A = hex8 L;
-810 $1012=$0
+810 $1022=$0
 
 0 REM go through file until buffer gets filled, or
 0 REM there are no more menu options on L level
@@ -193,7 +193,7 @@
 812 IF B = 0 THEN 818;
 
 0 REM check level
-813 A = strcmp $1012;
+813 A = strcmp $1022;
 814 IF A <> 0 THEN 811;
 
 0 REM same level
@@ -229,7 +229,7 @@
 
 0 REM open and point to last byte,
 0 REM this will create the file if needed
-846 A = append $1010;
+846 A = append $1020;
 
 847 FOR B=0 TO K
 848 $0=$(B+980);
@@ -322,9 +322,9 @@
 938 N = 1;
 939 PRINTM"HISTORY\n"
 0 REM let the server get our history
-940 WAIT 10
-941 A = status;
-942 IF A >= 100 THEN 948;
+940 A = open $1020
+941 GOSUB 470
+942 A = close
 0 REM release semaphore
 943 N = 0
 
@@ -336,6 +336,10 @@
 0 REM lock semaphore
 947 N = 2
 948 PRINTM"MENU READY\n"
-949 RETURN
+949 A = open $1020
+950 GOSUB 470
+951 A = close
+952 A = disconnect 1
+
 
 
