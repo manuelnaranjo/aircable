@@ -21,9 +21,10 @@ Usage %s:
 def log(text):
 	if not VERBOSE:
 		return
-	print("%s\n" % text);
+	print("%s" % text);
 
 def main():
+	global VERBOSE
 	try:
 		opts, args = getopt.getopt(sys.argv[1:], 
 			"hi:o:v", 
@@ -42,7 +43,7 @@ def main():
 #	Options parsing
 
 	for opt, arg in opts:
-		if opt == "-v":
+		if opt in ("-v", "--verbose"):
 			VERBOSE = True
 		elif opt in ("-h", "--help"):
 			usage()
@@ -67,7 +68,7 @@ def main():
 #		Allow comments
 		if (line.startswith("#")):
 			log("ignoring comment")
-			break
+			continue
 
 		
 		line=line.replace("\n","")
@@ -78,7 +79,7 @@ def main():
 		
 		if (length==0):
 			log("Ignoring void");
-			break;
+			continue
 		
 		log("Filling with %i zeros" % (LENGTH-length) )
 		if (length>LENGTH):
