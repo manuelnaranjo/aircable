@@ -315,8 +315,8 @@
 900 PRINTM"INTERACTIVE\n"
 901 INPUTM$0
 902 A = enable 3
-903 A = strcmp "GO\n"
-904 IF A <> 0 THEN
+903 A = strcmp "GO"
+904 IF A <> 0 THEN 930
 905 IF N = 0 THEN 908; 
 906 WAIT 1
 907 GOTO 904;
@@ -348,5 +348,20 @@
 924 ALARM 5
 925 $8="DONE
 926 GOTO 40
+
+0 REM check if we need to get
+0 REM into service mode, otherwise
+0 REM there isn't much we can do now.
+930 A=strcmp"SERVICE"
+931 IF A = 0 THEN 940
+932 GOTO 923
+
+0 REM service mode, you can do something
+0 REM fancy here
+940 $8="SERVICE"
+941 GOSUB 40
+942 A = slave 20
+943 A = enable 3
+944 RETURN
 
 
