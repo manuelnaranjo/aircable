@@ -23,7 +23,7 @@
 0 REM long button handlers ----------------------------------
 0 REM left long button press
 0 REM edit menu
-34 GOTO 205;
+34 GOTO 285;
 0 REM middle long button press 
 0 REM turn off
 35 GOTO 410;
@@ -98,16 +98,16 @@
 
 0 REM ohoh! no menu file found.
 630 A = lcd"NO MENU  "
-731 ALARM 10
-732 RETURN
+631 ALARM 10
+632 RETURN
 
 0 REM left button
 640 IF O>-1 THEN 629;
-641 GOTO 590
+641 GOTO 400
 
 0 REM right button
 645 IF O>-1 THEN 629;
-646 GOTO 540
+646 GOTO 460
 
 0 REM EO SHORT BUTTON HANDLER --------------------
 
@@ -142,9 +142,9 @@
 673 GOTO 40
 
 0 REM not busy, then scroll screen once
-0 REM scroll again in 4 seconds
+0 REM scroll again in 10 seconds
 680 E = 1
-681 ALARM 5
+681 ALARM 10
 682 $8=$(L+960)[8];
 683 A = nextsns 4
 684 GOTO 41
@@ -184,7 +184,7 @@
 708 A = pioirq$12;
 
 0 REM init $1012
-709 A = hex8 L;
+709 A = hex8 O;
 710 $1022=$0
 
 0 REM go through file until buffer gets filled, or
@@ -275,13 +275,15 @@
 0 REM first check for action
 790 $0=$(L+960)[6];
 791 A = strcmp"!!" ;
-792 IF A = 0 THEN 820;
+792 IF A=0 THEN 820;
 793 A = strcmp"ex";
-794 IF A =0 THEN 830;
+794 IF A=0 THEN 830;
+795 A = strcmp"HI"
+796 IF A=0 THEN 670;
 0 REM you could add more options here
 0 REM just overwrite line 795
 0 REM up to line 819 are free because of API
-795 RETURN
+797 RETURN
 
 0 REM show next level
 0 REM update history (might sound crazy in
@@ -293,7 +295,7 @@
 0 REM get new pointers
 822 O=x8toi$(L+960)[2];
 823 A=x8toi$(L+960)[4];
-824 G=A;
+824 L=A;
 0 REM update menu
 825 GOSUB 700;
 0 REM display menu
@@ -313,48 +315,43 @@
 898 GOSUB 40
 899 ALARM 0
 900 PRINTM"INTERACTIVE\n"
-901 INPUTM$0
-902 A = enable 3
-903 A = strcmp "GO"
-904 IF A <> 0 THEN 930
-905 IF N = 0 THEN 908; 
-906 WAIT 1
-907 GOTO 904;
+901 TIMEOUTM 20
+902 INPUTM$0
+903 A = enable 3
+904 A = strcmp "GO"
+905 IF A <> 0 THEN 931
+906 IF N = 0 THEN 910; 
 
 0 REM the semaphore is free
 0 REM lock it
-908 N = 1;
-909 PRINTM"HISTORY\n"
-0 REM let the server get our history
-910 A = open $1020
-911 GOSUB 470
-912 A = close
-0 REM release semaphore
-913 N = 0
+907 N = 1;
+908 A = append $1020
+910 PRINTM"HISTORY\n"
+0 REM flush history to file first
+912 GOSUB 740
+913 A = open $1020
+914 GOSUB 470
+915 A = close
+916 A = delete $1020
 
-0 REM check for menu lock
-914 IF N = 0 THEN 917
-915 WAIT 1
-916 GOTO 914;
-
-0 REM lock semaphore
-917 N = 2
-918 PRINTM"MENU READY\n"
-919 A = open $1020
-920 GOSUB 470
-921 A = close
-922 N = 0 
-923 A = disconnect 1
-924 ALARM 5
-925 $8="DONE
-926 GOTO 40
+0 REM now open the other file
+921 N = 2
+922 PRINTM"MENU READY\n"
+923 A = open $1020
+924 GOSUB 470
+925 A = close
+926 N = 0 
+927 A = disconnect 1
+928 ALARM 5
+929 $8="DONE
+930 GOTO 40
 
 0 REM check if we need to get
 0 REM into service mode, otherwise
 0 REM there isn't much we can do now.
-930 A=strcmp"SERVICE"
-931 IF A = 0 THEN 940
-932 GOTO 923
+931 A=strcmp"SERVICE"
+932 IF A = 0 THEN 940
+933 GOTO 924
 
 0 REM service mode, you can do something
 0 REM fancy here
