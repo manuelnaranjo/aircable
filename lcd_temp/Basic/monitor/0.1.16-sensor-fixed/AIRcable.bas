@@ -19,14 +19,6 @@
 0 REM W used for button
 0 REM V used for debug menu
 0 REM U used for lcd state
-0 REM U = 0 no activity
-0 REM U = 1 sending message
-0 REM U = 10 show battery
-0 REM U = 100 getting into menu
-0 REM U > 100 & U < 1000 displaying menu
-0 REM U = 1000 booting
-0 REM U = 2000 second stage boot
-
 0 REM T, R used for i2c
 0 REM S shows deep sleep state
 0 REM P is messages interval
@@ -39,7 +31,7 @@
 0 REM J used in @SENSOR
 0 REM I hardware supports deep sleep
 0 REM H increments on every minute that passes
-0 REM G used for consistent status/sucess checking
+0 REM G amount of tries, we try 3 times to send the message
 0 REM ABCDEF
 
 0 REM S = 1 sleeping
@@ -59,7 +51,6 @@
 0 REM $16 device name
 0 REM $17 Welcome message
 0 REM $18 reserved
-0 REM $19 is own bluetooth address
 
 0 REM $10 - $14 types of sensor
 0 REM $20 min value to compare
@@ -94,11 +85,9 @@
 13 RESERVED
 14 RESERVED
 
-15 0.1.17beta4
+15 0.1.16
 16 SMARTauto
 17 SMART
-18 RESERVED
-19 RESERVED
 
 20 RESERVED
 21 RESERVED
@@ -118,9 +107,8 @@
 30 A = pioirq $27
 31 A = lcd "WAIT . . . "
 32 GOSUB 400
-33 IF U >= 1000 THEN 35
-34 A = pioirq $23
-35 RETURN
+33 A = pioirq $23
+34 RETURN
 
 @INIT 38
 0 REM make sure deep sleep is really disabled
@@ -134,9 +122,6 @@
 
 0 REM mark we don't have ambient sensor
 43 K = 0
-
-0 REM no interrupts we're booting
-44 A = pioirq $27
 
 0 REM check if we can do deep sleep
 0 REM I = 1 no deep sleep hardware
@@ -233,6 +218,9 @@
 
 0 REM mark we are booting
 102 U = 1000
+0 REM battery reading is going to be updated
+0 REM periodically by  @ALARM
+
 
 0 REM laset pio out and high
 105 A = pioset 4
@@ -259,129 +247,140 @@
 121 WAIT 1
 0 REM update screen
 122 GOSUB 30 
-
-0 REM 09/26/08 MN, Fixed bug.
-0 REM no need for this any more
-0 REM this leads to some fancy states
-0 REM 123 A = slave 1
-
-0 REM get own address and store in $19
-123 A = getaddr
-124 $19=$0
-
+0 REM make sure @IDLE is called
+123 A = slave 1
 0 REM @IDLE will call ALARM
-125 RETURN
+124 RETURN
 
 
 0 REM @ALARM handler
-@ALARM 141
-141 GOSUB 990
+@ALARM 142
 0 REM make sure @ALARM is handled in non deep sleep mode
 142 A = uarton;
 143 A = pioset 9;
 144 A = pioclr 9
 
 0 REM first boot?
-146 IF U <> 2000 THEN 154;
-147 Q = 0;
-148 A = zerocnt;
-149 A = strlen $3;
-150 IF A >= 12 THEN 200;
+145 IF U <> 2000 THEN 154;
+146 Q = 0;
+147 A = zerocnt;
+148 $0="0050C2"
+149 A = strcmp $3;
+150 IF A = 0 THEN 190;
 
 151 A = lcd "NOT PAIRED"
 152 U = 0
-153 GOTO 172
+153 GOTO 159
 
-0 REM check for long button press
-154 IF W = 1 THEN 265;
 
 0 REM Menu been displayed?
-155 IF U >= 100 THEN 550;
+154 IF U <> 0 THEN 550;
 
-0 REM check if we're sending a message
-156 IF U = 1 THEN 238
+0 REM check for long button press
+155 IF W = 1 THEN 265;
 
-0 REM ok then it should be time to update
-0 REM screen. First disable deep sleep
-160 GOSUB 990;
-161 GOSUB 30;
-162 H = H + 1;
-163 A = zerocnt;
+0 REM one minute passed?
+156 A = readcnt;
+157 IF A >= 60 THEN 165;
+158 IF A < 0 THEN 165;
 
-164 Q = Q + 1;
-165 A = $24[0]+1;
-166 $24[0] = A ;
+0 REM we end here, trigger @SENSOR
+0 REM this will reschedule @ALARM
+160 A = pioclr 9;
+161 A = pioclr 20;
+162 M = 1
+163 A = nextsns 1
+164 RETURN
+
+0 REM disable deep sleep
+0 REM update screen
+165 GOSUB 990;
+166 GOSUB 30;
+167 H = H + 1;
+168 A = zerocnt;
+
+0 REM time to send message?
+169 IF H >= 5 THEN 190;
+
+0 REM we keep showing the temperature
+0 REM for the next 5 seconds
+170 ALARM 5;
+171 RETURN
+
+0 REM then reset minute counter, check prescalled
+0 REM counter
+0 REM increment prescalled counter, and check it
+190 H = 0;
+191 A = zerocnt;
+192 Q = Q + 1;
+193 A = $24[0]+1;
+194 $24[0] = A ;
 
 0 REM only message if paired
-167 A = strlen $3;
-168 IF A < 12 THEN 810;
+195 $0="0050C2"
+196 A = strcmp $3;
+197 IF A <> 0 THEN 810;
 
 0 REM first check for update
-169 IF $24[0] >= 240 THEN 936;
+198 IF $24[0] >= 57 THEN 936;
 0 REM then see if it's time to message
-170  IF Q >= P THEN 200;
-171 IF U = 2000 THEN 200;
-
-0 REM we don't have much to do,
-0 REM trigger @SENSOR in 295 seconds
-0 REM go to deep sleep
-173 M=3
-174 A = nextsns 295
-175 GOTO 1000
+199  IF Q >= P THEN 202;
+200 IF U = 2000 THEN 202;
+0 REM we don't have much to do.
+201 GOTO 159;
 
 0 REM send message, check for status first
-200 A = status;
-201 IF A >= 1000 THEN 800;
+202 A = status;
+203 IF A >= 1000 THEN 800;
 
 0 REM prevent any possible @SENSOR
-203 M = -1
+204 M = -1
+205 G = 3
 
+0 REM prevent any possible interrupt
+206 ALARM 0
+207 A = pioirq $27
 
-0 REM prevent any possible interrupt while
-0 REM generating message
-205 A = pioirq $27
+208 A = lcd"PRE MSG "
+209 GOSUB 450;
 
-207 A = lcd"PRE MSG "
-208 GOSUB 450;
-
-210 $0[0]=0;
-211 PRINTV"$";
-212 PRINTV $25
-213 PRINTV ":";
-214 PRINTV Y;
-215 PRINTV"!";
-216 PRINTV X;
-217 PRINTV"#";
-218 PRINTV $7;
-219 PRINTV"#"
-220 PRINTV K
-221 PRINTV "#"
-222 PRINTV $19
+217 $0[0]=0;
+218 PRINTV"$";
+219 PRINTV $25
+220 PRINTV ":";
+221 PRINTV Y;
+222 PRINTV"!";
+223 PRINTV X;
+224 PRINTV"#";
+225 PRINTV $7;
+226 PRINTV"#"
+227 PRINTV K
 
 228 A = lcd "MESSAGE"
 229 A = pioset 20
 
 230 A = message $3;
-231 U = 1
-0 REM check in 5 seconds
-232 ALARM 5
-233 RETURN
+231 WAIT 10
 
-0 REM this gets called on a new @ALARM
-0 REM we check for status, and then if it's cleared
-0 REM we check for success
-238 G = status
-239 IF G > 100 THEN 232
+0 REM check message transmission
+0 REM wait until the connection closes
+232 C = status
+233 IF C < 1000 THEN 240
+234 WAIT 5
+235 GOTO 232
+
 240 A = pioclr 20
-241 G = success
-242 IF G > 0 THEN 254
-243 IF G = 0 THEN 246
+241 A = success
+242 IF A > 0 THEN 254
+243 IF A = 0 THEN 246
 244 A = lcd "FAILED      "
-245 GOTO 255
+245 GOTO 247
 246 A = lcd  "TIMEOUT      "
 
-0 REM no matter what happens we don't try again
-247 GOTO 255
+0 REM check if we had tried 3 times
+247 G = G -1
+248 IF G > 0 THEN 228
+249 GOTO 255
 
 0 REM Message was ok, then we clear
 0 REM or reached the 3 times counter
@@ -397,8 +396,9 @@
 0 REM show last temp again
 0 REM keep in non deep sleep mode
 260 A = lcd $8
-261 A = pioirq $23
-262 GOTO 173
+261 ALARM 5
+262 A = pioirq $23
+263 RETURN
 
 
 0 REM long button press
@@ -412,7 +412,7 @@
 269 IF A = 1 THEN 275;
 0 REM ignore other long presses
 270 W = 0;
-271 GOTO 169
+271 GOTO 197
 
 0 REM exit
 275 A = lcd "GOOD BYE";
@@ -443,7 +443,7 @@
 0 REM debug mode
 300 A = lcd"MENU        ";
 301 WAIT 2;
-302 U = 100;
+302 U = 10;
 303 V = 0;
 304 $2="00000000000000"
 305 GOTO 550
@@ -451,13 +451,12 @@
 0 REM short press handler
 0 REM right, left, middle
 310 W = 0
-311 GOSUB 990
-312 ALARM 30
-313 IF U > 10 THEN 560;
-314 IF $2[2] = 48 THEN 330;
-315 IF $2[3] = 48 THEN 320;
-316 IF $2[12] = 49 THEN 325;
-317 GOTO 172
+311 ALARM 30
+312 IF U <> 0 THEN 560;
+313 IF $2[2] = 48 THEN 330;
+314 IF $2[3] = 48 THEN 320;
+315 IF $2[12] = 49 THEN 325;
+316 GOTO 195
 
 0 REM send current temp
 320 A = strlen $3
@@ -471,40 +470,37 @@
 
 0 REM show batteries level
 330 A = lcd "WAIT . . . "
-331 U = 10
+331 U = 100
 332 M = 1
 333 A = nextsns 1
-334 ALARM 20
+334 ALARM 30
 335 A = pioirq $27
 336 RETURN
 
 
 0 REM SENSOR handler
-@SENSOR 339
-0 REM we can get here in two different ways
-0 REM one is scheduled by @ALARM
-0 REM the other one is after request from
-0 REM the user
-339 A = uarton;
-340 IF M = 2 THEN 395;
+@SENSOR 340
+0 REM make sure we don't go to sleep
+0 REM we don't know the state of the app actually
+0 REM so just in case we don't enable deep sleep back
+0 REM we leave that part to @ALARM
+340 A = uarton;
 341 IF M <> 0 THEN 390;
-342 A = pioset 9;
-343 A = sensor $25;
-344 L = atoi $25;
-345 IF L <= 2100 THEN 385;
-346 B = atoi $25[5];
-347 $25[4] = 0;
-348 IF B < 400 THEN 351;
-349 X = (B - 500) * 2;
-350 K = 1;
-351 A = pioclr 9;
-352 A = pioirq $23;
-353 IF U = 10 THEN 365;
-0 REM @ALARM scheduled @SENSOR,
-0 REM now we reschedule @ALARM
-0 REM and enable deep sleep
-354 ALARM 2
-355 RETURN
+344 A = pioset 9;
+345 A = sensor $25;
+346 L = atoi $25;
+347 IF L <= 2100 THEN 385;
+348 IF U = 100 THEN 365;
+349 U = 0;
+350 B = atoi $25[5];
+351 $25[4] = 0;
+352 IF B < 400 THEN 355;
+353 X = (B - 500) * 2;
+354 K = 1;
+355 A = pioclr 9;
+356 A = pioirq $23;
+357 ALARM 30
+358 GOTO 1000
 
 365 U = 0;
 366 J = 0;
@@ -520,24 +516,20 @@
 376 J = J + 20;
 377 $0="BAT 
 378 PRINTV J;
-379 PRINTV"           
+379 PRINTV"    
 380 A = lcd $0;
-0 REM back to normal work.
-381 ALARM 10
-382 RETURN
+381 GOTO 349; 
 
 385 $26="LOW BATT";
 386 A = lcd $26;
 387 A = ring;
 388 WAIT 2
-389 GOTO 346
+389 GOTO 349
 
+0 REM first meassure is stale
 390 M = M - 1;
 391 RETURN
 
-395 A = nextsns 3
-396 M=M-1
-397 GOTO 990
 
 0 REM display temp handler ------
 400 GOSUB 450
@@ -563,9 +555,8 @@
 
 0 REM save temp string. then display
 415 $8 = $0;
-416 $8[8]=0
-417 A = lcd $8;
-418 RETURN
+416 A = lcd $8;
+417 RETURN
 
 0 REM IR sensor
 420 $0 ="IR. ";
@@ -593,8 +584,9 @@
 441 A = pioset 1;
 442 GOTO 413;
 
-445 A = lcd"ERR READ";
-446 RETURN
+445 $0="ERR READ";
+446 A = lcd $0;
+447 RETURN
 
 0 REM I2C sensor reading handler
 450 IF $7[0] = 75 THEN 460;
@@ -690,10 +682,10 @@
 556 RETURN
 
 0 REM debug mode handler
-560 IF U = 200 THEN 626
-561 IF U = 300 THEN 656
-562 IF U = 400 THEN 737
-563 IF U = 500 THEN 770
+560 IF U = 20 THEN 626
+561 IF U = 30 THEN 656
+562 IF U = 40 THEN 737
+563 IF U = 50 THEN 770
 0 REM right left middle
 564 IF $2[2] = 48 THEN 570;
 565 IF $2[3] = 48 THEN 580;
@@ -721,7 +713,7 @@
 0 REM peer addr
 592 IF V = 1 THEN 611
 0 REM contrast
-593 IF V = 2 THEN 619
+593 IF V = 2 THEN 620
 0 REM probe
 594 IF V = 3 THEN 650
 0 REM calibrate
@@ -754,12 +746,11 @@
 616 RETURN
 
 0 REM contrast
-619 $0="TEST 
-620 PRINTV N
-621 PRINTV"        "
-622 A = auxdac N
+620 $0="TEST 
+621 PRINTV L
+622 A = auxdac L
 623 A = lcd$0
-624 U = 200
+624 U = 20
 625 RETURN
 
 626 IF $2[2] = 48 THEN 630;
@@ -767,22 +758,22 @@
 628 IF $2[12] = 49 THEN 640;
 629 RETURN
 
-630 IF N > 260 THEN 619
-631 N = N + 10
-632 GOTO 619
+630 IF L > 260 THEN 620
+631 L = L + 10
+632 GOTO 620
 
-635 IF N < 160 THEN 619
-636 N = N - 10
-637 GOTO 619
+635 IF L < 160 THEN 620
+636 L = L - 10
+637 GOTO 620
 
-640 U = 100
+640 U = 10
 641 $0[0]=0
 642 PRINTV L
 643 $6 = $0
 644 ALARM 1
 645 RETURN
 
-650 U = 300
+650 U = 30
 651 J = 0
 
 652 $0 = $(10+J)
@@ -803,7 +794,7 @@
 663 GOTO 652
 
 665 $7 = $(10+J)
-666 U = 100
+666 U = 10
 667 ALARM 1
 668 RETURN
 
@@ -871,12 +862,12 @@
 717 PRINTV Y
 718 $5 = $0
 719 X = Y
-720 U = 100
+720 U = 10
 721 ALARM 1
 722 RETURN
 
 0 REM message rate
-730 U = 400
+730 U = 40
 731 P = P * 5
 
 732 $0[0] = 0
@@ -898,7 +889,7 @@
 745 P = P - 5
 746 GOTO 732
 
-747 U = 100
+747 U = 10
 748 $0[0]=0
 749 PRINTV P
 750 $4 = $0
@@ -907,7 +898,7 @@
 753 RETURN
 
 0 REM ºF / ºC changer
-760 U = 500
+760 U = 50
 761 J = 0
 
 762 IF J > 0 THEN 766
@@ -933,7 +924,7 @@
 779 $0[0] = 0
 780 PRINTV J
 781 $9=$0
-782 U = 100
+782 U = 10
 783 ALARM 1
 784 RETURN
 
@@ -945,7 +936,7 @@
 803 B = lcd $0
 0 REM time to end @ALARM, we can't do much
 0 REM until status becomes 0
-804 GOTO 172
+804 GOTO 159
 
 0 REM --- print not paired
 810 A = lcd"NOT PAIRED"
@@ -953,20 +944,18 @@
 812 U = 0
 813 H = 0
 0 REM time to end @ALARM, we can't do much
-814 GOTO 172
+814 RETURN
 
 0 REM buttons and power
 @PIO_IRQ 840
 840 A = uarton;
-0 REM show something on the lcd
-841 A = auxdac N;
 0 REM press button starts alarm for long press recognition
-842 IF $0[2]=48 THEN 855;
-843 IF $0[3]=48 THEN 855;
-844 IF $0[12]=49 THEN 855;
+841 IF $0[2]=48 THEN 855;
+842 IF $0[3]=48 THEN 855;
+843 IF $0[12]=49 THEN 855;
 0 REM was it a release, handle it
-845 IF W <> 0 THEN 310;
-846 RETURN
+844 IF W <> 0 THEN 310;
+845 RETURN
 
 0 REM button press, save state, start ALARM
 0 REM prevent deep sleep
@@ -1036,7 +1025,7 @@
 944 $24 = "!"
 945 A = pioset 9;
 946 GOSUB 990
-947 A = lcd "UPDATING";
+947 A = lcd "UPDATING.  ";
 948 $0="?UPDATE|";
 949 PRINTV $3
 950 PRINTV "|"
@@ -1059,15 +1048,12 @@
 968 A = zerocnt
 969 A = unpair $3
 970 A = message $3;
-971 WAIT 15
-0 REM this might get into a loop
-0 REM 972 A = status
-0 REM 973 IF A < 1000 THEN 975
-0 REM 974 GOTO 971
+971 WAIT 10
+972 A = status
+973 IF A < 1000 THEN 975
+974 GOTO 971
 975 A = enable 3;
-0 REM if no update request then 30 seconds
-0 REM is a big enough update window
-976 ALARM 30
+976 ALARM 125
 977 O = 0;
 978 U = 0
 979 M = 3
@@ -1098,15 +1084,15 @@
 
 1010 $0[0] = 0
 1011 A = getuniq $0
-1012 PRINTV " "
-1013 PRINTV $15
-1014 PRINTV " "
-1015 PRINTV I 
-1016 E = strlen $0
-1017 FOR B = 0 TO E - 8
-1018 A = lcd $0[B]
-1019 NEXT B
-1020 RETURN
+1011 PRINTV " "
+1012 PRINTV $15
+1013 PRINTV " "
+1014 PRINTV I 
+1015 E = strlen $0
+1016 FOR B = 0 TO E - 8
+1017 A = lcd $0[B]
+1018 NEXT B
+1019 RETURN
 
 1022 RETURN
 
