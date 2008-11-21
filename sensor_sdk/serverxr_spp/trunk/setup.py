@@ -9,7 +9,7 @@ setup(name='AIRcableSPP',
 	author_email='manuel@aircable.net',
 	package_dir= {'' : 'src' } ,
 	url='www.aircable.net',
-	packages=['net.aircable.spp'],
+	packages=['net', 'net.aircable', 'net.aircable.spp'],
 	license="Apache version 2",
     )
     

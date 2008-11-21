@@ -54,13 +54,15 @@ class sppBase:
 	    self.__logger.debug(text);
 	    
 	def __init_logger(self):
-	    self.__logger = logging.getLogger('sppAircable');
-	    console = logging.StreamHandler()
-	    console.setLevel(logging.DEBUG)
-	    formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
-	    console.setFormatter(formatter)
-	    self.__logger.addHandler(console)
-	    self.__logger.setLevel(logging.DEBUG)
+	    self.__logger = logging.getLogger('sppAIRcableBase');
+# If you don't want to configure the logging settings from a file
+# then uncomment this		
+#	    console = logging.StreamHandler()
+#	    console.setLevel(logging.DEBUG)
+#	    formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+#	    console.setFormatter(formatter)
+#	    self.__logger.addHandler(console)
+#	    self.__logger.setLevel(logging.DEBUG)
 	    
 	def getDefaultDeviceAddress(self):
 	    obj     = self.bus.get_object( 'org.bluez', '/org/bluez' )
@@ -136,6 +138,8 @@ class sppBase:
 		Arguments: what to send
 	    '''
 	    self.checkConnected('Can\'t send if not connected');
+	    
+	    self.logDebug(">> %s" % text)
 		
 	    ret = self.socket.sendall(text, socket.MSG_WAITALL);
 	    
@@ -148,7 +152,7 @@ class sppBase:
 	    """
 	    self.send("%s\n" % text)
 
-	def read(self, bytes=10):
+	def read(self, bytes=10, log=True):
 	    '''
 		Read binary data from the port.
 	    
@@ -157,7 +161,12 @@ class sppBase:
 	    '''
 	    self.checkConnected('Can\'t read if not connected');
 		
-	    return self.socket.recv(bytes);
+	    ret = self.socket.recv(bytes);
+	    
+	    if( log ):
+		    self.logDebug("<< %s" % ret)
+	    
+	    return ret
 
 	def readLine(self):
 	    '''
@@ -166,7 +175,9 @@ class sppBase:
 	    out = buffer("");
 		
 	    while ( 1 ):
-		out += self.read(1);
+		out += self.read(bytes=1, log=False);
 
 		if self.__pattern.match(out):
-			return out.replace('\n', '');
+			out = out.replace('\n', '');
+			self.logDebug("<< %s" % out )
+			return out
