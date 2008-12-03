@@ -94,7 +94,7 @@
 13 RESERVED
 14 RESERVED
 
-15 0.1.17beta4
+15 0.1.17beta5
 16 SMARTauto
 17 SMART
 18 RESERVED
@@ -288,9 +288,7 @@
 149 A = strlen $3;
 150 IF A >= 12 THEN 200;
 
-151 A = lcd "NOT PAIRED"
-152 U = 0
-153 GOTO 172
+151 GOTO 810
 
 0 REM check for long button press
 154 IF W = 1 THEN 265;
@@ -949,11 +947,14 @@
 
 0 REM --- print not paired
 810 A = lcd"NOT PAIRED"
-811 Q = 0
-812 U = 0
-813 H = 0
+811 WAIT 2
+812 A = lcd $8
+813 Q = 0
+814 U = 0
+815 H = 0
+816 A = pioirq $23
 0 REM time to end @ALARM, we can't do much
-814 GOTO 172
+817 GOTO 172
 
 0 REM buttons and power
 @PIO_IRQ 840
@@ -1032,7 +1033,7 @@
 941 A = strlen $3;
 942 IF A < 12 THEN 985;
 0 REM make sure battery readings don't bother us
-943 M = -1
+0 REM 943 M = -1
 944 $24 = "!"
 945 A = pioset 9;
 946 GOSUB 990
@@ -1059,19 +1060,18 @@
 968 A = zerocnt
 969 A = unpair $3
 970 A = message $3;
-971 WAIT 15
 0 REM this might get into a loop
 0 REM 972 A = status
 0 REM 973 IF A < 1000 THEN 975
 0 REM 974 GOTO 971
-975 A = enable 3;
+971 A = enable 3;
 0 REM if no update request then 30 seconds
 0 REM is a big enough update window
-976 ALARM 30
+976 ALARM 40
 977 O = 0;
 978 U = 0
 979 M = 3
-980 A = slave 120
+980 A = slave 30
 981 A = pioirq $23
 982 GOTO 990
 
