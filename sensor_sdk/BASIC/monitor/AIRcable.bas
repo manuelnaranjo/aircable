@@ -72,8 +72,11 @@
 0 REM trigger again
 908 ALARM 15;
 909 A = pioirq $6;
-910 A = nextsns 1;
-911 RETURN
+0 REM update reading
+910 Q = 100
+911 P = 1
+912 A = nextsns 1;
+913 RETURN
 
 0 REM check for time
 920 A = strlen $5;

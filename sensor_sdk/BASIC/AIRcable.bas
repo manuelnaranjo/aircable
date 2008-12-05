@@ -73,8 +73,8 @@
 0 REM peer address
 5 RES
 
-0 REM pio handler
-6 P001100000001
+0 REM pio handler, filled by @INIT
+6 X
 
 0 REM battery reading
 7 0000
@@ -83,7 +83,7 @@
 8 RES
 
 0 REM version number
-9 SDK.0.1.1
+9 SDK_0_1_1
 
 0 REM sensor code should store message info in
 0 REM $10
@@ -94,7 +94,7 @@
 11 READING
 
 0 REM no pioirq
-12 P00000000000000
+12 P000000000000000
 
 0 REM sensor reading
 13 RES
@@ -227,14 +227,14 @@
 
 0 REM set up buttons
 0 REM left
-82 A = pioin  ($1[0]-64) 
-83 A = pioset ($1[0]-64)
+82 A = pioset ($1[0]-64)
+83 A = pioin  ($1[0]-64) 
 0 REM right
-84 A = pioin  ($1[2]-64)
-85 A = pioset ($1[2]-64)
+84 A = pioset ($1[2]-64)
+85 A = pioin  ($1[2]-64)
 0 REM middle
-86 A = pioin  ($1[1]-64)
-87 A = pioclr ($1[1]-64)
+86 A = pioclr ($1[1]-64)
+87 A = pioin  ($1[1]-64)
 
 0 REM show version number
 88 $8 = $9
@@ -253,35 +253,38 @@
 94 P = 1
 
 95 T = 0
-96 A = nextsns 1
-97 WAIT 5
-98 A = pioout $1[5]
-99 A = pioclr $1[5]
-100 GOTO 20;
+0 REM 96 A = pioout $1[5]
+0 REM 97 A = pioclr $1[5]
+
+0 REM init pioirq string
+98 IF $6[0]=80 THEN 20;
+99 $0="P0000000000000000000"
+100 FOR B = 0 TO 2
+101 C=$1[B]-64
+102 IF C = 0 THEN 104
+103 $0[C]=49
+104 NEXT B
+105 $6=$0
+106 PRINTU $6
+107 GOTO 20;
 
 0 REM idle handler
-@IDLE 105
-105 IF Q = 100 THEN 115
-106 A = disable 3
-107 IF Q > 0 THEN 109
-108 ALARM 1
-109 GOTO 22
+@IDLE 110
+110 IF Q = 100 THEN 120
+111 A = disable 3
+112 IF Q > 0 THEN 22
+113 ALARM 1
+114 GOTO 22
 
-0 REM first boot, update display
+0 REM first boot,
 0 REM visible for 30 seconds
-0 REM don't message
-115 A = lcd "WAIT . . . "
-116 GOSUB 30
-117 GOSUB 31
-118 $8=$11
-119 GOSUB 40
+0 REM trigger sensor
 120 P = 1
 121 A = nextsns 1
 122 A = slave 30
-123 Q = 0
-124 P = 1
-125 A = pioirq $6
-126 RETURN
+123 P = 1
+124 A = pioirq $6
+125 RETURN
 
 0 REM @SLAVE enable shell
 0 REM THIS IS NOT SECURE!!! 
@@ -293,17 +296,22 @@
 
 0 REM AIO0 and AIO1 reading
 @SENSOR 135
-135 IF P > 0 THEN 140;
+135 IF P > 0 THEN 141;
 
 136 A = sensor $13;
 137 $7 = $13;
 138 $7[4] = 0;
-139 RETURN;
+139 IF Q = 100 THEN 143
+140 RETURN;
 
 0 REM wait for both readings
-140 P = P - 1;
-141 RETURN;
+141 P = P - 1;
+142 RETURN;
 
+0 REM we're booting, let's display
+0 REM reading
+143 Q = 0
+144 GOTO 400 
 
 0 REM we need this so free line calculator
 0 REM can do it's job.
@@ -590,7 +598,7 @@
 
 0 REM middle is option chooser
 370 IF S < 2 THEN 380;
-371 $5 = $(178+S);
+371 $5 = $(148+S);
 372 Q = 210;
 373 A = lcd"DONE         "
 374 ALARM 3;
@@ -665,17 +673,20 @@
 469 RESERVED
 0 REM send contents from opened file over
 0 REM MASTER channel
-470 A = seek 0
-471 A = read 32
-472 IF A = 0 THEN 478 
-473 PRINTM $0
-474 TIMEOUTM 5
-475 INPUTM $469
-476 A = strcmp "GO"
-477 IF A = 0 THEN 471
+470 A = seek 0;
+471 A = read 32;
+472 IF A = 0 THEN 480;
+473 PRINTM $0;
+474 PRINTM"\n";
+475 TIMEOUTM 10;
+476 INPUTM $0;
+477 A = strcmp "GO";
+478 IF A = 0 THEN 471;
+479 GOTO 475;
 
-478 PRINTM"DONE\n"
-479 RETURN
+480 WAIT 5;
+481 PRINTM"DONE\n";
+482 RETURN
 
 
 0 REM --------------------------------------------------------------------

@@ -1,1 +1,1 @@
-from spp import *
+from . import *

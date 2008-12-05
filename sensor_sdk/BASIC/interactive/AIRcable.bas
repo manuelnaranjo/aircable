@@ -23,7 +23,7 @@
 0 REM long button handlers ----------------------------------
 0 REM left long button press
 0 REM edit menu
-34 GOTO 285;
+34 GOTO 205;
 0 REM middle long button press 
 0 REM turn off
 35 GOTO 410;
@@ -54,7 +54,7 @@
 0 REM K history buffer length (equals pointer)
 
 0 REM hack @PIO_IRQ to make it faster
-172 IF O>-1 THEN 690;
+173 IF O>-1 THEN 690;
 
 0 REM some more init
 600 O = -1;
@@ -136,10 +136,15 @@
 663 GOTO 654
 
 0 REM go, get connected
-670 A = master $5
-671 ALARM 15
-672 $8="CONNECT"
-673 GOTO 40
+670 A = strlen $5
+671 IF A < 12 THEN 676
+672 A = master $5
+673 ALARM 15
+674 $8="CONNECT"
+675 GOTO 40
+
+676 $8="NOT PAIR"
+677 GOTO 40
 
 0 REM not busy, then scroll screen once
 0 REM scroll again in 10 seconds
@@ -232,7 +237,7 @@
 0 REM this will create the file if needed
 746 A = append $1020;
 
-747 FOR B=0 TO K
+747 FOR B=0 TO K-1
 748 $0=$(B+980);
 0 REM assume length
 749 A = write 32;
@@ -267,7 +272,7 @@
 0 REM to the user to think before we start scrolling
 780 $8=$(L+960)[8];
 781 E=0;
-782 ALARM 7
+782 ALARM 10
 783 GOTO 41;
 
 0 REM middle button press, here's where the real
@@ -336,8 +341,8 @@
 
 0 REM now open the other file
 921 N = 2
-922 PRINTM"MENU READY\n"
-923 A = open $1020
+922 PRINTM"MENU\n"
+923 A = open $1021
 924 GOSUB 470
 925 A = close
 926 N = 0 
