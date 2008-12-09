@@ -33,6 +33,7 @@ import net.aircable.spp.sppServer as sppServer
 import logging, logging.config
 import string
 import getopt, sys
+from  socket import error as SocketError
 
 # global variables
 version = "0.0.1"
@@ -64,13 +65,18 @@ def grabFile(client):
     while [ 1 ]:
 	line=client.readLine()
 	
-	if ( line.find("DONE") ):
-	    return out;
+	logDebug( "line=%s" % line )
+	
+	if ( line!=None and line.find("DONE")>-1 ):
+	    logDebug("EOF")
+	    break;
 	out+=line
 	out+="\n"
 	
-	client.writeLine("GO")
-	
+	client.sendLine("GO")
+
+    logDebug("Got:\n%s" % out );
+    return out
 
 #modes handler
 def handleServiceMode(client):
@@ -95,15 +101,19 @@ def handleInteractive(client):
     client.sendLine("GO")
     
     while [ client.checkConnected() ]:
-	line = client.readLine()
-        if line.find("HISTORY") > -1 :
-    	    logInfo("Grabbing History")
-    	    history=grabFile(client)
+	try:
+	    line = client.readLine()
+            if line.find("HISTORY") > -1 :
+		logInfo("Grabbing History")
+    	        history=grabFile(client)
     	    
-        elif line.find("MENU") > -1:
-    	    logInfo("Graggin Menu")
-    	    menu=grabFile(client)
-	
+            elif line.find("MENU") > -1:
+		logInfo("Graggin Menu")
+    	        menu=grabFile(client)
+	except SocketError:
+	    logInfo("Disconnected")
+	    return
+
 
 def usage():
     global version

@@ -150,7 +150,7 @@ class sppBase:
 	    """
 		Send a line instead of only text, this will add \n
 	    """
-	    self.send("%s\n" % text)
+	    self.send("%s\n\r" % text)
 
 	def read(self, bytes=10, log=True):
 	    '''
