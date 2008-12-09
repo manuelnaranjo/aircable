@@ -334,10 +334,11 @@
 910 PRINTM"HISTORY\n"
 0 REM flush history to file first
 912 GOSUB 740
-913 A = open $1020
-914 GOSUB 470
-915 A = close
-916 A = delete $1020
+914 A = lcd "SENDING "
+915 A = open $1020
+916 GOSUB 470
+917 A = close
+918 A = delete $1020
 
 0 REM now open the other file
 921 N = 2
