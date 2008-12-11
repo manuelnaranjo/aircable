@@ -94,7 +94,7 @@
 13 RESERVED
 14 RESERVED
 
-15 0.1.17beta5
+15 0.1.17beta6
 16 SMARTauto
 17 SMART
 18 RESERVED
@@ -1057,14 +1057,14 @@
 964 PRINTV "|"
 965 PRINTV $17
 
-968 A = zerocnt
-969 A = unpair $3
-970 A = message $3;
+973 A = zerocnt
+0 REM 972 A = unpair $3
+974 A = message $3;
 0 REM this might get into a loop
 0 REM 972 A = status
 0 REM 973 IF A < 1000 THEN 975
 0 REM 974 GOTO 971
-971 A = enable 3;
+975 A = enable 3;
 0 REM if no update request then 30 seconds
 0 REM is a big enough update window
 976 ALARM 40
