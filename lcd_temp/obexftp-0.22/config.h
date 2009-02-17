@@ -20,9 +20,6 @@
 /* Define to 1 if you have the <fcntl.h> header file. */
 #define HAVE_FCNTL_H 1
 
-/* Define if you have the iconv() function. */
-#define HAVE_ICONV 1
-
 /* Define to 1 if you have the <inttypes.h> header file. */
 #define HAVE_INTTYPES_H 1
 
@@ -90,9 +87,6 @@
 
 /* Define to 1 if you have the <ws2bth.h> header file. */
 /* #undef HAVE_WS2BTH_H */
-
-/* Define as const if the declaration of iconv() needs const. */
-#define ICONV_CONST 
 
 /* Name of package */
 #define PACKAGE "obexftp"

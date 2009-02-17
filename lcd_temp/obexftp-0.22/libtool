@@ -4,7 +4,7 @@
 # Generated automatically by  (GNU obexftp 0.22)
 # NOTE: Changes made to this file will be lost: look at ltmain.sh.
 #
-# Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001
+# Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007
 # Free Software Foundation, Inc.
 #
 # This file is part of GNU Libtool:
@@ -93,6 +93,9 @@ CC="gcc"
 # Is the compiler the GNU C compiler?
 with_gcc=yes
 
+gcc_dir=`gcc -print-file-name=. | /bin/sed 's,/\.$,,'`
+gcc_ver=`gcc -dumpversion`
+
 # An ERE matcher.
 EGREP="/bin/grep -E"
 
@@ -147,7 +150,7 @@ pic_flag=" -fPIC -DPIC"
 pic_mode=default
 
 # What is the maximum length of a command?
-max_cmd_len=32768
+max_cmd_len=98304
 
 # Does compiler simultaneously support -c and -o options?
 compiler_c_o="yes"
@@ -200,7 +203,7 @@ soname_spec="\${libname}\${release}\${shared_ext}\$major"
 
 # Commands used to build and install an old-style archive.
 RANLIB="ranlib"
-old_archive_cmds="\$AR \$AR_FLAGS \$oldlib\$oldobjs\$old_deplibs~\$RANLIB \$oldlib"
+old_archive_cmds="\$AR \$AR_FLAGS \$oldlib\$oldobjs~\$RANLIB \$oldlib"
 old_postinstall_cmds="chmod 644 \$oldlib~\$RANLIB \$oldlib"
 old_postuninstall_cmds=""
 
@@ -229,11 +232,11 @@ striplib="strip --strip-unneeded"
 
 # Dependencies to place before the objects being linked to create a
 # shared library.
-predep_objects=""
+predep_objects=`echo "" | $SED -e "s@${gcc_dir}@\${gcc_dir}@g;s@${gcc_ver}@\${gcc_ver}@g"`
 
 # Dependencies to place after the objects being linked to create a
 # shared library.
-postdep_objects=""
+postdep_objects=`echo "" | $SED -e "s@${gcc_dir}@\${gcc_dir}@g;s@${gcc_ver}@\${gcc_ver}@g"`
 
 # Dependencies to place before the objects being linked to create a
 # shared library.
@@ -245,7 +248,7 @@ postdeps=""
 
 # The library search path used internally by the compiler when linking
 # a shared library.
-compiler_lib_search_path=""
+compiler_lib_search_path=`echo "" | $SED -e "s@${gcc_dir}@\${gcc_dir}@g;s@${gcc_ver}@\${gcc_ver}@g"`
 
 # Method to check whether dependent libraries are shared objects.
 deplibs_check_method="pass_all"
@@ -325,10 +328,10 @@ variables_saved_for_relink="PATH LD_LIBRARY_PATH LD_RUN_PATH GCC_EXEC_PREFIX COM
 link_all_deplibs=unknown
 
 # Compile-time system search path for libraries
-sys_lib_search_path_spec=" /usr/lib/gcc/x86_64-mandriva-linux-gnu/4.2.2/ /usr/lib/gcc/x86_64-mandriva-linux-gnu/4.2.2/ /usr/lib/gcc/x86_64-mandriva-linux-gnu/4.2.2/../../../../x86_64-mandriva-linux-gnu/lib/x86_64-mandriva-linux-gnu/4.2.2/ /usr/lib/gcc/x86_64-mandriva-linux-gnu/4.2.2/../../../../x86_64-mandriva-linux-gnu/lib/../lib64/ /usr/lib/gcc/x86_64-mandriva-linux-gnu/4.2.2/../../../x86_64-mandriva-linux-gnu/4.2.2/ /usr/lib/gcc/x86_64-mandriva-linux-gnu/4.2.2/../../../../lib64/ /lib/x86_64-mandriva-linux-gnu/4.2.2/ /lib/../lib64/ /usr/lib/x86_64-mandriva-linux-gnu/4.2.2/ /usr/lib/../lib64/ /usr/lib/gcc/x86_64-mandriva-linux-gnu/4.2.2/../../../../x86_64-mandriva-linux-gnu/lib/ /usr/lib/gcc/x86_64-mandriva-linux-gnu/4.2.2/../../../ /lib/ /usr/lib/"
+sys_lib_search_path_spec=`echo "/lib64 /usr/lib64 /usr/local/lib64" | $SED -e "s@${gcc_dir}@\${gcc_dir}@g;s@${gcc_ver}@\${gcc_ver}@g"`
 
 # Run-time system search path for libraries
-sys_lib_dlsearch_path_spec="/lib /usr/lib /usr/lib64/graphviz /opt/kde4/lib64 /usr/lib64/octave-2.9.16 /usr/lib/qt4/lib64 /usr/X11R6/lib /usr/lib/qt3/lib64 /usr/lib/qt3/lib /usr/X11R6/lib64 "
+sys_lib_dlsearch_path_spec="/lib64 /usr/lib64 /usr/lib64/graphviz /opt/kde4/lib64 /usr/lib64/octave-2.9.16 /usr/lib/qt4/lib64 /usr/X11R6/lib /usr/lib/qt3/lib64 /usr/lib/qt3/lib /usr/X11R6/lib64 "
 
 # Fix the shell variable $srcfile for the compiler.
 fix_srcfile_path=""
@@ -7372,6 +7375,9 @@ CC="g++"
 # Is the compiler the GNU C compiler?
 with_gcc=yes
 
+gcc_dir=`gcc -print-file-name=. | /bin/sed 's,/\.$,,'`
+gcc_ver=`gcc -dumpversion`
+
 # An ERE matcher.
 EGREP="/bin/grep -E"
 
@@ -7426,7 +7432,7 @@ pic_flag=" -fPIC -DPIC"
 pic_mode=default
 
 # What is the maximum length of a command?
-max_cmd_len=32768
+max_cmd_len=98304
 
 # Does compiler simultaneously support -c and -o options?
 compiler_c_o="yes"
@@ -7479,7 +7485,7 @@ soname_spec="\${libname}\${release}\${shared_ext}\$major"
 
 # Commands used to build and install an old-style archive.
 RANLIB="ranlib"
-old_archive_cmds="\$AR \$AR_FLAGS \$oldlib\$oldobjs\$old_deplibs~\$RANLIB \$oldlib"
+old_archive_cmds="\$AR \$AR_FLAGS \$oldlib\$oldobjs~\$RANLIB \$oldlib"
 old_postinstall_cmds="chmod 644 \$oldlib~\$RANLIB \$oldlib"
 old_postuninstall_cmds=""
 
@@ -7505,11 +7511,11 @@ striplib="strip --strip-unneeded"
 
 # Dependencies to place before the objects being linked to create a
 # shared library.
-predep_objects="/usr/lib/gcc/x86_64-mandriva-linux-gnu/4.2.2/../../../../lib64/crti.o /usr/lib/gcc/x86_64-mandriva-linux-gnu/4.2.2/crtbeginS.o"
+predep_objects=`echo "/usr/lib/gcc/x86_64-mandriva-linux-gnu/4.2.2/../../../../lib64/crti.o /usr/lib/gcc/x86_64-mandriva-linux-gnu/4.2.2/crtbeginS.o" | $SED -e "s@${gcc_dir}@\${gcc_dir}@g;s@${gcc_ver}@\${gcc_ver}@g"`
 
 # Dependencies to place after the objects being linked to create a
 # shared library.
-postdep_objects="/usr/lib/gcc/x86_64-mandriva-linux-gnu/4.2.2/crtendS.o /usr/lib/gcc/x86_64-mandriva-linux-gnu/4.2.2/../../../../lib64/crtn.o"
+postdep_objects=`echo "/usr/lib/gcc/x86_64-mandriva-linux-gnu/4.2.2/crtendS.o /usr/lib/gcc/x86_64-mandriva-linux-gnu/4.2.2/../../../../lib64/crtn.o" | $SED -e "s@${gcc_dir}@\${gcc_dir}@g;s@${gcc_ver}@\${gcc_ver}@g"`
 
 # Dependencies to place before the objects being linked to create a
 # shared library.
@@ -7521,7 +7527,7 @@ postdeps="-lstdc++ -lm -lgcc_s -lc -lgcc_s"
 
 # The library search path used internally by the compiler when linking
 # a shared library.
-compiler_lib_search_path="-L/usr/lib/gcc/x86_64-mandriva-linux-gnu/4.2.2 -L/usr/lib/gcc/x86_64-mandriva-linux-gnu/4.2.2 -L/usr/lib/gcc/x86_64-mandriva-linux-gnu/4.2.2/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L/usr/lib/gcc/x86_64-mandriva-linux-gnu/4.2.2/../../.."
+compiler_lib_search_path=`echo "-L/usr/lib/gcc/x86_64-mandriva-linux-gnu/4.2.2 -L/usr/lib/gcc/x86_64-mandriva-linux-gnu/4.2.2 -L/usr/lib/gcc/x86_64-mandriva-linux-gnu/4.2.2/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L/usr/lib/gcc/x86_64-mandriva-linux-gnu/4.2.2/../../.." | $SED -e "s@${gcc_dir}@\${gcc_dir}@g;s@${gcc_ver}@\${gcc_ver}@g"`
 
 # Method to check whether dependent libraries are shared objects.
 deplibs_check_method="pass_all"
@@ -7601,10 +7607,10 @@ variables_saved_for_relink="PATH LD_LIBRARY_PATH LD_RUN_PATH GCC_EXEC_PREFIX COM
 link_all_deplibs=unknown
 
 # Compile-time system search path for libraries
-sys_lib_search_path_spec=" /usr/lib/gcc/x86_64-mandriva-linux-gnu/4.2.2/ /usr/lib/gcc/x86_64-mandriva-linux-gnu/4.2.2/ /usr/lib/gcc/x86_64-mandriva-linux-gnu/4.2.2/../../../../x86_64-mandriva-linux-gnu/lib/x86_64-mandriva-linux-gnu/4.2.2/ /usr/lib/gcc/x86_64-mandriva-linux-gnu/4.2.2/../../../../x86_64-mandriva-linux-gnu/lib/../lib64/ /usr/lib/gcc/x86_64-mandriva-linux-gnu/4.2.2/../../../x86_64-mandriva-linux-gnu/4.2.2/ /usr/lib/gcc/x86_64-mandriva-linux-gnu/4.2.2/../../../../lib64/ /lib/x86_64-mandriva-linux-gnu/4.2.2/ /lib/../lib64/ /usr/lib/x86_64-mandriva-linux-gnu/4.2.2/ /usr/lib/../lib64/ /usr/lib/gcc/x86_64-mandriva-linux-gnu/4.2.2/../../../../x86_64-mandriva-linux-gnu/lib/ /usr/lib/gcc/x86_64-mandriva-linux-gnu/4.2.2/../../../ /lib/ /usr/lib/"
+sys_lib_search_path_spec=`echo "/lib64 /usr/lib64 /usr/local/lib64" | $SED -e "s@${gcc_dir}@\${gcc_dir}@g;s@${gcc_ver}@\${gcc_ver}@g"`
 
 # Run-time system search path for libraries
-sys_lib_dlsearch_path_spec="/lib /usr/lib /usr/lib64/graphviz /opt/kde4/lib64 /usr/lib64/octave-2.9.16 /usr/lib/qt4/lib64 /usr/X11R6/lib /usr/lib/qt3/lib64 /usr/lib/qt3/lib /usr/X11R6/lib64 "
+sys_lib_dlsearch_path_spec="/lib64 /usr/lib64 /usr/lib64/graphviz /opt/kde4/lib64 /usr/lib64/octave-2.9.16 /usr/lib/qt4/lib64 /usr/X11R6/lib /usr/lib/qt3/lib64 /usr/lib/qt3/lib /usr/X11R6/lib64 "
 
 # Fix the shell variable $srcfile for the compiler.
 fix_srcfile_path=""
@@ -7677,6 +7683,9 @@ CC="g77"
 # Is the compiler the GNU C compiler?
 with_gcc=yes
 
+gcc_dir=`gcc -print-file-name=. | /bin/sed 's,/\.$,,'`
+gcc_ver=`gcc -dumpversion`
+
 # An ERE matcher.
 EGREP="/bin/grep -E"
 
@@ -7731,7 +7740,7 @@ pic_flag=" -fPIC"
 pic_mode=default
 
 # What is the maximum length of a command?
-max_cmd_len=32768
+max_cmd_len=98304
 
 # Does compiler simultaneously support -c and -o options?
 compiler_c_o="yes"
@@ -7784,7 +7793,7 @@ soname_spec="\${libname}\${release}\${shared_ext}\$major"
 
 # Commands used to build and install an old-style archive.
 RANLIB="ranlib"
-old_archive_cmds="\$AR \$AR_FLAGS \$oldlib\$oldobjs\$old_deplibs~\$RANLIB \$oldlib"
+old_archive_cmds="\$AR \$AR_FLAGS \$oldlib\$oldobjs~\$RANLIB \$oldlib"
 old_postinstall_cmds="chmod 644 \$oldlib~\$RANLIB \$oldlib"
 old_postuninstall_cmds=""
 
@@ -7813,11 +7822,11 @@ striplib="strip --strip-unneeded"
 
 # Dependencies to place before the objects being linked to create a
 # shared library.
-predep_objects=""
+predep_objects=`echo "" | $SED -e "s@${gcc_dir}@\${gcc_dir}@g;s@${gcc_ver}@\${gcc_ver}@g"`
 
 # Dependencies to place after the objects being linked to create a
 # shared library.
-postdep_objects=""
+postdep_objects=`echo "" | $SED -e "s@${gcc_dir}@\${gcc_dir}@g;s@${gcc_ver}@\${gcc_ver}@g"`
 
 # Dependencies to place before the objects being linked to create a
 # shared library.
@@ -7829,7 +7838,7 @@ postdeps=""
 
 # The library search path used internally by the compiler when linking
 # a shared library.
-compiler_lib_search_path=""
+compiler_lib_search_path=`echo "" | $SED -e "s@${gcc_dir}@\${gcc_dir}@g;s@${gcc_ver}@\${gcc_ver}@g"`
 
 # Method to check whether dependent libraries are shared objects.
 deplibs_check_method="pass_all"
@@ -7909,10 +7918,10 @@ variables_saved_for_relink="PATH LD_LIBRARY_PATH LD_RUN_PATH GCC_EXEC_PREFIX COM
 link_all_deplibs=unknown
 
 # Compile-time system search path for libraries
-sys_lib_search_path_spec=" /usr/lib64/gcc-lib/x86_64-mandriva-linux-gnu/3.3.6/ /usr/lib/gcc/x86_64-mandriva-linux-gnu/3.3.6/ /usr/lib64/gcc-lib/x86_64-mandriva-linux-gnu/3.3.6/../../../../x86_64-mandriva-linux-gnu/lib/x86_64-mandriva-linux-gnu/3.3.6/ /usr/lib64/gcc-lib/x86_64-mandriva-linux-gnu/3.3.6/../../../../x86_64-mandriva-linux-gnu/lib/ /usr/lib64/gcc-lib/x86_64-mandriva-linux-gnu/3.3.6/../../../x86_64-mandriva-linux-gnu/3.3.6/ /usr/lib64/gcc-lib/x86_64-mandriva-linux-gnu/3.3.6/../../../ /lib/x86_64-mandriva-linux-gnu/3.3.6/ /lib/ /usr/lib/x86_64-mandriva-linux-gnu/3.3.6/ /usr/lib/"
+sys_lib_search_path_spec=`echo "/lib64 /usr/lib64 /usr/local/lib64" | $SED -e "s@${gcc_dir}@\${gcc_dir}@g;s@${gcc_ver}@\${gcc_ver}@g"`
 
 # Run-time system search path for libraries
-sys_lib_dlsearch_path_spec="/lib /usr/lib /usr/lib64/graphviz /opt/kde4/lib64 /usr/lib64/octave-2.9.16 /usr/lib/qt4/lib64 /usr/X11R6/lib /usr/lib/qt3/lib64 /usr/lib/qt3/lib /usr/X11R6/lib64 "
+sys_lib_dlsearch_path_spec="/lib64 /usr/lib64 /usr/lib64/graphviz /opt/kde4/lib64 /usr/lib64/octave-2.9.16 /usr/lib/qt4/lib64 /usr/X11R6/lib /usr/lib/qt3/lib64 /usr/lib/qt3/lib /usr/X11R6/lib64 "
 
 # Fix the shell variable $srcfile for the compiler.
 fix_srcfile_path=""

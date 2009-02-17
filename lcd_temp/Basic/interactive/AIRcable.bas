@@ -146,9 +146,7 @@
 
 89 A = strlen $3
 90 IF A >= 12 THEN 100
-91 $0[0]=0
-92 PRINTV"NOT PAIR
-93 C = lcd$0
+91 C = lcd"NOT PAIR
 
 
 0 REM let's start up
@@ -414,11 +412,10 @@
 0 REM 401 A = pioset 1
 402 GOTO 373;
 
-405 $0="ERR READ"
-406 A = lcd $0
-407 A = zerocnt
-408 ALARM 10
-409 RETURN
+405 A = lcd"ERR READ"
+406 A = zerocnt
+407 ALARM 10
+408 RETURN
 
 0 REM I2C sensor reading handler
 410 IF $7[0] = 75 THEN 420;

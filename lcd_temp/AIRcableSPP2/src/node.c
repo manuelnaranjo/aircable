@@ -334,6 +334,10 @@ char * generateXML(NODE * node) {
 				)
 			);
 		len+=strlen(temp) + 2;
+	} if (strcmp(node->function, TAG_AUTHENTICATE) == 0){
+		temp = realloc(temp, sizeof(char) * 120);
+		sprintf(temp, "<authenticate/>\n");
+		len+=strlen("<authenticate/>\n");
 	}
 	
 	len+=1;
@@ -802,7 +806,7 @@ int doWork(NODE * node){
 
 int initConnection(NODE * node){
 	int bytes_read = 0;
-	int counter = 0;
+	int counter = 0, reply = 0;
 	char *buf;
 	
 	if (!node){
@@ -834,12 +838,12 @@ int initConnection(NODE * node){
 	
 	free(buf);
 	
-	return sendRequest(node);
+	reply = sendRequest(node);
+	free(node->function);
+	return reply;
 }
 
-void simulate(){
-	const char addr[] = "http://www.smart-tms.com/xmlengine/transaction.cfm";	
-	
+void simulate(){	
 	postSetURL(addr);
 	
 	NODE * node = node_new();
@@ -888,7 +892,6 @@ int isAccepted(NODE * node){
 
 void nodemain(int channel){
 	int r;
-	const char addr[] = "http://www.smart-tms.com/xml/index.cfm";	
 	
 	postSetURL(addr);
 	

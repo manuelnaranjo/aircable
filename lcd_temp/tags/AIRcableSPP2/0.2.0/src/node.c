@@ -838,7 +838,6 @@ int initConnection(NODE * node){
 }
 
 void simulate(){
-	const char addr[] = "http://www.smart-tms.com/xmlengine/transaction.cfm";	
 	
 	postSetURL(addr);
 	
@@ -888,7 +887,6 @@ int isAccepted(NODE * node){
 
 void nodemain(int channel){
 	int r;
-	const char addr[] = "http://www.smart-tms.com/xml/index.cfm";	
 	
 	postSetURL(addr);
 	

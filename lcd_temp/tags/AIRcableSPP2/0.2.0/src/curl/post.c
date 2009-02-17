@@ -129,7 +129,6 @@ int post(const char * content, char* out, const int maxlen){
 }
 
 int postmain(void){
-	const char addr[] = "http://www.smart-tms.com/xmlengine/transaction.cfm";	
 	
 	postSetURL(addr);
 	

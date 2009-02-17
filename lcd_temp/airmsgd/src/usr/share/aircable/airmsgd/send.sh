@@ -15,8 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-URL="http://www.smart-temps.com/xml/index.cfm"
-
 if [ -f /etc/aircable/airmsgd.conf ]; then
     source /etc/aircable/airmsgd.conf
 fi
