@@ -18,7 +18,7 @@
     limitations under the License.
 """
 
-import socket
+import socket, time
 
 from re import compile
 from errors import *
@@ -39,7 +39,7 @@ class sppBase:
 	bus 	  = dbus.SystemBus();
 	__pattern = compile(r'.*\n');
 	
-	new_bluez_api = False;
+	new_bluez_api = True;
 	
 	def logInfo(self, text):
 	    self.__logger.info(text);
@@ -57,24 +57,24 @@ class sppBase:
 	    self.__logger = logging.getLogger('sppAIRcableBase');
 # If you don't want to configure the logging settings from a file
 # then uncomment this		
-#	    console = logging.StreamHandler()
-#	    console.setLevel(logging.DEBUG)
-#	    formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
-#	    console.setFormatter(formatter)
-#	    self.__logger.addHandler(console)
-#	    self.__logger.setLevel(logging.DEBUG)
+	    console = logging.StreamHandler()
+	    console.setLevel(logging.DEBUG)
+	    formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+	    console.setFormatter(formatter)
+	    self.__logger.addHandler(console)
+	    self.__logger.setLevel(logging.DEBUG)
 	    
 	def getDefaultDeviceAddress(self):
-	    obj     = self.bus.get_object( 'org.bluez', '/org/bluez' )
+	    obj     = self.bus.get_object( 'org.bluez', '/' )
 	    manager = dbus.Interface( obj, 'org.bluez.Manager' )
 	    obj     = self.bus.get_object( 'org.bluez', 
 						    manager.DefaultAdapter() )
 	    adapter = dbus.Interface( obj, 'org.bluez.Adapter' )
-	    address = adapter.GetAddress()
+	    address = adapter.GetProperties()['Address']
 	    return address
 	    
 	def getAdapterObjectPath(self):
-            bluez_path   = self.bus.get_object( 'org.bluez', '/org/bluez' )
+            bluez_path   = self.bus.get_object( 'org.bluez', '/' )
             manager = dbus.Interface( bluez_path, 'org.bluez.Manager' )
 
             return self.bus.get_object( 'org.bluez',
@@ -116,6 +116,10 @@ class sppBase:
 	    
 	    self.device  = device;
 	    
+	    self.iface = dbus.Interface( 
+		    self.getAdapterObjectPath(),
+		    'org.bluez.Adapter')
+            
 	    self.logInfo("sppBase.__init__");
 	    self.logInfo("Channel: %s" % channel );
 	    self.logInfo("Service: %s" % service );
@@ -181,3 +185,94 @@ class sppBase:
 			out = out.replace('\n', '');
 			self.logDebug("<< %s" % out )
 			return out
+			
+	#shell functions wrappers
+	def shellGrabFile(self, file):
+		out = "";
+		self.sendLine("s%s" % file)
+		
+		while [ 1 ]:
+			try:
+				line = self.readLine()
+			except socket.error:
+				logInfo("Connection lost connection")
+				break;
+
+			self.logDebug("line=%s" % line)
+		
+			if (line != None and line.find("DONE") >- 1):
+				self.logDebug("EOF")
+				break;
+			
+			if line.startswith(">") or len(line)>1:        
+				out += line
+				out += "\n"
+			    
+			self.sendLine("GO")
+		
+		out=out.replace('>','')
+		self.logDebug("Got:\n%s" % out);
+		return out
+    
+	def shellAskLine(self, number):
+		'''Function wrapper for a shell operation'''
+		self.logDebug('shellAskLine %s' % number)
+		self.makeShellReady()
+		self.sendLine("p%04i" % number)
+		while [ 1 ]:
+			line = self.readLine()
+			if line.find("error")==-1:
+				return line.replace('>', '').strip()
+
+	def shellSetLine(self, number, content):
+		'''Function wrapper for a shell operation'''
+		self.__sendCommand("S%04i%s" % (number, content))
+    
+	def __sendCommand(self, command):
+		self.logDebug('__sendCommand %s' % command)
+		self.makeShellReady()
+		self.sendLine(command)
+		while [ 1 ]:
+			line=self.readLine()
+			if line.find('error')==-1:
+				return line
+    
+	def shellExit(self):
+		'''Function wrapper for a shell operation'''
+		self.__sendCommand('e')
+
+	def shellUpdate(self):
+		'''Function wrapper for a shell operation'''
+		self.__sendCommand('u')
+    
+	def shellPushIntoHistory(self, argument):
+		'''Function wrapper for a shell operation'''
+		self.__sendCommand("c%s" % argument)
+	
+	def shellDeleteFile(self, file):
+		self.__sendCommand("d%s" % file)  
+
+	# stupid function that will try to sync both shells
+	def makeShellReady(self):
+		self.logDebug("MakeShellReady()")
+		line=""
+		timeout=self.socket.gettimeout()
+		self.socket.settimeout(1)
+
+		while [ 1 ]:
+			self.logDebug('reading')
+			try:
+				line += self.read(200)
+			except socket.error: # wait until socket timesout
+				self.logDebug('Shell cleaned')
+				self.socket.settimeout(timeout)
+				return line
+				
+	def endConnection(self, exit=True):
+		self.shellPushIntoHistory(time.time())
+		
+		time.sleep(2)
+		if exit:
+			self.logInfo("Sending exit")
+			self.shellExit()
+

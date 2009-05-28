@@ -59,7 +59,7 @@
 0 REM green ledF
 0 REM blue led
 0 REM deep sleep pio
-1 CLDIT@
+1 DLCIT@
 
 0 REM lcd contrast
 2 180

@@ -70,12 +70,12 @@ class sppServer(sppBase):
 	    self.logWarning("BlueZ 3.X API doesn't allow to register records on just one specific device")
 	    obj = self.bus.get_object('org.bluez', '/org/bluez')
 	    self.database = dbus.Interface(obj, 'org.bluez.Database')
-	    self.__RecHandle = self.database.AddServiceRecordFromXML(xml)
+	    self.__RecHandle = self.database.AddRecordFromXML(xml)
 	    
 	def __registerSDPNewAPI(self, xml):
 	    self.database = dbus.Interface(self.getAdapterObjectPath(),
-				'org.bluez.Adapter');
-	    self.__RecHandle = self.database.AddServiceRecord(xml)
+				'org.bluez.Service');
+	    self.__RecHandle = self.database.AddRecord(xml)
 	    
 	def __genXML(self, name, description):
 	    return '''
@@ -169,7 +169,7 @@ class sppServer(sppBase):
 		raise SPPException, "Can't unregister SDP record if it wasn't registered first"
 	    
 	    self.logInfo("Removing SDP record handle: 0x%X" % self.__RecHandle)
-	    self.database.RemoveServiceRecord(self.__RecHandle)
+	    self.database.RemoveRecord(self.__RecHandle)
 
 
 if __name__ == '__main__':

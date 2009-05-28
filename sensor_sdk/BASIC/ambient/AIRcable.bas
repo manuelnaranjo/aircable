@@ -13,6 +13,9 @@
 0 REM reading display handler needs to start at
 0 REM line 990.
 
+0 REM type
+19 MONITOR-AMBIENT
+
 0 REM set our interrupt points
 30 GOTO 500;
 31 GOTO 520;

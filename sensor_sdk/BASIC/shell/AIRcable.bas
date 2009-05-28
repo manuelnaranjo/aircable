@@ -83,7 +83,9 @@
 652 A = disconnect 1
 653 ALARM 1
 654 A = zerocnt
-655 RETURN
+655 O = 0
+656 A = pioclr ($1[4]-64)
+657 RETURN
 
 0 REM store into history, if history buffer
 0 REM reaches 4 lines then we flush it

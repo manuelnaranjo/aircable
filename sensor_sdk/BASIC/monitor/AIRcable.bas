@@ -3,6 +3,9 @@
 0 REM this code uses message for interfacing the
 0 REM server.
 
+0 REM type of unit
+19 MONITOR
+
 0 REM interrupt insertion point
 0 REM @INIT
 20 GOTO 990;
@@ -45,7 +48,7 @@
 
 0 REM message
 700 A = strlen $5;
-701 GOSUB 800;
+701 L = 1;
 702 IF A > 11 THEN 940;
 703 A = lcd"NOT PAIRED  "
 704 ALARM 5
@@ -90,21 +93,25 @@
 925 GOTO 908;
 
 0 REM prepare msg
-930 A = lcd"MESSAGE     ";
+930 A = lcd"READING     ";
 931 $0[0] = 0;
 932 PRINTV"BATT|";
 933 PRINTV$7;
-934 PRINTV"|";
-935 PRINTV $10;
+934 PRINTV"|SECS|"
+935 A = readcnt
+936 PRINTV A
+937 A = zerocnt
+938 PRINTV"|";
+939 PRINTV $10;
 0 REM push to history
-936 GOSUB 660
-937 IF L > 0 THEN 939;
-938 IF B = 0 THEN 908;
-939 O = 1;
-940 ALARM 5;
-941 A = pioset ($1[4]-64);
-942 A = master $5;
-943 RETURN
+940 GOSUB 660
+941 IF L > 0 THEN 943;
+942 IF B = 0 THEN 908;
+943 O = 1;
+944 ALARM 5;
+945 A = pioset ($1[4]-64);
+946 A = master $5;
+947 RETURN
 
 0 REM check for status
 955 A = status;
@@ -124,7 +131,3 @@
 0 REM @INIT
 990 ALARM 1;
 991 RETURN
-
-
-
-
