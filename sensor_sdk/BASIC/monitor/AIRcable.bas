@@ -4,6 +4,8 @@
 0 REM server.
 
 0 REM interrupt insertion point
+0 REM @INIT
+20 GOTO 990;
 0 REM user @ALARM pointer
 21 GOTO 900;
 
@@ -66,7 +68,8 @@
 902 GOSUB 761
 
 0 REM we need to automatically message?
-907 IF V > 0 THEN 920;
+904 IF L > 0 THEN 920;
+903 IF V > 0 THEN 920;
 
 0 REM @alarm ended
 0 REM trigger again
@@ -81,52 +84,47 @@
 0 REM check for time
 920 A = strlen $5;
 921 IF A < 12 THEN 908;
-922 A = readcnt;
-923 IF A > V THEN 930;
-924 GOTO 908;
-
-0 REM we can't send 2 messages at the same time
-930 A = status;
-931 IF A > 1000 THEN 908;
+922 IF L > 0 THEN 930;
+923 A = readcnt;
+924 IF A > V THEN 930;
+925 GOTO 908;
 
 0 REM prepare msg
-940 A = lcd"MESSAGE     ";
-941 $0[0] = 0;
-942 PRINTV"BATT|";
-943 PRINTV$7;
-944 PRINTV"|";
-945 PRINTV $10;
-946 A = message $5;
-947 O = 1;
-948 ALARM 5;
-949 A = pioset ($1[4]-64);
-950 RETURN
+930 A = lcd"MESSAGE     ";
+931 $0[0] = 0;
+932 PRINTV"BATT|";
+933 PRINTV$7;
+934 PRINTV"|";
+935 PRINTV $10;
+0 REM push to history
+936 GOSUB 660
+937 IF L > 0 THEN 939;
+938 IF B = 0 THEN 908;
+939 O = 1;
+940 ALARM 5;
+941 A = pioset ($1[4]-64);
+942 A = master $5;
+943 RETURN
 
-0 REM check for message sending
+0 REM check for status
 955 A = status;
-956 IF A < 1000 THEN 960;
+956 IF A < 10 THEN 960;
 957 ALARM 5;
 958 RETURN
 
 960 A = pioclr ($1[4]-64);
-961 A = success;
-962 IF A > 0 THEN 970;
-963 IF A = 0 THEN 966;
-964 A = lcd "FAILED      ";
-965 GOTO 971;
-966 A = lcd "TIMEOUT     ";
-967 GOTO 971;
-
-970 A = lcd "SUCCESS    ";
-
-0 REM leave it on the screen
-971 A = zerocnt;
-972 WAIT 2
-
-973 A = lcd $11;
-974 O = 0;
-975 GOTO 908;
-
+961 A = lcd "TIMEOUT     ";
+962 A = zerocnt;
+963 WAIT 2
+964 A = lcd $11;
+965 O = 0;
+966 GOTO 908;
 0 REM EO ALARM HANDLER --------------------------------
+
+0 REM @INIT
+990 ALARM 1;
+991 RETURN
+
+
 
 
