@@ -1,6 +1,7 @@
 @ERASE
 
 1 P000000000001
+2 AIRscanner
 
 @INIT 50
 0 REM debugging information will be dumped to LCD
@@ -15,15 +16,16 @@
 0 REM K = 1 rssi
 0 REM K = 2 name scan
 56 K = 0
-57 $0="AIRscanner "
-58 A = getunique $2
-59 PRINTV $2
-60 A = name $0
-61 A = pioclr 12
-62 A = pioin 12
-63 A = pioirq $1
-64 W = 0
-65 RETURN
+57 A = getunique
+58 $2 = $0
+59 $0="AIRscanner "
+60 PRINTV $2
+61 A = name $0
+62 A = pioclr 12
+63 A = pioin 12
+64 A = pioirq $1
+65 W = 0
+66 RETURN
 
 @IDLE 100
 100 X = 0
