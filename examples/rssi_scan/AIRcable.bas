@@ -16,16 +16,14 @@
 0 REM K = 1 rssi
 0 REM K = 2 name scan
 56 K = 0
-57 A = getunique
-58 $2 = $0
-59 $0="AIRscanner "
-60 PRINTV $2
-61 A = name $0
-62 A = pioclr 12
-63 A = pioin 12
-64 A = pioirq $1
-65 W = 0
-66 RETURN
+57 $0="AIRscanner "
+58 PRINTV $2
+59 A = name $0
+60 A = pioclr 12
+61 A = pioin 12
+62 A = pioirq $1
+63 W = 0
+64 RETURN
 
 @IDLE 100
 100 X = 0
