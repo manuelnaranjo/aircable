@@ -1,0 +1,14 @@
+#* 
+This is a commands test
+you can use this as reference on how to use
+our parser.
+Usage: python parser.py <file>
+*#
+10 $INPUT('master') $0
+11 $PRINT('slave') $1
+12 $INPUT('uart') $2
+13 $TIMEOUT('slave') 20
+14 $GET('master') 20
+15 $CAPTURE('master') 20
+16 $STTY('slave') 14
+17 $DISCONNECT('slave')
