@@ -158,11 +158,11 @@ shell over $stream
 693 GOTO $SHELL
 
 ## hack points for @PIO_IRQ on short button press
-186 A = status;
+187 A = status;
 #if $stream=="master"
-187 IF A = 10 THEN 694;
+188 IF A = 10 THEN 694;
 #else if $stream=="slave"
-187 IF A = 1 THEN 694;
+188 IF A = 1 THEN 694;
 #end if
 
 694 $PRINT($stream)"\r\nBUTTON SHORT 
@@ -170,11 +170,11 @@ shell over $stream
 696 GOTO $SHELL
 
 ## hack points for @PIO_IRQ on long button press
-193 A = status;
+201 A = status;
 #if $stream=="master"
-194 IF A = 10 THEN 697;
+202 IF A = 10 THEN 697;
 #else if $stream=="slave"
-194 IF A = 1 THEN 697;
+202 IF A = 1 THEN 697;
 #end if
 
 697 $PRINT($stream)"\r\nBUTTON LONG 

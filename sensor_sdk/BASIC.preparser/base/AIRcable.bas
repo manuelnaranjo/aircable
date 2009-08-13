@@ -326,14 +326,14 @@ O to N reserved for 'user' sensor code
 171 IF T = 1 THEN 178;
 ## button press while in settings menu?
 172 IF Q > 100 THEN 260;
-## 173 is free, you code can hack here.
+## 173 and 175 are free, you code can hack here.
 ## button press starts long button recognition
-174 IF$169[$1[0]-64]=48THEN180;
-175 IF$169[$1[1]-64]=49THEN180;
-176 IF$169[$1[2]-64]=48THEN180;
+175 IF$169[$1[0]-64]=48THEN180;
+176 IF$169[$1[1]-64]=49THEN180;
+177 IF$169[$1[2]-64]=48THEN180;
 ## was it a release for a short press?
-177 IF W <> 0 THEN 184;
-178 RETURN
+178 IF W <> 0 THEN 185;
+179 RETURN
 
 ## this was a new press
 180 $14 = $169;
@@ -343,29 +343,29 @@ O to N reserved for 'user' sensor code
 
 
 ## button released for a short press
-184 W = 0;
-185 ALARM 0
-## hack point lines 186, 187
+185 W = 0;
+186 ALARM 0
+## hack point lines 187, 188
 ## left button
-188 IF$14[$1[0]-64]=48THEN37;
+189 IF$14[$1[0]-64]=48THEN37;
 ## middle button
-189 IF$14[$1[1]-64]=49THEN38;
+190 IF$14[$1[1]-64]=49THEN38;
 ## right button
-190 IF$14[$1[2]-64]=48THEN39;
-191 RETURN
+191 IF$14[$1[2]-64]=48THEN39;
+192 RETURN
 
 ## long button press, called by @ALARM
-192 W = 0;
-## hack point line 193,194
+200 W = 0;
+## hack point line 201,202
 ## long left
-195 IF$14[$1[0]-64]=48THEN34;
+203 IF$14[$1[0]-64]=48THEN34;
 ## long middle
-196 IF$14[$1[1]-64]=49THEN35;
+204 IF$14[$1[1]-64]=49THEN35;
 ## long right
-197 IF$14[$1[2]-64]=48THEN36;
+205 IF$14[$1[2]-64]=48THEN36;
 ## shouldn't get here
-198 ALARM 5
-199 RETURN
+206 ALARM 5
+207 RETURN
 
 
 ## ALARM handler
@@ -375,7 +375,7 @@ O to N reserved for 'user' sensor code
 230 IF Q > 100 THEN 250;
 
 ## check for long button press
-231 IF W <> 0 THEN 192;
+231 IF W <> 0 THEN 200;
 
 ## no more to do on vanilla code we call user code
 232 GOTO 21;

@@ -54,7 +54,7 @@ def DISCONNECT(stream):
 	return 'A = disconnect 1'
 	
 def DEF(name):
-    return globals().get(name, None)
+    return globals().get(name, None) is not None
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
