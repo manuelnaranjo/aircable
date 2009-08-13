@@ -3,4 +3,5 @@
     * [PreparserUsage Preparser Usage]
   * Hardware
   * Code
-    * [PIOUsage PIO usage]
+    * [PIOUsage PIO Usage]
+    * [CommandLineUsage Command Line Usage]
