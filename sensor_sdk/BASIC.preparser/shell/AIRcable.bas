@@ -178,5 +178,5 @@ shell over $stream
 #end if
 
 697 $PRINT($stream)"\r\nBUTTON LONG 
-699 GOTO 691
+699 GOTO 695
 

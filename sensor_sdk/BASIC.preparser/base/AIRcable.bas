@@ -409,7 +409,7 @@ O to N reserved for 'user' sensor code
 261 IF Q = 500 THEN 327;
 262 IF Q = 510 THEN 335;
 263 IF Q = 520 THEN 370;
-264 can be hacked to add more entry levels
+## 264 can be hacked to add more entry levels
 265 IF$169[$1[0]-64]=48THEN269;
 266 IF$169[$1[1]-64]=49THEN280;
 267 IF$169[$1[2]-64]=48THEN274;
