@@ -55,13 +55,13 @@ We recommend adding this _include_ after base code and before mode code (monitor
 In _code example_ section you can see the function dispatcher, there are a few factory functions, but you can modify this to match your needs.
 
 Standard Functions:
-  * _s*<file>*_: Send <file> over spp. This will print each line after another, waiting for GO before sending a new line.
+  * _s*< file >*_: Send < file > over spp. This will print each line after another, waiting for GO before sending a new line.
   * _u_: Will close the command line, and will enable slave and FTP for a few minutes.
-  * _S*<number><content>*_: Sets line <number> to <content> <number> needs to be 4 digits long always, otherwise you might loose some content. You can fill with 0s and spaces.
-  * _L*<number>*_: Prints line <number> to the shell.
-  * _c*<content>*_: Pushes <content> into the device history.
-  * _d*<file>*_: Deletes <file> from the file system.
-  * _l*<content>*_: Will display <content> into the LCD screen. There's no scroll with this command.
-  * _P*<timeout>*_: Will wait until <timeout> for a long or short button press. If there's a timeout then you will get back to the shell.
-  * _p*<state><PIO>*_: Will set <PIO> to <state>, <state> can be either 0 or 1.
+  * _S*< number >< content >*_: Sets line < number > to < content >. < number > needs to be 4 digits long always, otherwise you might loose some content. You can fill with 0s and spaces.
+  * _L*< number >*_: Prints line < number > to the shell.
+  * _c*< content >*_: Pushes < content > into the device history.
+  * _d*< file >*_: Deletes < file > from the file system.
+  * _l*< content >*_: Will display < content > into the LCD screen. There's no scroll with this command.
+  * _P*< timeout >*_: Will wait until < timeout > for a long or short button press. If there's a timeout then you will get back to the shell.
+  * _p*< state >< PIO >*_: Will set < PIO > to < state >, < state > can be either 0 or 1.
   * _e_: Will exit the command line.
