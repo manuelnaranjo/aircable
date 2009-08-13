@@ -1,0 +1,6 @@
+#* 
+    Example usage, this will generate
+    testing code in MASTER mode
+*#
+#set global $stream="master"
+#include "base/AIRcable.bas"

@@ -1,0 +1,33 @@
+WWXXYYZZMESSAGE
+WW Hexadecimal level, 0 for root, always valid
+XX Hexadecimal next level, valid only if action <> !!
+YY Hexadecimal option pointer (from 0 to 19), valid only if action <> !!
+	when user presses button, then menu from menu level XX, option
+	YY will get shown first.
+ZZ action, !! for child menu action, MESSAGE takes an special
+	meaning in this case
+	
+for backward compatibility all lines have fixed length = 31 chars
+If you need to extend to 32 chars you just don't add a line feed after each one
+Line feeds are just \n as any UNIX system, \n\r from windows is not ok.
+	
+Each level can have up to 20 childs or system becames
+too slow, still we don't recommend so many levels, it will
+not be friendly for the user
+
+A BACK menu option is not provided by the core code
+but rather by the menu code to give way more flexibility
+
+WARNING: There's no runtime check on the BASIC code, user code has
+to do the check
+
+Actions (in order of processing):
+	!! browse next level
+	HI send history
+	ex exit menu
+	
+	
+	More actions can be added if you need them
+	Checks lines 770-789
+	
+

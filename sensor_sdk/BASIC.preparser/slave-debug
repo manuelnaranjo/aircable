@@ -1,0 +1,8 @@
+#* 
+    Example usage, this will generate
+    slave debug code
+*#
+#set global $stream="slave"
+#include "base/AIRcable.bas"
+#include "ambient/AIRcable.bas"
+

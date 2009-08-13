@@ -1,0 +1,68 @@
+#set global stream="master"
+#include 'base/AIRcable.bas'
+
+## alarm handler
+21 GOTO 760;
+
+## left long button press
+34 GOTO 700;
+## middle long button press
+35 GOTO 710;
+## right long button press
+36 GOTO 720;
+## left short button press
+37 GOTO 730;
+## middle short button press 
+38 GOTO 740;
+## right short button press
+39 GOTO 750;
+
+## ----------------------------------------------------
+## sample handling code -------------------------------
+
+## long button press handlers -------------------------
+## don't forget to call ALARM before calling 
+## RETURN when needed
+
+700 A = lcd"Long Left "
+## we suggess this handler to display settings
+## menu
+701 ALARM 5
+702 RETURN
+
+
+710 A = lcd"Long Mid  "
+## we suggest this handler turn off
+711 GOTO 701
+
+720 A = lcd "Long Right"
+## we suggest this handler to make visible
+721 GOTO 701
+
+## ----------------------------------------------------
+## short button press handlers ------------------------
+## don't forget to call ALARM before calling 
+## RETURN
+
+730 A = lcd"Short Left "
+731 ALARM 5
+732 RETURN
+
+
+## 700 short middle button handler starts here
+740 A = lcd"Short Mid  "
+741 GOTO 731
+
+## 730 short left button handler starts here
+
+## 760 short right button handler starts here
+750 A = lcd"Short Right"
+751 GOTO 731
+## ----------------------------------------------------
+
+
+## User ALARM code, user is responsable
+## of calling ALARM again, and nextsns
+760 ALARM 15
+761 A = nextsns 1
+762 RETURN

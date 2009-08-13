@@ -1,0 +1,9 @@
+#* 
+    Example usage, this will generate
+    monitor ambient testing code as MASTER
+*#
+#set global $stream="master"
+#include "base/AIRcable.bas"
+#include "shell/AIRcable.bas"
+#include "monitor/AIRcable.bas"
+#include "ambient/AIRcable.bas"
