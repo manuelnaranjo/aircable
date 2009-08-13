@@ -1,3 +1,6 @@
 #labels SensorSDK
-  * [PreparserUsage Preparser Usage]
-  *
+  * General
+    * [PreparserUsage Preparser Usage]
+  * Hardware
+  * Code
+    * [PIOUsage PIO usage]
