@@ -1,4 +1,5 @@
 #labels SensorSDK
+#sidebar TOCSensorSDK
 This document describes the command line implemented in AIRcable SensorSDK.
 
 = Introduction =
