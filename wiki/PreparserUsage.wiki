@@ -1,3 +1,4 @@
+#sidebar TOCSensorSDK
 A templating system for making AIRcable BASIC code creation easier.
 
 = Introduction =
