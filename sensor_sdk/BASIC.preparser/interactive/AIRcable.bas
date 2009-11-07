@@ -319,7 +319,7 @@
 897 $8="SUCCESS"
 898 GOSUB 40
 899 ALARM 0
-900 PRINTM"INTERACTIVE\n"
+900 PRINT($stream)"INTERACTIVE\n"
 901 TIMEOUTM 20
 902 INPUTM$0
 903 A = enable 3
@@ -331,7 +331,7 @@
 0 REM lock it
 907 N = 1;
 908 A = append $1020
-910 PRINTM"HISTORY\n"
+910 PRINT($stream)"HISTORY\n"
 0 REM flush history to file first
 912 GOSUB 740
 914 A = lcd "SENDING "
@@ -342,7 +342,7 @@
 
 0 REM now open the other file
 921 N = 2
-922 PRINTM"MENU\n"
+922 PRINT($stream)"MENU\n"
 923 A = open $1021
 924 GOSUB 470
 925 A = close

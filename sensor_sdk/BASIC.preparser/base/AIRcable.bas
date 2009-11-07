@@ -648,13 +648,16 @@ O to N reserved for 'user' sensor code
 472 IF A = 0 THEN 480;
 473 $PRINT($stream) $0;
 474 $PRINT($stream)"\n";
-475 $TIMEOUT($stream) 10;
-476 $INPUT($stream) $0;
-477 A = strcmp "GO";
-478 IF A = 0 THEN 471;
-479 GOTO 475;
+475 GOTO 471;
+
+##475 $TIMEOUT($stream) 10;
+##476 $INPUT($stream) $0;
+##477 A = strcmp "GO";
+##478 IF A = 0 THEN 471;
+##479 GOTO 475;
+
 
 480 WAIT 5;
-481 PRINTM"DONE\n";
+481 $PRINT($stream)"DONE\n";
 482 RETURN
 
