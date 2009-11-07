@@ -1,0 +1,165 @@
+{% extends "sensorsdk/base.html" %}
+{% load i18n %}
+
+{% block extrahead %}
+    <script type="text/javascript" src="/site_media/MochiKit.js"></script>
+    <script type="text/javascript" src="/site_media/swfobject.js"></script>
+    <script type="text/javascript" src="/site_media/json2.js"></script>
+    <script type="text/javascript">
+
+    var charts=new Object;
+    var last_chart = null;
+
+    function findSWF(movieName) {
+	if (navigator.appName.indexOf("Microsoft")!= -1) {
+	    return window[movieName];
+	} else {
+	    return document[movieName];
+	}
+    }
+
+    function create_chart(name, target, fields){
+	swfobject.embedSWF(
+	    "/site_media/open-flash-chart-full-embedded-font.swf", 
+	    name, "600", "400", "9.0.0");
+	charts[name]=new Object;
+	charts[name]['target']=target;
+	charts[name]['fields']=fields;
+    }
+
+    function update_chart(chart){
+	var shared_data = "";
+	var d = loadJSONDoc("/sensorsdk/API/get-chart-data/"+charts[chart].target+"/"+charts[chart].fields+"/data.json");
+
+	var gotData = function (data) {
+	    $(chart).load(JSON.stringify(data));
+	};
+
+	var dataFetchFailed = function (err) {
+	    alert("The data couldn't be fetched :(");
+	};
+	d.addCallbacks(gotData, dataFetchFailed);
+    }
+    
+    function ofc_ready(){
+	if (last_chart != null){
+	    update_chart(last_chart);
+	}
+	last_chart=null;
+    }
+    
+    function generic_update_list(url, id, display, sel_val, success){
+	var d = loadJSONDoc(url);
+	
+	var gotData = function (data) {
+	    control=$(id);
+	    j = 0;
+	    for (i in data){
+		var v = Option(display(data[i]), sel_val(data[i]), false, false);
+		control.options[j]=v;
+		j++;
+	    }
+	    if (success != null){
+		success();
+	    }
+	};
+
+	var dataFetchFailed = function (err) {
+	    alert("The " + id + " data couldn't be fetched :(");
+	};
+	d.addCallbacks(gotData, dataFetchFailed);
+    }
+    
+    function update_type_sensors_list(){
+	generic_update_list(
+	    "/sensorsdk/API/get-modes/", 
+	    "node_type",
+	    function (elem) { return elem },
+	    function (elem) { return elem },
+	    update_sensors_list);
+    };
+
+    function update_sensors_list(elem){
+	control=$('node_type');
+	url = "/sensorsdk/API/get-sensors/"+control.value;
+
+	generic_update_list(
+	    url, 
+	    "node_address",
+	    function (elem) { return elem.name + ' ' + elem.address },
+	    function (elem) { return elem.address },
+	    update_fields_list);
+    };
+
+    function update_fields_list(elem){
+	control=$('node_address');
+	url = "/sensorsdk/API/get-chart-fields/"+control.value;
+	generic_update_list(
+	    url, 
+	    "node_fields",
+	    function (elem) { return elem },
+	    function (elem) { return elem },
+	    null);
+    };
+
+    addLoadEvent(
+	function(){
+	    connect($('node_type'), "onchange", update_sensors_list);
+	    connect($('node_address'), "onchange", update_fields_list);
+	    update_type_sensors_list();
+	}
+    );
+    
+    function add_chart(){
+	address=$('node_address').value;
+
+	control=$('node_fields');
+	fields=Array();
+	var count=0;
+	for ( i=0; i <  control.options.length; i++ ){
+	    if (control.options[i].selected){
+		fields[count]=control.options[i].value;
+		count++;
+	    }
+	}
+	if (count==0){
+	    alert("{% trans "You need to choose at least one field" %}");
+	    return;
+	}
+	
+	n=charts.length
+	if (n == undefined){
+	    n=0;
+	}
+	chart=createDOM('div',{'id': 'chart' + n});
+	insertSiblingNodesAfter($('charts_holder'), chart);
+	create_chart(chart.id, address, fields);
+	last_chart=chart.id;
+    }
+    
+    </script>
+{% endblock %}
+
+{% block content %}
+
+<table>
+    <tr>
+        <td>{% trans "Type" %}</td>
+        <td><select size="1" id="node_type"></select></td>
+    </tr>
+    <tr>
+        <td>{% trans "Node" %}</td>
+        <td><select size="1" id="node_address"></select></td>
+    </tr>
+    <tr>
+        <td>{% trans "Fields" %}</td>
+        <td><select size="4" id="node_fields" multiple="multiple"></select></td>
+    </tr>
+</table>
+
+<button type="button" name="create_chart" id="create_chart" onclick="add_chart();">{% trans "Add Chart" %}</button>
+<button type="button" name="refresh" id="refresh">{% trans "Refresh Fields" %}</button>
+
+<div id="charts_holder">
+</div>
+{% endblock %}
