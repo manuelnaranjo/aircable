@@ -23,7 +23,12 @@ F = watt minutes
 X = seconds between readings
 R, T for I2C command
 I = display status
+V stores the last commit time
 *#
+
+## interrupt insertion points
+0 REM extra @INIT
+20 GOTO 990;
 
 ## lcd contrast
 2 200
@@ -32,22 +37,21 @@ I = display status
 400 REM
 930 A = lcd ".
 
+0 REM flush once each 20 readings
+662 IFK>=20 THEN 665;
+
 ## adjust sensor reading freq to 2 sec
+908 GOTO 930;
 910 ALARM 2;
-## don't flush
-662 REM
-## remove zerocnt in readings to allow time keeping
-937 REM
+
+## commit each 5 minutes
+941 IF U-V>300 THEN 943;
+942 GOTO 910;
+
+943 V=U;
 
 ## type
 19 MONITOR-SOLAR
-
-## additional initialization
-991 F = 0;
-992 X = 0;
-993 $858[0] = 0;
-994 RETURN
-
 
 ## set our sensor reading routines
 30 GOTO 503;
@@ -67,10 +71,6 @@ I = display status
 505 G = atoi $500
 ## calculate temp from voltage
 506 REM M = (M - 520) * 2
-507 $0 = "VOLT1|
-508 PRINTV $500
-509 $10 = $0
-
 
 510 A = pioout 5
 511 A = pioset 5
@@ -116,7 +116,10 @@ I = display status
 535 A = pioset ($1[3]-64);
 536 A = ring;
 537 A = lcd " FREEZE "
-538 REM;
+
+## all variables are defined generate
+## plugin content
+538 GOSUB 700;
 
 ## make decisions what do to
 ## SOLAR (M) higher than POOL (J) temp switch on PUMP
@@ -216,8 +219,27 @@ I = display status
 
 
 ## 600 lines for SLAVE
-## 700 lines for some other code...
 
+## 700 generate plugin content
+## M = solar temp voltage
+## J = pool temp voltage
+## H = tank temp voltage
+## G = flow sensor voltage
+## F = watt minutes
+
+## 700 lines for some other code...
+700 $0="SOL|";
+701 PRINTV M;
+702 PRINTV"|POOL|";
+703 PRINTV J;
+704 PRINTV"|TANK|";
+705 PRINTV H;
+706 PRINTV"|FLOW|";
+707 PRINTV G;
+708 PRINTV"|WATTM|";
+709 PRINTV F;
+710 $10=$0;
+711 RETURN
 
 ## FLOW SENSOR calculation
 ## analog AIO1 to GPM, linear
@@ -315,10 +337,11 @@ I = display status
 ## data logging, calculate watt hours and add up
 ## set to zero every night
 858  NIGHT COUNTER
+## U holds the amount of elapsed seconds
 ## X has the last reading time, determine seconds
-859 B = readcnt;
+859 B = U;
 860 C = B - X;
-861 X = readcnt;
+861 X = U;
 
 862 IF C < 0 THEN 867;
 863 IF C > 100 THEN 867;
@@ -351,7 +374,13 @@ I = display status
 ## reset counter
 882 $858[0] = 0;
 883 RETURN
-
-
-
 ## can only use lines up to 899
+
+## additional initialization
+990 ALARM 1
+991 F = 0;
+992 X = 0;
+993 $858[0] = 0;
+994 V = 0
+995 RETURN
+

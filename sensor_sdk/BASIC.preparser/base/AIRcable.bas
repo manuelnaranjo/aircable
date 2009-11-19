@@ -113,7 +113,7 @@ Y = lcd contrast
 X = sensor reading rate
 W = button state
 V = message interval
-U = counter accumulator
+U = time counter accumulator
 T = pioirq flag T = 1 means no irq
 S = inquiry shift
 R = inquiry counter
@@ -660,4 +660,11 @@ O to N reserved for 'user' sensor code
 480 WAIT 5;
 481 $PRINT($stream)"DONE\n";
 482 RETURN
+
+0 REM readcounter, zero it
+0 REM and add to time counter
+485 B = readcnt;
+486 U = U + B;
+487 A = zerocnt;
+488 RETURN
 

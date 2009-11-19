@@ -98,7 +98,7 @@ shell over $stream
 651 $PRINT($stream)"\r\nbye
 652 $DISCONNECT($stream)
 653 ALARM 1
-654 A = zerocnt
+654 GOSUB 485
 655 O = 0
 656 A = pioclr ($1[4]-64)
 657 RETURN

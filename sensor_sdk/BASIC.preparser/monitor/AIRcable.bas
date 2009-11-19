@@ -103,13 +103,12 @@ do it's work.
 932 PRINTV"BATT|";
 933 PRINTV$7;
 934 PRINTV"|SECS|"
-935 A = readcnt
-936 PRINTV A
-937 A = zerocnt
-938 PRINTV"|";
-939 PRINTV $10;
+935 GOSUB 485
+936 PRINTV B
+937 PRINTV"|";
+938 PRINTV $10;
 ## push to history
-940 GOSUB 660
+939 GOSUB 660
 
 ## is buffer complete?
 941 IF L > 0 THEN 943;
