@@ -299,39 +299,24 @@ V stores the last commit time
 ## now we have GPM*100
 832 N = N * 9;
 833 N = N / 10;
-## SOLAR (M) - POOL (J) is temp diff in Celsius
+## temp diff
+## may be either SOLAR-POOL
+834 IF I = 2 THEN 837;
+## TANK-POOL
+835 B = J-H;
+836 GOTO 838;
+## SOLAR-POOL diff
+837 B=J-M;
+
 ## we measure about 9mV per C
-834 B = ( J - M ) / 9;
+838 B = B / 9;
 ## correction for loss, 2C
-835 B = B - 2;
-836 N = N * B;
+839 B = B - 2;
+840 N = N * B;
 ## from BTU/h to W = BTUH * 5 / 17
-837 N = N * 5;
-838 N = N / 17;
-839 RETURN
-
-
-
-## FLOW SENSOR calculation
-## analog AIO1 to GPM, linear
-## calculate BTU
-## GPM is about 950mV for 0.7GPM
-## GPM * 900 * dC = BTU/h
-845 N = N * 11;
-846 N = N / 15;
-## now we have GPM*100
-847 N = N * 9;
-848 N = N / 10;
-## TANK (H) - POOL (J) is temp diff in Celsius
-## we measure about 9mV per C
-849 B = ( J - H ) / 9;
-## correction for loss 2C
-850 B = B - 2
-851 N = N * B;
-## from BTU/h to W = BTUH * 5 / 17
-852 N = N * 5;
-853 N = N / 17;
-854 RETURN
+841 N = N * 5;
+842 N = N / 17;
+843 RETURN
 
 
 ## data logging, calculate watt hours and add up
