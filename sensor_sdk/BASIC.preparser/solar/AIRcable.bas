@@ -208,7 +208,7 @@ V stores the last commit time
 591 IF (J-H-18) > 0 THEN 551;
 ## display energy that goes into the pool
 592 N = G;
-593 GOSUB 845;
+593 GOSUB 830;
 594 $0="HT "
 595 PRINTV N;
 596 PRINTV "W  "
@@ -238,8 +238,11 @@ V stores the last commit time
 707 PRINTV G;
 708 PRINTV"|WATTM|";
 709 PRINTV F;
-710 $10=$0;
-711 RETURN
+710 A=pioget11;
+711 PRINTV"|DAY|";
+712 PRINTV A;
+713 $10=$0;
+714 RETURN
 
 ## FLOW SENSOR calculation
 ## analog AIO1 to GPM, linear
