@@ -58,6 +58,9 @@ V stores the last commit time
 ## display value generator
 31 GOTO 550;
 
+#we handle history pusing
+10 
+
 
 ## we'll store reading in $500
 500 READING
@@ -111,7 +114,7 @@ V stores the last commit time
 533 REM M = M - 15;
 
 ## first check FREEZING, it's about 900mV
-534 IF M < 900 THEN 539;
+534 IF M < 900 THEN 538;
 ## FREEZE, switch on PUMP and sound alarm
 535 A = pioset ($1[3]-64);
 536 A = ring;
@@ -230,18 +233,18 @@ V stores the last commit time
 ## 700 lines for some other code...
 700 $0="SOL|";
 701 PRINTV M;
-702 PRINTV"|POOL|";
+702 PRINTV"|"
 703 PRINTV J;
-704 PRINTV"|TANK|";
+704 PRINTV"|"
 705 PRINTV H;
-706 PRINTV"|FLOW|";
+706 PRINTV"|"
 707 PRINTV G;
-708 PRINTV"|WATTM|";
+708 PRINTV"|"
 709 PRINTV F;
-710 A=pioget11;
-711 PRINTV"|DAY|";
+710 PRINTV"|"
+711 A=pioget11;
 712 PRINTV A;
-713 $10=$0;
+713 GOSUB 660
 714 RETURN
 
 ## FLOW SENSOR calculation
