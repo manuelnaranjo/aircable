@@ -37,7 +37,10 @@ if __name__=='__main__':
 	elif cont[0].isdigit():
 	    if int(cont[0]) > 1023:
 		print "WARNING you have a line number that's forbidden", cont[0]
-	    lines[int(cont[0])] = cont[1];
+	    if len(cont)>1:
+		lines[int(cont[0])] = cont[1];
+	    else:
+		lines[int(cont[0])] = None
     
     if interrupts['@ERASE']:
 	print "@ERASE"

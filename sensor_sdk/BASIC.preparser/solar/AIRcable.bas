@@ -58,7 +58,7 @@ V stores the last commit time
 ## display value generator
 31 GOTO 550;
 
-#we handle history pusing
+##we handle history pusing
 10 
 
 
