@@ -40,9 +40,11 @@ V stores the last commit time
 0 REM flush once each 20 readings
 662 IFK>=20 THEN 665;
 
-## adjust sensor reading freq to 2 sec
+## adjust sensor reading freq to 3 sec
 908 GOTO 930;
-910 ALARM 2;
+910 ALARM 3;
+## adjust long button press to 2 secs
+182 ALARM 2;
 
 ## commit each 5 minutes
 941 IF U-V>300 THEN 943;
@@ -56,9 +58,9 @@ V stores the last commit time
 ## set our sensor reading routines
 30 GOTO 503;
 ## display value generator
-31 GOTO 550;
+31 GOTO 551;
 
-##we handle history pusing
+##we handle history pushing
 10 
 
 
@@ -72,8 +74,6 @@ V stores the last commit time
 503 $500 = $13[5]
 504 $500[4] = 0
 505 G = atoi $500
-## calculate temp from voltage
-506 REM M = (M - 520) * 2
 
 510 A = pioout 5
 511 A = pioset 5
@@ -87,7 +87,8 @@ V stores the last commit time
 ## the ADS takes some time to startup
 516 WAIT 1
 517 A = i2c $501
-518 GOSUB 544;
+## read values of ADC
+518 GOSUB 843;
 ## H variable has TANK temp
 519 H = M;
 
@@ -96,8 +97,8 @@ V stores the last commit time
 522 $501[0] = 144;
 ## command read AIN1, 12bit, gain 1: 0xF0 = 240
 523 $501[1] = 240
-524 A = i2c $501;
-525 GOSUB 544;
+524 A = i2c $501
+525 GOSUB 843;
 ## J variable has POOL temp
 526 J = M;
 
@@ -106,70 +107,64 @@ V stores the last commit time
 529 $501[0] = 144;
 ## command read AIN2, 12bit, gain 1: 0xB0 = 176
 530 $501[1] = 176;
-531 A = i2c $501;
-532 GOSUB 544;
+531 A = i2c $501
+532 GOSUB 843;
 ## M variable has SOLAR temp
 
 ## solar correction +2C
-533 REM M = M - 15;
-
-## first check FREEZING, it's about 900mV
-534 IF M < 900 THEN 538;
-## FREEZE, switch on PUMP and sound alarm
-535 A = pioset ($1[3]-64);
-536 A = ring;
-537 A = lcd " FREEZE "
+## we measure 14.374mV / C
+533 M = M - 29;
 
 ## all variables are defined generate
 ## plugin content
-538 GOSUB 700;
+534 GOSUB 700;
+
+## first check FREEZING, over 1490mV is under 0C
+535 IF M < 1490 THEN 540;
+## FREEZE, switch on PUMP and sound alarm
+536 A = pioset ($1[3]-64);
+537 A = ring;
+538 A = lcd " FREEZE "
+## return here for end of sensor reading
+539 RETURN
 
 ## make decisions what do to
 ## SOLAR (M) higher than POOL (J) temp switch on PUMP
 ## this is voltage, lower than higher temp
 
-## we measure about 9mV/C
-## offset 2C
-539 B = J - 18;
-540 IF M < B THEN 543;
+## we measure about 14.374mV/C
+## offset 1C
+540 B = J - 14;
+541 IF M < B THEN 544;
 ## OFF
-541 A = pioclr ($1[3]-64);
-542 RETURN
+542 A = pioclr ($1[3]-64);
+543 RETURN
 ## ON
-543 A = pioset ($1[3]-64);
-544 RETURN
+544 A = pioset ($1[3]-64);
+545 RETURN
 
 ## END OF SENSOR READING
 
 
-## SUBROUTINE read ADC value, i2c address 0x90 = 144
-544 $501[0] = 144;
-544 T = 0;
-545 R = 3;
-546 A = i2c $501
-547 M = $0[0] * 256;
-548 M = M + $0[1];
-549 RETURN
-
-
 
 ## DISPLAY VALUE GENERATOR
-550 IF I > 0 THEN 557;
-551 $0 = "TNK "
-552 N = H;
-553 GOSUB 810;
-554 $11 = $0;
-555 I = 1;
-556 RETURN
+551 IF I > 0 THEN 558;
+552 $0 = "TNK "
+553 N = H;
+## convert into C
+554 GOSUB 810;
+555 $11 = $0;
+556 I = 1;
+557 RETURN
 
 ## 2nd display is pool temp
-557 IF I > 1 THEN 565;
-558 $0 = "POL "
-559 N = J;
-560 GOSUB 810;
-561 $11 = $0;
-562 I = 2;
-563 RETURN
+558 IF I > 1 THEN 565;
+559 $0 = "POL "
+560 N = J;
+561 GOSUB 810;
+562 $11 = $0;
+563 I = 2;
+564 RETURN
 
 ## 3rd display is solar temp
 565 IF I > 2 THEN 572;
@@ -188,7 +183,7 @@ V stores the last commit time
 ## add energy up in watt minutes
 575 GOSUB 859;
 
-576 $0="PWR "
+576 $0="P "
 577 PRINTV N;
 578 PRINTV "W "
 579 REM PRINTV "BTUh"
@@ -208,7 +203,7 @@ V stores the last commit time
 
 
 ## 5th display if heating pool, tank(H)-pool(J)>2C
-591 IF (J-H-18) > 0 THEN 551;
+591 IF (J-H-29) > 0 THEN 552;
 ## display energy that goes into the pool
 592 N = G;
 593 GOSUB 830;
@@ -221,7 +216,7 @@ V stores the last commit time
 
 
 
-## 600 lines for SLAVE
+## 600 lines are for SLAVE
 
 ## 700 generate plugin content
 ## M = solar temp voltage
@@ -229,8 +224,6 @@ V stores the last commit time
 ## H = tank temp voltage
 ## G = flow sensor voltage
 ## F = watt minutes
-
-## 700 lines for some other code...
 700 $0="SOL|";
 701 PRINTV M;
 702 PRINTV"|"
@@ -262,37 +255,21 @@ V stores the last commit time
 808 RETURN
 
 
-
 ## NTC value calculation
-810 N = 1800 - N
-0 REM we have 3 areas of
-0 REM approximation
-811 IF N < 1500 THEN 825;
-812 IF N < 1700 THEN 820;
+## voltage to temperature
+## R=4.7k, V=1.8V
+## NOC is 10k
+## correct would be C = 105.1 - V * 0.06957
+810 N = (N * 3) / 43
+811 N = 105 - N
+812 PRINTV N
+813 PRINTV "%C   "
+814 RETURN
 
-0 REM 1700-1800 mV
-0 REM m=0.548442, h=-871.946
-813 N = (N-1700)*54
-814 N = N/100
-815 N = N + 71
+## Farenheit
+816 
 
-816 PRINTV N
-817 PRINTV "%C"
-818 RETURN
 
-0 REM 1500-1700
-0 REM m = 0.131759 h = -160.323
-820 N = (N-1500)*13
-821 N = N/100
-822 N = N+42
-823 GOTO 816
-
-0 REM 0-1500
-0 REM m = 0.0572798 h = -48.6986
-825 N = N * 6
-826 N = N / 100
-827 N = N - 49
-828 GOTO 816
 
 
 ## FLOW SENSOR calculation
@@ -314,15 +291,27 @@ V stores the last commit time
 ## SOLAR-POOL diff
 837 B=J-M;
 
-## we measure about 9mV per C
-838 B = B / 9;
+## we measure 14.347mV per C
+## dC = V * 3 / 43
+838 B = (B * 3) / 43;
 ## correction for loss, 2C
-839 B = B - 2;
-840 N = N * B;
+839 N = B - 2;
 ## from BTU/h to W = BTUH * 5 / 17
-841 N = N * 5;
-842 N = N / 17;
-843 RETURN
+840 N = N * 5;
+841 N = N / 17;
+842 RETURN
+
+
+
+
+## SUBROUTINE read ADC value, i2c address 0x90 = 144
+843 $501[0] = 144;
+844 T = 0;
+845 R = 3;
+846 A = i2c $501
+847 M = $0[0] * 256;
+848 M = M + $0[1];
+849 RETURN
 
 
 ## data logging, calculate watt hours and add up
@@ -365,6 +354,8 @@ V stores the last commit time
 ## reset counter
 882 $858[0] = 0;
 883 RETURN
+
+
 ## can only use lines up to 899
 
 ## additional initialization
