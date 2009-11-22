@@ -34,9 +34,13 @@ if __name__=='__main__':
 		interrupts['@ERASE']=True
 	    else:
 		interrupts[cont[0]]=cont[1]
-	elif cont[0].isdigit():
+	elif cont[0].isdigit() and int(cont[0]) > 0:
 	    if int(cont[0]) > 1023:
-		print "WARNING you have a line number that's forbidden", cont[0]
+		sys.stderr.write("WARNING you have a line number that's forbidden %s\n" % cont[0])
+	    if int(cont[0]) in lines:
+		sys.stderr.write("WARNING line %s was overwritten\n" % cont[0])
+		sys.stderr.write("\tPrevious:\t%s\n" % lines[int(cont[0])])
+		sys.stderr.write("\tNew:\t\t%s\n\n" % line)
 	    if len(cont)>1:
 		lines[int(cont[0])] = cont[1];
 	    else:
