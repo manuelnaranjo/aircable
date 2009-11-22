@@ -113,7 +113,7 @@ V stores the last commit time
 
 ## solar correction +2C
 ## we measure 14.374mV / C
-533 M = M - 29;
+533 REM M = M - 29;
 
 ## all variables are defined generate
 ## plugin content
@@ -263,7 +263,7 @@ V stores the last commit time
 810 N = (N * 3) / 43
 811 N = 105 - N
 812 PRINTV N
-813 PRINTV "%C   "
+813 PRINTV"%C   "
 814 RETURN
 
 ## Farenheit
