@@ -263,7 +263,7 @@ V stores the last commit time
 810 N = (N * 3) / 43
 811 N = 105 - N
 812 PRINTV N
-813 PRINTV"%C   "
+813 PRINTV"%C"
 814 RETURN
 
 ## Farenheit
