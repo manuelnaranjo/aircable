@@ -20,8 +20,10 @@ interrupts={
 
 
 if __name__=='__main__':
-    f = sys.argv[1]
-    f = open(sys.argv[1])
+    if len(sys.argv) > 1:
+	f = open(sys.argv[1])
+    else:
+	f = sys.stdin
     
     for line in f.readlines():
 	if len(line.strip()) == 0:
