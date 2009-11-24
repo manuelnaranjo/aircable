@@ -102,6 +102,8 @@ def parse_history(model=None, history=None, target=None, success=False,
 	    dongle=None, pending=None, *args, **kwargs):
     last_time = time.time()
     readings = list()
+    flag = False
+    last_reg = None
     for line in history.splitlines():
 	line = line.strip()
 	if CLOCK.match(line):
@@ -111,7 +113,14 @@ def parse_history(model=None, history=None, target=None, success=False,
 	    reg = READING.match(line).groupdict()
 	    print "SDK reading line", reg
 	    last_time+=float(reg['secs'])
-	    readings.append( (last_time, reg['batt'], reg['reading']), )
+	    if reg['reading'] == 'NEXT':
+		flag = True
+		last_reg = reg
+	    else:
+		readings.append( (last_time, reg['batt'], reg['reading']), )
+	elif flag:
+	    flag = False
+	    readings.append( (last_time, last_reg['batt'], line), )
 	else:
 	    print "SDK wrong line", line
     
