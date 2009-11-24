@@ -18,34 +18,36 @@
 	}
     }
 
-    function create_chart(name, target, fields){
-	swfobject.embedSWF(
+    function create_chart(name, target, fields, span){
+	so=swfobject.embedSWF(
 	    "/site_media/open-flash-chart-full-embedded-font.swf", 
-	    name, "600", "400", "9.0.0");
+	    name, "100%", "400", "9.0.0","",
+	    {
+		'data-file': "/sensorsdk/API/get-chart-data/"+target+"/"+fields+"/data.json?span="+span
+	    }
+	    );
+	last_chart=name;
 	charts[name]=new Object;
 	charts[name]['target']=target;
 	charts[name]['fields']=fields;
+	charts[name]['span']=span;
     }
 
     function update_chart(chart){
 	var shared_data = "";
-	var d = loadJSONDoc("/sensorsdk/API/get-chart-data/"+charts[chart].target+"/"+charts[chart].fields+"/data.json");
+	
+	url="/sensorsdk/API/get-chart-data/"+charts[chart].target+"/"+charts[chart].fields+"/data.json?span="+charts[chart].span;
+	chart=$(chart)
+	var d = loadJSONDoc(url);
 
 	var gotData = function (data) {
-	    $(chart).load(JSON.stringify(data));
+	    chart.load(JSON.stringify(data));
 	};
 
 	var dataFetchFailed = function (err) {
 	    alert("The data couldn't be fetched :(");
 	};
 	d.addCallbacks(gotData, dataFetchFailed);
-    }
-    
-    function ofc_ready(){
-	if (last_chart != null){
-	    update_chart(last_chart);
-	}
-	last_chart=null;
     }
     
     function generic_update_list(url, id, display, sel_val, success){
@@ -110,9 +112,29 @@
 	}
     );
     
+    function refresh_chart(elem){
+	target=getNodeAttribute($(elem._src), 'extra');
+	update_chart(target);
+    };
+    
+    function delete_chart(elem){
+	target=getNodeAttribute($(elem._src), 'extra');
+	removeElement(target);
+    };
+    
+    function get_time_span(){
+    el=getElementsByTagAndClassName('input', null, $('time_span'))
+    for (v in el){
+	    if (el[v].checked==true)
+		return el[v].value
+	}
+	return null
+    }
+    
     function add_chart(){
 	address=$('node_address').value;
-
+	span=get_time_span()
+	
 	control=$('node_fields');
 	fields=Array();
 	var count=0;
@@ -127,13 +149,27 @@
 	    return;
 	}
 	
-	n=charts.length
-	if (n == undefined){
-	    n=0;
+	n=0
+	for ( v in charts) {
+	    n++;
 	}
-	chart=createDOM('div',{'id': 'chart' + n});
-	insertSiblingNodesAfter($('charts_holder'), chart);
-	create_chart(chart.id, address, fields);
+	
+	holder=DIV({'id': 'chart_holder' + n});
+	appendChildNodes($('charts_holder'), holder);
+	
+	chart=DIV({'id': 'chart' + n});
+	
+	refresh=BUTTON({'id': 'refresh'+n, 'innerHTML': '{% trans "Refresh" %}', 'extra': chart.id});
+	del =BUTTON({'id': 'delete'+n,  'innerHTML': '{% trans "Delete" %}',  'extra': holder.id});
+	
+	connect(refresh, 'onclick', refresh_chart);
+	connect(del, 'onclick', delete_chart);
+
+	appendChildNodes(holder, chart);
+	appendChildNodes(holder, P());
+	appendChildNodes(holder, refresh);
+	appendChildNodes(holder, del)
+	create_chart(chart.id, address, fields, span);
 	last_chart=chart.id;
     }
     
@@ -155,11 +191,23 @@
         <td>{% trans "Fields" %}</td>
         <td><select size="4" id="node_fields" multiple="multiple"></select></td>
     </tr>
+    <tr>
+	<td>{% trans "Time Span" %}</td>
+	<td>
+	    <form id="time_span">
+	    <input type="radio" name="time_span" value="hour" checked>{% trans "Last Hour" %}</input>
+	    <input type="radio" name="time_span" value="day">{% trans "Last Day" %}</input>
+	    <input type="radio" name="time_span" value="week">{% trans "Last Week" %}</input>
+	    <input type="radio" name="time_span" value="month">{% trans "Last Month" %}</input>
+	    </form>
+	</td>
 </table>
-
-<button type="button" name="create_chart" id="create_chart" onclick="add_chart();">{% trans "Add Chart" %}</button>
-<button type="button" name="refresh" id="refresh">{% trans "Refresh Fields" %}</button>
-
+<p></p>
+<span>
+    <button type="button" name="create_chart" id="create_chart" onclick="add_chart();">{% trans "Add Chart" %}</button>
+    <button type="button" name="refresh" id="refresh">{% trans "Refresh Fields" %}</button>
+</span>
+<p></p>
 <div id="charts_holder">
 </div>
 {% endblock %}

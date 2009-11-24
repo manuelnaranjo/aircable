@@ -22,12 +22,28 @@ def add_dots(inp):
 	return inp
     return inp[0:2]+':'+inp[2:4]+':'+inp[4:6]+':'+inp[6:8]+':'+inp[8:10]+':'+inp[10:12]
 
-def generate_chart_data(request, address=None, fields=None, start=None, end=None, colours=None, *args,**kwargs):
+SPANS={
+    'hour': 60,
+    'day': 60*24,
+    'week': 60*24*7,
+    'month': 60*24*7*30,
+    None: 60
+}
+
+def generate_chart_data(request, 
+	    address=None, 
+	    fields=None, 
+	    *args,
+	    **kwargs):
     '''Generates charting data for fields'''
-    print address, fields,start, end, colours, args, kwargs
+    span = request.GET.get('span', None)
+    colours = request.GET.get('colours', None)
+    start = request.GET.get('start', None)
+    end = request.GET.get('end', None)
+    print address, fields, start, end, colours, span, args, kwargs
+    print request.GET
     fields=fields.split(',')
-    address=add_dots(address)
-    print address
+    address=address.replace('_',':')
     dev = models.SensorSDKRemoteDevice.objects.get(address=address)
     dev = models.get_subclass(dev)
     __check_field_is_valid(dev, fields)
@@ -41,12 +57,14 @@ def generate_chart_data(request, address=None, fields=None, start=None, end=None
     else:
 	colours={}
 
+    span=SPANS[span]*60
+
     if end is None:
 	end = datetime.now()
     
     if start is None:
 	start = datetime.fromtimestamp(
-	    time.mktime(end.timetuple())-60*60*24) # last 24 hours
+	    time.mktime(end.timetuple())-span)
     qs=dev.getRecordClass().objects.filter(time__isnull=False).\
 	filter(remote=dev, time__gte=start, time__lte=end)
     qs=qs.extra(select={'timestamp': epoch}) # replace time by a unix timestamp

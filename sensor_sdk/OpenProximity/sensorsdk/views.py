@@ -24,13 +24,6 @@ from django.utils import simplejson
 import models
 
 SET = settings.OPENPROXIMITY.getAllSettings()
-#AGENT = settings.OPENPROXIMITY.getDict('agent/', {
-#    'server': "http://www.openproximity.com/stats",
-#    'customer': None,
-#    'site': None,
-#    'interval': 15,
-#    'enabled': True}
-#)
 
 def get_modes(request):
     return HttpResponse(
@@ -50,32 +43,22 @@ def get_sensors(request, mode=None):
 		'name': i.name,
 		'mode': i.mode,
 		'sensor': i.sensor,
-		'address': i.address,
+		'address': i.address.replace(':','_'),
 	}
 
     return HttpResponse(simplejson.dumps(out),
 	content_type='application/json')
 
 def get_chart_fields_for_sensor(request, address):
+    address=address.replace('_',':')
     dev = models.SensorSDKRemoteDevice.objects.get(address=address)
     dev = models.get_subclass(dev)
     return HttpResponse(
 	simplejson.dumps(dev.getChartVariables()),
 	content_type='application/json')
 
-#class ChartForm(forms.Form):
-#    type = forms.ChoiceField(choices=list(models.SensorSDKRemoteDevice.getModes()))
-#    node = forms.ModelChoiceField(queryset=models.SensorSDKRemoteDevice.objects.all())
-#    fields = forms.
-
 def chart(request):
-    return render_to_response("sensorsdk/chart.html",
-#	{
-#	    'chart': True,
-#	    'target': '0050C27F4285',
-#	    'fields': 'temperature',
-#	}
-    )
+    return render_to_response("sensorsdk/chart.html",)
 
 def index(request):
     return render_to_response("sensorsdk/index.html")
