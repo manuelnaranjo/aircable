@@ -11,7 +11,7 @@ def __check_field_is_valid(device, fields):
 	assert field in device.getChartVariables(), "Not a valid field %s" % field
 
 if settings.DATABASE_ENGINE.lower()=="sqlite3":
-    epoch="strftime(\"%%s\", time, 'localtime')"
+    epoch="strftime(\"%%s\", time, 'utc')"#, 'localtime')"
 #elif settings.DATABASE_ENGINE.startswith()=="postgre":
     
 else:
@@ -133,5 +133,5 @@ def generate_chart_data(request,
     chart.x_axis = x_axis
     chart.y_axis = y_axis
 
-    return HttpResponse(chart.render())#, content_type='application/json')
+    return HttpResponse(chart.render(), content_type='application/json')
 
