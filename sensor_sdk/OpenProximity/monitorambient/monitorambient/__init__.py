@@ -31,7 +31,7 @@ provides = {
     'name': 'SensorSDK plugin - Ambient Monitor',	# friendly name
     
     'enabled': True,					# disable me please
-    'django': True,					# expose me as a django enabled plugin
+#    'django': True,					# expose me as a django enabled plugin
     'sensorsdk': True,					# expose me as a sensorsdk
 
     'django_app': True,			# we provide an application so we can

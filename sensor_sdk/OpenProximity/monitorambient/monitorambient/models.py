@@ -17,8 +17,11 @@
 
 # agent plugin
 # defines new clases for db integration
+try:
+    from sensorsdk import models
+except:
+    from plugins.sensorsdk import models
 
-from plugins.sensorsdk import models
 from django.utils.translation import ugettext as _
 from django.db import models as mod
 from re import compile
