@@ -18,7 +18,12 @@
 # agent plugin
 # defines new clases for db integration
 
-from plugins.sensorsdk import models
+try:
+    from sensorsdk import models
+except:
+    # might be running without sensorsdk egg
+    from plugins.sensorsdk import models
+
 from django.utils.translation import ugettext as _
 from django.db import models as mod
 from re import compile
@@ -33,7 +38,10 @@ class SolarDevice(models.SensorSDKRemoteDevice):
 
     @staticmethod
     def getChartVariables():
-	return ['solar', 'pool', 'tank', 'flow', 'wattm', 'power']
+	return [ 'solar', 'pool', 'tank', 'flow', 
+	    'wattm', 'watt_in', 'watt_out', 'watt_delta', 'day',
+	    'solar_v', 'pool_v', 'tank_v', 'flow_v'
+	    ]
 	
     @staticmethod
     def getRecordClass():
@@ -41,11 +49,11 @@ class SolarDevice(models.SensorSDKRemoteDevice):
 
     @staticmethod
     def ntc_to_temperature(ntc):
-	return 105.1-ntc*0.06957
+	return 105.1-int(ntc)*0.06957
 
     @staticmethod
     def flow(mv):
-	return mv*11.0/15.0/100.0;
+	return int(mv)*11.0/15.0/100.0;
 
     @staticmethod
     def gpm2lpm(gpm):
@@ -93,21 +101,23 @@ class SolarRecord(models.SensorSDKRecord):
     @staticmethod
     def parsereading(device=None, seconds=None, battery=None, reading=None, dongle=None):
 	'''This method expects to get a valid reading, generating a record out of it'''
-	
+	print device, type(device)
 	#extract parameters from reading string
-	vals=READING.match(reading).groupdict()
+	m=READING.match(reading)
+	if not m:
+	    print "NO MATCH!!!!", reading
+	    return 
+	    
+	vals=m.groupdict()
 	
 	#find ambient device, or create if there's none yet created
-	device,createdSolarDevice.objects.get_or_create( address=device,
+	device,created = SolarDevice.objects.get_or_create( address=device,
 	    defaults={
-		'name': _('Auto Discovered Solar Sensor'),
+		'friendly_name': _('Autodiscovered Solar Sensor'),
 		'sensor': _('Solar'),
 		'mode': _('Monitor'),
 	    })
-	
-	temp=device.getTemperature(float(temp))
-	temp['day'] = int(temp['day']) == 1
-	
+
 	record = SolarRecord()
 	record.remote=device
 	record.dongle=dongle
@@ -115,15 +125,13 @@ class SolarRecord(models.SensorSDKRecord):
 	    if i in ['solar', 'pool', 'tank']:
 		setattr(record, '%s_v' % i, vals[i])
 		setattr(record, i, SolarDevice.ntc_to_temperature(vals[i]))
-	    if i in ['flow',]:
+	    elif i == 'flow':
 		setattr(record, '%s_v' % i, vals[i])
-	    if i not in ['wattm', 'day']:
-		setattr(record, '%s_v' % i, vals[i])
-		record.flow=SolarDevice.gpm2lpm(flow)
 		flow=SolarDevice.flow(vals[i])
-	    elif i in ['wattm',]:
-		record.wattm = vals[i]
-	    elif i in ['day',]:
+		record.flow=SolarDevice.gpm2lpm(flow)
+	    elif i == 'wattm':
+		record.wattm = int(vals[i])
+	    elif i  =='day':
 		record.day = vals['day'][0] == '1'
 
 	record.watt_in = SolarDevice.power(flow, record.solar, record.pool)
