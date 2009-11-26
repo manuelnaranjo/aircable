@@ -17,7 +17,10 @@
 # SensorSDK handler
 
 #from rpc import handle
-from serverxr import SensorManager
+try:
+    from serverxr import SensorManager
+except:
+    SensorManager=None
 
 def post_environ():
     from rpc import handle, register, device_found
@@ -36,6 +39,12 @@ def reset_stats(connection):
     
     for table in tables:
 	connection.cursor().execute("drop table %s" % table)
+
+def find_plugins():
+    #look for all the sensorsdk plugins
+    from net.aircable.openproximity.pluginsystem import pluginsystem
+    for plugin in pluginsystem.get_plugins('sensorsdk'):
+	yield plugin
 
 provides = { 
     'name': 'SensorSDK plugin', 	# friendly name
@@ -61,5 +70,8 @@ provides = {
     'serverxr':	True,			# we have our own rpc client
     'serverxr_type': 'sensorsdk',
     'serverxr_manager':	SensorManager,
+    
+    'plugin_provider': True,
+    'find_plugins': find_plugins,
 }
 

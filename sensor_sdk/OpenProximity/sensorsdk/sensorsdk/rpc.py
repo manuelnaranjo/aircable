@@ -70,7 +70,7 @@ TIMEOUT=60
 
 def device_found(record, services):
     dongle = record.dongle.address
-    print "sensorsdk device_found", dongle , record.remote.address
+    print "sensorsdk device_found", dongle , record.remote.address, record.remote.name
     camps = getMatchingCampaigns(record.remote, enabled=True, classes=[SensorCampaign,])
     if len(camps) == 0:
 	return False
@@ -113,7 +113,7 @@ def parse_history(model=None, history=None, target=None, success=False,
 	    reg = READING.match(line).groupdict()
 	    print "SDK reading line", reg
 	    last_time+=float(reg['secs'])
-	    if reg['reading'] == 'NEXT':
+	    if reg['reading'].strip() == 'NEXT':
 		flag = True
 		last_reg = reg
 	    else:

@@ -37,6 +37,8 @@ class SensorSDKRemoteDevice(RemoteDevice):
 	help_text=_("kind of sensor attached"))
     mode = models.CharField(max_length=32,
 	verbose_name=_("working mode"))
+    friendly_name=models.CharField(max_length=100,
+	help_text=_("a name to identify the device, example kitchen sensor"))
 
     @staticmethod
     def getChartVariables():
