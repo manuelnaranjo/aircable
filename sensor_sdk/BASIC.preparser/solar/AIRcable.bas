@@ -61,7 +61,7 @@ V stores the last commit time
 31 GOTO 551;
 
 ##we handle history pushing
-10 
+10 NEXT
 
 
 ## we'll store reading in $500
