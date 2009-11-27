@@ -72,7 +72,11 @@ class AmbientRecord(models.SensorSDKRecord):
 	'''This method expects to get a valid reading, generating a record out of it'''
 	
 	#extract parameters from reading string
-	temp=tamb.match(reading).groupdict()['temperature']
+	m = tamb.match(reading)
+	if not m:
+	    print "NO MATCH", reading
+	    return
+	temp=m.groupdict()['temperature']
 	
 	#find ambient device, or create if there's none yet created
 	device,created=AmbientDevice.objects.get_or_create( address=device,
