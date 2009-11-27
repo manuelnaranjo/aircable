@@ -101,7 +101,7 @@ class SolarRecord(models.SensorSDKRecord):
     @staticmethod
     def parsereading(device=None, seconds=None, battery=None, reading=None, dongle=None):
 	'''This method expects to get a valid reading, generating a record out of it'''
-	print device, type(device)
+	print device, reading
 	#extract parameters from reading string
 	m=READING.match(reading)
 	if not m:
