@@ -103,7 +103,7 @@ class SensorSDKRecord(RemoteBluetoothDeviceRecord):
 	raise Exception("No plugin to handle mode %s" % mode)
 
 class SensorCampaign(Campaign):
-    def matches(self, remote):
+    def matches(self, remote, *args, **kwargs):
 	if self.name_filter is None or remote.name is None or remote.name.startswith(self.name_filter):
 	    if self.addr_filter is None or remote.address.startswith(self.addr_filter):
 		return True
@@ -118,4 +118,3 @@ def get_subclass(object):
             if hasattr(object, related.var_name):
                 return get_subclass(getattr(object, related.var_name))
     return object
-                                            
