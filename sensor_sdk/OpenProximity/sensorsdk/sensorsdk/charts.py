@@ -11,11 +11,19 @@ def __check_field_is_valid(device, fields):
 	assert field in device.getChartVariables(), "Not a valid field %s" % field
 
 if settings.DATABASE_ENGINE.lower()=="sqlite3":
-    epoch="strftime(\"%%s\", time, 'utc')"#, 'localtime')"
-#elif settings.DATABASE_ENGINE.startswith()=="postgre":
-    
+    epoch="strftime(\"%%s\", time, 'utc')"
+
 else:
     raise Exception("Database %s not supported yet by SensorSDK" % settings.DATABASE)
+
+COLOURS=[
+    "#0101DF",
+    "#DF0101",
+    "#01DF01",
+    "#FF8000",
+    "#DF0174",
+    "#000000",
+]
 
 def add_dots(inp):
     if inp.find(':') > -1:
@@ -56,6 +64,12 @@ def generate_chart_data(request,
 	    colours[field]=colour
     else:
 	colours={}
+	i=0
+	for field in fields:
+	    colours[field]=COLOURS[i]
+	    i+=1;
+	    if i>=len(COLOURS):
+		i=0;
 
     span=SPANS[span]*60
 
@@ -73,13 +87,17 @@ def generate_chart_data(request,
     data = qs.values('timestamp', *fields)
 
     sets = {}
+    prev = {}
     for a in fields:
 	sets[a] = list()
+	prev[a] = None
 
     for rec in data:
 	for a in fields:
-	    sets[a].append( pyofc2.scatter_value( x=rec['timestamp'], y=rec[a] ) )
-	    
+	    if prev[a] != rec[a]:
+		sets[a].append( pyofc2.scatter_value( x=rec['timestamp'], y=rec[a] ) )
+		prev[a] = rec[a]
+
     x_axis = pyofc2.x_axis()
 
     x_axis.min=int(time.mktime(start.timetuple()))
@@ -96,7 +114,7 @@ def generate_chart_data(request,
     labels = [
 	{ 
 	    'x': a, 
-	    'text': '#date:%s#' % format,#datetime.fromtimestamp(a).strftime(format)
+	    'text': '#date:%s#' % format,
 	} for a in range(x_axis.min, x_axis.max, x_axis.steps)]
     print labels
     x_axis.labels=pyofc2.x_axis_labels(labels=labels, rotate='45')
@@ -124,8 +142,8 @@ def generate_chart_data(request,
     chart.tooltip=pyofc2.tooltip(text="#date: Y-m-d H:i#<br>#y#\n")
     for c in fields:
 	s = pyofc2.scatter_line()
-	s.title = pyofc2.title(text=c)
 	s.values = sets[c]
+	s.text = c
 	if colours.get(c, None):
 	    s.colour=colours[c]
 	chart.add_element(s)
@@ -134,4 +152,3 @@ def generate_chart_data(request,
     chart.y_axis = y_axis
 
     return HttpResponse(chart.render(), content_type='application/json')
-
