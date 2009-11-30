@@ -39,6 +39,7 @@ class SensorSDKRemoteDevice(RemoteDevice):
 	verbose_name=_("working mode"))
     friendly_name=models.CharField(max_length=100,
 	help_text=_("a name to identify the device, example kitchen sensor"))
+    latest_served=models.DateTimeField(auto_now=True, editable=False)
 
     @staticmethod
     def getChartVariables():

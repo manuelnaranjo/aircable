@@ -80,9 +80,11 @@ def device_found(record, services):
     print "found campaign"
     camp = camps[0]
     
-    latest=SensorSDKRecord.objects.filter(remote=record.remote)
+    latest=SensorSDKRemoteDevice.objects.filter(
+	address=record.remote.address)
     
-    if latest.count() > 0 and time.time() - time.mktime(latest.latest('time').time.timetuple()) < TIMEOUT:
+    if latest.count() > 0 and time.time() - \
+	time.mktime(latest.latest('latest_served').latest_served.timetuple()) < TIMEOUT:
 	print "has served in less than %s seconds" % TIMEOUT
 	return False
 
@@ -90,6 +92,10 @@ def device_found(record, services):
     if clients.get(dongle, None) is None:
 	return False # there's no registered service I can't do a thing
 
+    if latest.count() > 0:
+	for k in latest.all():
+	    k.save() # mark elements as served, so timeout can exist
+	
     print "handling device %s" % record.remote.address
     client = clients[dongle]
     client.connect(record.remote.address)
