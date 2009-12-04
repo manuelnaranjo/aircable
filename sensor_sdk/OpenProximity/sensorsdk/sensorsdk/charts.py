@@ -88,15 +88,26 @@ def generate_chart_data(request,
 
     sets = {}
     prev = {}
+    prev_1 = {}
     for a in fields:
 	sets[a] = list()
 	prev[a] = None
+	prev_1[a] = None
 
     for rec in data:
 	for a in fields:
-	    if prev[a] != rec[a]:
-		sets[a].append( pyofc2.scatter_value( x=rec['timestamp'], y=rec[a] ) )
+	    if prev[a] != rec[a] and prev_1[a] == prev[a]:
+		tstamp = rec['timestamp']
+		if isinstance(prev[a], bool):
+		    sets[a].append( pyofc2.scatter_value( x=float(tstamp)-0.1, y=prev[a] ) ) #include last point
+		sets[a].append( pyofc2.scatter_value( x=rec['timestamp'], y=rec[a] ) ) # include new point
 		prev[a] = rec[a]
+	    prev_1[a]=rec[a]
+
+    # now include the end of chart values
+    latest=data[qs.count()-1]
+    for a in fields:
+	sets[a].append( pyofc2.scatter_value( x=latest['timestamp'], y=latest[a] ) )
 
     x_axis = pyofc2.x_axis()
 

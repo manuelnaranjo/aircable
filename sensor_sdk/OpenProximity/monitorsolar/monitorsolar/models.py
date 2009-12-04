@@ -40,7 +40,8 @@ class SolarDevice(models.SensorSDKRemoteDevice):
     def getChartVariables():
 	return [ 'solar', 'pool', 'tank', 'flow', 
 	    'wattm', 'watt_in', 'watt_out', 'watt_delta', 'day',
-	    'solar_v', 'pool_v', 'tank_v', 'flow_v'
+	    'solar_v', 'pool_v', 'tank_v', 'flow_v',
+	    'battery'
 	    ]
 	
     @staticmethod
@@ -139,5 +140,5 @@ class SolarRecord(models.SensorSDKRecord):
 	record.watt_delta = record.watt_out - record.watt_in
 
 	record.time=datetime.fromtimestamp(seconds)
-	record.battery=battery
+	record.battery=int(battery)/1000.0
 	record.save()
