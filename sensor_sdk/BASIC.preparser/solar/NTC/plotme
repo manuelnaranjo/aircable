@@ -1,0 +1,33 @@
+plot [0:1800] [-10:120] "ntc_vo" using 8:1:(1.0) smooth acsplines title "4700"
+
+fa0(x)=aa0*x+ba0
+fit [100:300] fa0(x) "ntc_vo" using 8:1 via aa0,ba0
+replot fa0(x) title "100:300"
+
+
+f0(x)=a0*x+b0
+fit [300:500] f0(x) "ntc_vo" using 8:1 via a0,b0
+replot f0(x) title "300:500"
+
+f1(x)=a1*x+b1
+fit [500:700] f1(x) "ntc_vo" using 8:1 via a1,b1
+replot f1(x) title "500:700"
+
+f2(x)=a2*x+b2
+fit [900:1100] f2(x) "ntc_vo" using 8:1 via a2,b2
+replot f2(x) title "900:1100"
+
+f3(x)=a3*x+b3
+fit [1300:1500] f3(x) "ntc_vo" using 8:1 via a3,b3
+replot f3(x) title "1300:1500"
+
+f4(x)=a4*x+b4
+fit [1400:1600] f4(x) "ntc_vo" using 8:1 via a4,b4
+replot f4(x) title "1400:1600"
+
+
+g(x)=a+b*x+c*x**2+d*x**3
+fit g(x) "ntc_vo" using 8:1 via a,b,c,d
+#replot g(x) title "fit for 4700"
+
+pause -1
