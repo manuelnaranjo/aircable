@@ -89,8 +89,8 @@ V stores the last commit time
 517 A = i2c $501
 ## read values of ADC
 518 GOSUB 843;
-## H variable has TANK temp
-519 H = M;
+## H variable has TANK temp, correction -5C
+519 H = M + 85;
 
 520 R = 0;
 521 T = 1;
@@ -99,8 +99,8 @@ V stores the last commit time
 523 $501[1] = 240
 524 A = i2c $501
 525 GOSUB 843;
-## J variable has POOL temp
-526 J = M;
+## J variable has POOL temp, correct -3C
+526 J = M + 45;
 
 527 R = 0;
 528 T = 1;
@@ -112,8 +112,8 @@ V stores the last commit time
 ## M variable has SOLAR temp
 
 ## solar correction +2C
-## we measure 14.374mV / C
-533 REM M = M - 29;
+## we measure 15.1mV / C
+533 M = M - 32;
 
 ## all variables are defined generate
 ## plugin content
@@ -132,9 +132,9 @@ V stores the last commit time
 ## SOLAR (M) higher than POOL (J) temp switch on PUMP
 ## this is voltage, lower than higher temp
 
-## we measure about 6.6mV/C between 6C and 66C
-## offset 3C
-540 B = J - 20;
+## we measure about 15.1mV/C between 6C and 66C
+## offset 0C
+540 B = J;
 541 IF M < B THEN 544;
 ## OFF
 542 A = pioclr ($1[3]-64);
@@ -202,8 +202,8 @@ V stores the last commit time
 590 RETURN
 
 
-## 5th display if heating pool, tank(H)-pool(J)>3C (6.6mV/C)
-591 IF (J-H-20) > 0 THEN 552;
+## 5th display if heating pool, tank(H)-pool(J)>3C (15.1mV/C)
+591 IF (J-H-45) > 0 THEN 552;
 ## display energy that goes into the pool
 592 N = G;
 593 GOSUB 830;
@@ -315,16 +315,14 @@ V stores the last commit time
 ## SOLAR-TANK diff
 835 B = H - M;
 
-## we measure 6.6mV per C between 6V and 66C
+## we measure 15.1mV per C between 6C and 66C
 ## dC = V * 7 / 106
 836 B = (B * 7) / 106;
-## correction for loss, 2C
-837 N = B - 2;
 ## flow times temp difference
-838 N = N * B;
+837 N = N * B;
 ## from BTU/h to W = BTUH * 5 / 17
-839 N = (N * 5) / 17;
-840 RETURN
+838 N = (N * 5) / 17;
+839 RETURN
 
 
 
