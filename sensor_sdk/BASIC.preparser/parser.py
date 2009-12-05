@@ -1,4 +1,4 @@
-#!/bin/env python
+#!/opt/local/bin/python2.5
 #
 # Copyright 2009 Naranjo Manuel Francisco <manuel@aircable.net> 
 # Copyright 2009 Wireless Cables Inc www.aircable.net

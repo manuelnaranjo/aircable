@@ -119,8 +119,8 @@ V stores the last commit time
 ## plugin content
 534 GOSUB 700;
 
-## first check FREEZING, over 1490mV is under 0C
-535 IF M < 1490 THEN 540;
+## first check FREEZING, over 1551mV is under 0C
+535 IF M < 1560 THEN 540;
 ## FREEZE, switch on PUMP and sound alarm
 536 A = pioset ($1[3]-64);
 537 A = ring;
@@ -132,9 +132,9 @@ V stores the last commit time
 ## SOLAR (M) higher than POOL (J) temp switch on PUMP
 ## this is voltage, lower than higher temp
 
-## we measure about 14.374mV/C
-## offset 1C
-540 B = J - 14;
+## we measure about 6.6mV/C between 6C and 66C
+## offset 3C
+540 B = J - 20;
 541 IF M < B THEN 544;
 ## OFF
 542 A = pioclr ($1[3]-64);
@@ -202,8 +202,8 @@ V stores the last commit time
 590 RETURN
 
 
-## 5th display if heating pool, tank(H)-pool(J)>2C
-591 IF (J-H-29) > 0 THEN 552;
+## 5th display if heating pool, tank(H)-pool(J)>3C (6.6mV/C)
+591 IF (J-H-20) > 0 THEN 552;
 ## display energy that goes into the pool
 592 N = G;
 593 GOSUB 830;
@@ -255,19 +255,41 @@ V stores the last commit time
 808 RETURN
 
 
+
+
 ## NTC value calculation
 ## voltage to temperature
 ## R=4.7k, V=1.8V
-## NOC is 10k
-## correct would be C = 105.1 - V * 0.06957
-810 N = (N * 3) / 43
-811 N = 105 - N
-812 PRINTV N
-813 PRINTV"%C"
-814 RETURN
+## NOC is 10k @ 25C
+## linearization with 4 lines
+## >1470mV < 9C m=-0.1008   
+## >590mV  <66C m=-0.0660
+## >380mV  <86C m=-0.0966
+## <380mV  >86C m=-0.1402
 
-## Farenheit
-816 
+810 IF N > 1470 THEN 822
+811 IF N > 590 THEN 819
+812 IF N > 380 THEN 816
+813 N = (N * 7) / 50
+814 N = 140 - N
+815 GOTO 824
+
+816 N = (N * 54) / 559
+817 N = 123 - N
+818 GOTO 824
+
+819 N = (N * 7) / 106
+820 N = 105 - N
+821 GOTO 824
+
+822 N = N / 10
+823 N = 156 - N
+
+824 PRINTV N;
+825 PRINTV"%C"
+826 RETURN
+
+
 
 
 
@@ -291,9 +313,9 @@ V stores the last commit time
 ## SOLAR-POOL diff
 837 B=J-M;
 
-## we measure 14.347mV per C
-## dC = V * 3 / 43
-838 B = (B * 3) / 43;
+## we measure 6.6mV per C between 6V and 66C
+## dC = V * 7 / 106
+838 B = (B * 7) / 106;
 ## correction for loss, 2C
 839 N = B - 2;
 ## from BTU/h to W = BTUH * 5 / 17
