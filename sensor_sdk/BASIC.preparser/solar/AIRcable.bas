@@ -299,29 +299,32 @@ V stores the last commit time
 ## calculate BTU
 ## GPM is about 950mV for 0.7GPM
 ## GPM * 900 * dC = BTU/h
-830 N = N * 11;
-831 N = N / 15;
-## now we have GPM*100
-832 N = N * 9;
-833 N = N / 10;
+830 N = (N * 11) / 15;
+## now we have GPM*1000
+831 N = (N * 9) / 10;
+
 ## temp diff
-## may be either SOLAR-POOL
-834 IF I = 2 THEN 837;
+832 IF I = 2 THEN 835;
+
 ## TANK-POOL
-835 B = J-H;
-836 GOTO 838;
+833 B = J - H;
+834 GOTO 836;
+
 ## SOLAR-POOL diff
-837 B=J-M;
+## 835 B = J - M;
+## SOLAR-TANK diff
+835 B = H - M;
 
 ## we measure 6.6mV per C between 6V and 66C
 ## dC = V * 7 / 106
-838 B = (B * 7) / 106;
+836 B = (B * 7) / 106;
 ## correction for loss, 2C
-839 N = B - 2;
+837 N = B - 2;
+## flow times temp difference
+838 N = N * B;
 ## from BTU/h to W = BTUH * 5 / 17
-840 N = N * 5;
-841 N = N / 17;
-842 RETURN
+839 N = (N * 5) / 17;
+840 RETURN
 
 
 
