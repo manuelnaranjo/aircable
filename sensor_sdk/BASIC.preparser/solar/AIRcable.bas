@@ -89,8 +89,8 @@ V stores the last commit time
 517 A = i2c $501
 ## read values of ADC
 518 GOSUB 843;
-## H variable has TANK temp, correction -5C
-519 H = M + 85;
+## H variable has TANK temp, correction -5C (should be +2C)
+519 H = M -32;
 
 520 R = 0;
 521 T = 1;
@@ -99,8 +99,8 @@ V stores the last commit time
 523 $501[1] = 240
 524 A = i2c $501
 525 GOSUB 843;
-## J variable has POOL temp, correct -3C
-526 J = M + 45;
+## J variable has POOL temp, correct2d -3C (should be +2C)
+526 J = M -32;
 
 527 R = 0;
 528 T = 1;
@@ -111,7 +111,7 @@ V stores the last commit time
 532 GOSUB 843;
 ## M variable has SOLAR temp
 
-## solar correction +2C
+## solar correction +2C (correct)
 ## we measure 15.1mV / C
 533 M = M - 32;
 
