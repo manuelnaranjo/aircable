@@ -19,7 +19,7 @@
 4 AIRlinkTH
 
 ## interrupt insertion points
-0 REM extra @INIT
+## extra @INIT
 20 GOTO 990;
 
 
@@ -31,7 +31,7 @@
 
 
 0 REM flush once each 20 readings
-662 IFK>=20 THEN 665;
+662 IF K>=20 THEN 665;
 
 ## adjust sensor reading freq to 3 sec
 908 GOTO 930;
@@ -44,7 +44,7 @@
 943 V=U;
 
 ## type
-19 MONITOR-SOLAR
+19 MONITOR-LINKTH
 
 ## set our sensor reading routines
 30 GOTO 520;
@@ -64,6 +64,9 @@
 521 A = uarton;
 522 I = 499;
 523 PRINTU "D"
+## blink green
+524 A = pioset ($1[3]-64);
+525 A = pioclr ($1[3]-64);
 
 526 $0[0] = 0;
 527 TIMEOUTU 2;
@@ -88,8 +91,8 @@
 
 536 I = I + 1;
 537 IF I > 509 THEN 526;
-538 $I = $0[20];
-539 $I[25] = 0;
+538 $(I) = $0[20];
+539 $(I)[25] = 0;
 ## done, next line
 540 GOTO 526;
 
@@ -99,13 +102,18 @@
 ## generate plugin content
 ## M = temp in Centigrades
 550 $0="OWI|";
-551 FOR A=0 TO I
-552  PRINTV $I
+551 FOR A=500 TO I
+552  PRINTV $(A)
 553  PRINTV "|"
 554 NEXT A
 ## store into history
 555 GOSUB 660
-556 RETURN
+## double blink green when done
+556 A = pioset ($1[3]-64);
+557 A = pioclr ($1[3]-64);
+558 A = pioset ($1[3]-64);
+559 A = pioclr ($1[3]-64);
+560 RETURN
 
 
 ## additional initialization
