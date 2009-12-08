@@ -81,7 +81,7 @@ class AmbientRecord(models.SensorSDKRecord):
 	#find ambient device, or create if there's none yet created
 	device,created=AmbientDevice.objects.get_or_create( address=device,
 	    defaults={
-		'name': _('Auto Discovered Ambient Sensor'),
+		'friendly_name': _('Auto Discovered Ambient Sensor'),
 		'sensor': _('Ambient'),
 		'mode': _('Monitor'),
 	    })
