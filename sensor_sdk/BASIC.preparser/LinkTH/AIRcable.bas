@@ -91,7 +91,7 @@
 537 I = I + 1;
 538 IF I > 509 THEN 527;
 539 $(I) = $0[20];
-540 $(I)[25] = 0;
+540 $(I)[5] = 0;
 ## done, next line
 541 GOTO 527;
 
@@ -104,7 +104,7 @@
 551 $0="OWI|";
 552 FOR A=500 TO I
 553  PRINTV $(A)
-554  PRINTV "|\n"
+554  PRINTV "|"
 555 NEXT A
 ## store into history
 556 GOSUB 660
