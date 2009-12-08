@@ -1,0 +1,11 @@
+#* 
+    Example usage, this will generate
+    monitor ambient testing code as MASTER
+*#
+#set global $stream="slave"
+#set global $I="$I"
+#set global $A="$A"
+#include "base/AIRcable.bas"
+#include "shell/AIRcable.bas"
+#include "monitor/AIRcable.bas"
+#include "LinkTH/AIRcable.bas"
