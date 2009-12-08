@@ -66,7 +66,7 @@ class SolarDevice(models.SensorSDKRemoteDevice):
 	power = flow * 90.0 * dt * 5.0 / 17.0
 	return power
 
-READING=compile(r'SOL\|(?P<solar>\d+)\|(?P<pool>\d+)\|(?P<tank>\d+)\|(?P<flow>\d+)\|(?P<wattm>\d+)\|(?P<day>\d).*$')
+READING=compile(r'SOL\|(?P<solar>\d+)\|(?P<pool>\d+)\|(?P<tank>\d+)\|(?P<flow>[+-]?\d+)\|(?P<wattm>[+-]?\d+)\|(?P<day>[01]).*$')
 class SolarRecord(models.SensorSDKRecord):
     
     # ntc sensor
