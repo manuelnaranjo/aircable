@@ -25,6 +25,20 @@ from rpyc import async
 import signals
 import time
 
+import unicodedata, re
+
+all_chars = (unichr(i) for i in xrange(0x110000))
+control_chars = ''.join(c for c in all_chars if unicodedata.category(c) == 'Cc')
+# or equivalently and much more efficiently
+control_chars = ''.join(map(unichr, range(0,32) + range(127,160)))
+
+control_char_re = re.compile('[%s]' % re.escape(control_chars))
+
+def remove_control_chars(s):
+    return control_char_re.sub('', s)
+
+
+
 clients = dict()
 serving = dict()
 handlers = dict()
@@ -102,7 +116,7 @@ def device_found(record, services):
     return True
 
 CLOCK=compile(r'^CLOCK\|(?P<clock>(\d+)*.?(\d+)*)$')
-READING=compile(r'^BATT\|(?P<batt>(\d+))\|SECS\|(?P<secs>(\d+))\|(?P<reading>.*)$')
+READING=compile(r'^BATT\|(?P<batt>(\d+))\s*\|SECS\|(?P<secs>(\d+))\s*\|(?P<reading>.*)$')
 
 def parse_history(model=None, history=None, target=None, success=False, 
 	    dongle=None, pending=None, *args, **kwargs):
@@ -111,7 +125,7 @@ def parse_history(model=None, history=None, target=None, success=False,
     flag = False
     last_reg = None
     for line in history.splitlines():
-	line = line.strip()
+	line = remove_control_chars(line.strip())
 	if CLOCK.match(line):
 	    last_time = float(CLOCK.match(line).groupdict()['clock'])
 	    print "SDK time sync", last_time
