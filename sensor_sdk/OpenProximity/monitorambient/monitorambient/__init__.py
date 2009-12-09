@@ -15,18 +15,6 @@
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 # SensorSDK plugin
-def reset_stats(connection):
-    from django.db import models
-    from django.core.management.color import no_style
-    from django.core.management import sql
-    tables = [ 
-	#'sensorsdk_',
-	#'agent_agentrecord'
-    ]
-    
-    for table in tables:
-	connection.cursor().execute("drop table %s" % table)
-
 provides = { 
     'name': 'SensorSDK plugin - Ambient Monitor',	# friendly name
     
@@ -36,5 +24,4 @@ provides = {
 
     'django_app': True,			# we provide an application so we can
 					# define models
-    'statistics_reset':	reset_stats,
 }
