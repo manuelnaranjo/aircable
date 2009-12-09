@@ -36,6 +36,8 @@
 ## set our sensor reading routines
 30 GOTO 519;
 
+137 $7=$13[5];
+
 
 0 REM flush once each 20 readings
 662 IF K>=20 THEN 665;

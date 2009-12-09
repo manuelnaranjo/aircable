@@ -143,7 +143,7 @@ do it's work.
 ## became visible
 948 A = slave 60
 949 ALARM 90
-950 A = lcd "VISIBLE    "
+950 A = lcd "SPP OPEN"
 951 RETURN
 
 # slave timeout

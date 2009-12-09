@@ -240,11 +240,12 @@ O to N reserved for 'user' sensor code
 
 ## idle handler
 @IDLE 110
-110 IF Q = 100 THEN 120
-111 A = disable 3
-112 IF Q > 0 THEN 22
-113 ALARM 1
-114 GOTO 22
+110 A = pioclr($1[4]-64)
+111 IF Q = 100 THEN 120
+112 A = disable 3
+113 IF Q > 0 THEN 22
+114 ALARM 1
+115 GOTO 22
 
 ## first boot, visible for 30 seconds
 ## trigger sensor
@@ -614,15 +615,16 @@ O to N reserved for 'user' sensor code
 422 RETURN
 
 ## make it visible, enable services
-430 A = lcd "VISIBLE  "
+430 A = lcd "FTP OPEN"
 431 A = slave 120
 432 ALARM 140
 433 A = enable 3
-434 RETURN
+434 A = pioset ($1[4]-64)
+436 RETURN
 
 ## enable deep sleep
 440 A = auxdac 0
-441 A = pioset $1[5]
+441 A = pioset ($1[5]-64)
 ## make sure that nothing happens between enabling deep
 ## sleep and RETURN
 442 A = uartoff;

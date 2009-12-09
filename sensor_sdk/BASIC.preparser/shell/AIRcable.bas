@@ -122,7 +122,7 @@ shell over $stream
 667 A = close;
 
 668 A=append $999;
-669 FOR B=0 TO K;
+669 FOR B=0 TO (K-1);
 670 $0=\$(B+1000);
 671 A=write 32;
 672 NEXT B;
