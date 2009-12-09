@@ -32,10 +32,13 @@ def reset_stats(connection):
     from django.db import models
     from django.core.management.color import no_style
     from django.core.management import sql
-    tables = [ 
-	#'sensorsdk_',
-	#'agent_agentrecord'
-    ]
+    import models
+    
+    tables = []
+    for klass in models.get_subclass(models.SensorSDKRecord):
+	tables.append(klass._meta.db_table,)
+
+    tables.append(models.SensorSDKRecord._meta.db_table,)
     
     for table in tables:
 	connection.cursor().execute("drop table %s" % table)
