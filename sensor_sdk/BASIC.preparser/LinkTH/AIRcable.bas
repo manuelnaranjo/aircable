@@ -18,6 +18,9 @@
 ## discoverable name
 4 AIRlinkTH
 
+## implement history manually
+10 NEXT4
+
 ## interrupt insertion points
 ## extra @INIT
 20 GOTO 990;
@@ -31,7 +34,7 @@
 ## type
 19 MONITOR-LINKTH
 ## set our sensor reading routines
-30 GOTO 520;
+30 GOTO 519;
 
 
 0 REM flush once each 20 readings
@@ -59,63 +62,57 @@
 ## then "EOD"
 
 ## RS232_OFF set to power on MAX chip
-520 A = pioset 11;
-521 A = uarton;
-522 I = 499;
+519 A = pioset 11;
+520 A = uarton;
+521 WAIT 1
+522 REM;
+
+523 $0[0] = 0;
+524 PRINTU "D"
+525 TIMEOUTU 3;
+526 INPUTU $0;
 
 ## blink green
-523 A = pioset ($1[3]-64);
-524 A = pioclr ($1[3]-64);
-525 $0[0] = 0;
-
-526 PRINTU "D"
-527 TIMEOUTU 3;
-528 INPUTU $0;
+527 A = pioset ($1[3]-64);
+528 A = pioclr ($1[3]-64);
 0 REM if we have an 'E' (69) end routine
 529 IF $0[0] <> 69 THEN 535;
 
 ## got EOD, power off and return
-530 A = pioset 11;
+530 A = pioclr 11;
 531 A = uartoff;
-## make message
-533 GOSUB 550
-534 RETURN
+532 RETURN
 
 ## timeout we give up
 535 IF $0[0] = 0 THEN 530;
 
 ## see if we have a "2..." (50) start
 ## if not, get next line
-536 IF $0[0] <> 50 THEN 527;
+536 IF $0[0] <> 50 THEN 525;
 
-537 I = I + 1;
-538 IF I > 509 THEN 527;
-539 $(I) = $0[20];
-540 $(I)[5] = 0;
-## done, next line
-541 GOTO 527;
+## store each sensor reading in 2 variables
+537 REM;
+538 REM;
+539 $0[16] = 0;
+540 $500=$0;
+541 $501=$0[17];
 
+542 $0="OWI|"
+543 PRINTV $500
+## store fist line in history
+544 GOSUB 660
 
+545 $0="OWS|"
+546 PRINTV $501
+## store second line in history
+547 GOSUB 660
 
-
-## generate plugin content
-## M = temp in Centigrades
-550 IF I < 500 THEN 559
-551 $0="OWI|";
-552 FOR A=500 TO I
-553  PRINTV $(A)
-554  PRINTV "|"
-555 NEXT A
-## store into history
-556 GOSUB 660
-## double blink green when done
-557 A = pioset ($1[3]-64);
-558 A = pioclr ($1[3]-64);
-559 A = pioset ($1[3]-64);
-560 A = pioclr ($1[3]-64);
-561 A = pioset ($1[3]-64);
-562 A = pioclr ($1[3]-64);
-563 RETURN
+## double blink green when done, next line
+548 A = pioset ($1[3]-64);
+549 A = pioclr ($1[3]-64);
+550 A = pioset ($1[3]-64);
+551 A = pioclr ($1[3]-64);
+552 GOTO 525;
 
 
 ## additional initialization
@@ -125,7 +122,7 @@
 992 A = pioset 3
 0 REM RS232 POWER OFF out and OFF
 993 A = pioout 11
-994 A = pioset 11
+994 A = pioclr 11
 0 REM RS232 DTR pin out and +5V
 995 A = pioclr 5
 996 A = pioout 5
