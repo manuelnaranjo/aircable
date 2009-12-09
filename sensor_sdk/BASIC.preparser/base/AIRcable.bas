@@ -602,11 +602,11 @@ O to N reserved for 'user' sensor code
 ## turn off
 410 A = lcd "GOOD BYE";
 411 ALARM 0;
-412 A = pioset($1[3]-64)
-413 A = pioclr($1[3]-64);
+412 A = pioset($1[4]-64)
+413 A = pioclr($1[4]-64);
 414 A = pioget($1[1]-64);
 415 IF A = 1 THEN 412;
-416 A = pioclr($1[4]-64);
+416 A = pioclr($1[3]-64);
 417 A = lcd;
 418 A = reboot;
 419 FOR E = 0 TO 10;
