@@ -14,9 +14,15 @@ def generate_data(inp, out, rng=range(1000, 6000, 500)):
 	out.write(l)
 	out.write(' ')
 	for i in rng:
-	    vo  = 1800 * rnom / (i+rnom)
+	    von = 1800 * rnom / (i+rnom)
+	    vomin = 1800 * rmin / (i+rmin)
+	    vomax = 1800 * rmax / (i+rmax)
 #	    vo1 = 1800 * i / (i+rnom)
-	    out.write('%s' % vo)# %s ' % (vo, vo1))
+	    out.write('%s %s %s' % (von, vomin, vomax))# %s ' % (vo, vo1))
+	    von = 1780 * rnom / (i+rnom)
+	    vomin = 1780 * rmin / (i+rmin)
+	    vomax = 1780 * rmax / (i+rmax)
+	    out.write('%s %s %s' % (von, vomin, vomax))# %s ' % (vo, vo1))
 	out.write('\n')
     return rng
 
