@@ -34,7 +34,7 @@
 ## type
 19 MONITOR-LINKTH
 ## set our sensor reading routines
-30 GOTO 519;
+30 GOTO 517;
 
 137 $7=$13[5];
 
@@ -63,6 +63,9 @@
 ## maybe some more sensors....
 ## then "EOD"
 
+## store previous content
+517 PRINTV"NEXT4";
+518 GOSUB 660
 ## RS232_OFF set to power on MAX chip
 519 A = pioset 11;
 520 A = uarton;
@@ -83,7 +86,9 @@
 ## got EOD, power off and return
 530 A = pioclr 11;
 531 A = uartoff;
-532 RETURN
+532 $10=""
+533 $0=""
+534 RETURN
 
 ## timeout we give up
 535 IF $0[0] = 0 THEN 530;
