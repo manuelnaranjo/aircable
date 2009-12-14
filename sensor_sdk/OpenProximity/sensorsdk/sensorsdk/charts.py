@@ -38,6 +38,14 @@ SPANS={
     None: 60
 }
 
+def generate_data(dev=None, fields=None, start=None, end=None):
+    qs=dev.getRecordClass().objects.filter(time__isnull=False).\
+	filter(remote=dev, time__gte=start, time__lte=end)
+    qs=qs.extra(select={'timestamp': epoch}) # replace time by a unix timestamp
+    qs.order_by('timestamp')
+    return qs
+
+
 def generate_chart_data(request, 
 	    address=None, 
 	    fields=None, 
@@ -48,14 +56,25 @@ def generate_chart_data(request,
     colours = request.GET.get('colours', None)
     start = request.GET.get('start', None)
     end = request.GET.get('end', None)
-    print address, fields, start, end, colours, span, args, kwargs
-    print request.GET
+    
     fields=fields.split(',')
     address=address.replace('_',':')
+
+    span=SPANS[span]*60
+    
     dev = models.SensorSDKRemoteDevice.objects.get(address=address)
     dev = models.get_subclass(dev)
     __check_field_is_valid(dev, fields)
     
+    if end is None:
+	end = datetime.now()
+    
+    if start is None:
+	start = datetime.fromtimestamp(
+	    time.mktime(end.timetuple())-span)
+
+    qs = generate_data(dev=dev, fields=fields, start=start, end=end)
+    data = qs.values('timestamp', *fields)
     if colours is not None:
 	col = colours
 	colours = {}
@@ -70,21 +89,6 @@ def generate_chart_data(request,
 	    i+=1;
 	    if i>=len(COLOURS):
 		i=0;
-
-    span=SPANS[span]*60
-
-    if end is None:
-	end = datetime.now()
-    
-    if start is None:
-	start = datetime.fromtimestamp(
-	    time.mktime(end.timetuple())-span)
-    qs=dev.getRecordClass().objects.filter(time__isnull=False).\
-	filter(remote=dev, time__gte=start, time__lte=end)
-    qs=qs.extra(select={'timestamp': epoch}) # replace time by a unix timestamp
-    qs.order_by('timestamp')
-    print qs.count()
-    data = qs.values('timestamp', *fields)
 
     sets = {}
     prev = {}
@@ -105,9 +109,10 @@ def generate_chart_data(request,
 	    prev_1[a]=rec[a]
 
     # now include the end of chart values
-    latest=data[qs.count()-1]
-    for a in fields:
-	sets[a].append( pyofc2.scatter_value( x=latest['timestamp'], y=latest[a] ) )
+    if qs.count() > 0:
+	latest=data[qs.count()-1]
+	for a in fields:
+	    sets[a].append( pyofc2.scatter_value( x=latest['timestamp'], y=latest[a] ) )
 
     x_axis = pyofc2.x_axis()
 

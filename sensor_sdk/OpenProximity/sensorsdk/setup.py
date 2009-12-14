@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name="SensorSDK",
-    version="0.1b",
+    version="0.1c",
     packages=['sensorsdk',],
     summary="SensorSDK core",
     description="""SensorSDK OpenProximity plugin""",

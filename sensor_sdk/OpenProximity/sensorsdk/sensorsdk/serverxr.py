@@ -187,5 +187,4 @@ class SensorManager:
 	    t.daemon=True
 	    t.start()
 	    self.connections[target]=t
-	    print self.connections
-	    print activeCount()
+	    print t, activeCount()

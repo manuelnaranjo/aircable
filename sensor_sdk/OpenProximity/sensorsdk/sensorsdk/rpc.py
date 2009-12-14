@@ -51,7 +51,9 @@ def handle(signal, services, manager, *args, **kwargs):
     print "SDK HANDLE", signal, args, kwargs
     
     if signal in handlers:
-	handlers[signal](manager=manager, *args, **kwargs)
+	return handlers[signal](manager=manager, *args, **kwargs)
+	
+    print "SDK, no handler"
 
 def get_dongles(dongles):
     return SensorSDKBluetoothDongle.objects.filter(address__in=dongles, enabled=True).\
@@ -117,6 +119,7 @@ def device_found(record, services):
 
 CLOCK=compile(r'^CLOCK\|(?P<clock>(\d+)*.?(\d+)*)$')
 READING=compile(r'^BATT\|(?P<batt>(\d+))\s*\|SECS\|(?P<secs>(\d+))\s*\|(?P<reading>.*)$')
+NEXT=compile(r'^NEXT(?P<amount>(\d*))')
 
 def parse_history(model=None, history=None, target=None, success=False, 
 	    dongle=None, pending=None, *args, **kwargs):
@@ -124,6 +127,7 @@ def parse_history(model=None, history=None, target=None, success=False,
     readings = list()
     flag = False
     last_reg = None
+    count_ = 0
     for line in history.splitlines():
 	line = remove_control_chars(line.strip())
 	if CLOCK.match(line):
@@ -133,14 +137,25 @@ def parse_history(model=None, history=None, target=None, success=False,
 	    reg = READING.match(line).groupdict()
 	    print "SDK reading line", reg
 	    last_time+=float(reg['secs'])
-	    if reg['reading'].strip() == 'NEXT':
+	    if NEXT.match(reg['reading']):
+		count_ = NEXT.match(reg['reading']).groupdict().get('amount','1')
+		try:
+		    count_ = int(count_)
+		except:
+		    count_ = 1
 		flag = True
 		last_reg = reg
+		last_reg['reading']=""
 	    else:
 		readings.append( (last_time, reg['batt'], reg['reading']), )
-	elif flag:
-	    flag = False
-	    readings.append( (last_time, last_reg['batt'], line), )
+	elif flag and count_ > 0:
+	    count_ -= 1
+	    last_reg['reading']+=line.strip()
+	    if count_ > 0:
+		count_ -= 1
+	    else:
+		readings.append( (last_time, last_reg['batt'], last_reg['reading']), )
+		flag = False
 	else:
 	    print "SDK wrong line", line
     

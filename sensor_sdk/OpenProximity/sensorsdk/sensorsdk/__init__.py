@@ -35,10 +35,12 @@ def reset_stats(connection):
     import models
     
     tables = []
-    for klass in models.get_subclass(models.SensorSDKRecord):
+    for klass in models.SensorSDKRecord.__subclasses__():
 	tables.append(klass._meta.db_table,)
 
     tables.append(models.SensorSDKRecord._meta.db_table,)
+    
+    print tables
     
     for table in tables:
 	connection.cursor().execute("drop table %s" % table)
