@@ -224,21 +224,24 @@ V stores the last commit time
 ## H = tank temp voltage
 ## G = flow sensor voltage
 ## F = watt minutes
-700 $0="SOL|";
-701 PRINTV M;
-702 PRINTV"|"
-703 PRINTV J;
+700 PRINTV"NEXT"
+701 GOSUB 660
+702 $0="SOL|";
+703 PRINTV M;
 704 PRINTV"|"
-705 PRINTV H;
+705 PRINTV J;
 706 PRINTV"|"
-707 PRINTV G;
+707 PRINTV H;
 708 PRINTV"|"
-709 PRINTV F;
+709 PRINTV G;
 710 PRINTV"|"
-711 A=pioget11;
-712 PRINTV A;
-713 GOSUB 660
-714 RETURN
+711 PRINTV F;
+712 PRINTV"|"
+713 A=pioget11;
+714 PRINTV A;
+715 $10=$0;
+716 $0="";
+717 RETURN
 
 ## FLOW SENSOR calculation
 ## analog AIO1 to GPM, linear

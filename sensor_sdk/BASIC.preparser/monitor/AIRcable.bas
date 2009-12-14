@@ -106,9 +106,10 @@ do it's work.
 935 GOSUB 485
 936 PRINTV B
 937 PRINTV"|";
-938 PRINTV $10;
+938 GOSUB 30;
+939 PRINTV $10;
 ## push to history
-939 GOSUB 660
+940 GOSUB 660
 
 ## is buffer complete?
 941 IF L > 0 THEN 943;

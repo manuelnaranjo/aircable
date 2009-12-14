@@ -592,7 +592,7 @@ O to N reserved for 'user' sensor code
 ## user know what you're doing (for example
 ## after an update button press).
 400 A = lcd "WAIT . . . "
-401 GOSUB 30
+0 REM 401 GOSUB 30
 402 GOSUB 31
 403 $8=$11
 404 GOSUB 40
