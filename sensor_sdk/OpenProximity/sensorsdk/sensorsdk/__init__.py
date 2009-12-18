@@ -21,12 +21,14 @@ try:
     from serverxr import SensorManager
 except:
     SensorManager=None
-
+    
 def post_environ():
     from rpc import handle, register, device_found
-    provides['rpc'] = handle		# provide rpc handle
-    provides['rpc_register'] = register # sensorsdk generic client will register with us
-    provides['found_action'] = device_found
+    provides['rpc'] = handle            # provide rpc handle
+    provides['rpc_register'] = register # sensorsdk generic client will register with us                                                                                    
+    provides['found_action'] = device_found 
+    from models import post_init
+    post_init()
 
 def reset_stats(connection):
     from django.db import models
@@ -49,7 +51,14 @@ def find_plugins():
     #look for all the sensorsdk plugins
     from net.aircable.openproximity.pluginsystem import pluginsystem
     for plugin in pluginsystem.get_plugins('sensorsdk'):
+	print "SensorSDK plugin", plugin.module_name
 	yield plugin
+    try:
+	from models import post_plugins_load
+	post_plugins_load()
+    except Exception, err:
+	print err
+
 
 provides = { 
     'name': 'SensorSDK plugin', 	# friendly name
@@ -58,17 +67,13 @@ provides = {
     
     'django': True,			# expose me as a django enabled plugin
     
-    'post_environ': True,		# we want to handle some RPC events, 
-					# but we want to register after environ
-					# is setup, this way we can access
-					# models from rpc
+    'post_environ': True,		# provide rpc handle
 
     'TEMPLATE_DIRS': 'templates',	# static media I give to django
     'LOCALE_PATHS': 'locale',
     'django_app': True,			# we provide an application so we can
 					# define models
    
-
     'statistics_reset':	reset_stats, 
     'urls': ( 'sensorsdk', 'urls' ),	# urls I give to django
     

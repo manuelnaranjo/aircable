@@ -53,7 +53,7 @@ def handle(signal, services, manager, *args, **kwargs):
     if signal in handlers:
 	return handlers[signal](manager=manager, *args, **kwargs)
 	
-    print "SDK, no handler"
+    print "SDK, no handler", signal
 
 def get_dongles(dongles):
     return SensorSDKBluetoothDongle.objects.filter(address__in=dongles, enabled=True).\
@@ -175,3 +175,4 @@ def handle_failed(pending, target, *args, **kwargs):
 
 handlers[signals.TOO_BUSY]=handle_failed
 handlers[signals.CONNECTION_FAILED]=handle_failed
+handlers[signals.HANDLED_LOST_CONNECTION]=handle_failed
