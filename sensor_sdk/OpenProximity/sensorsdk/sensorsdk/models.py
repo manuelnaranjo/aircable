@@ -130,13 +130,19 @@ class SensorCampaign(Campaign):
 SensorCampaign._meta.get_field('addr_filter').default="00:25:BF"
 
 ALERT_TYPES = ( 
+    (-1, _('No data')),
     (0, _('Over Range')),
     (1, _('Under Range')),
     (2, _('In Range')),
-    (-1, _('No data')),
 )
 
 ALERT_INFO= {
+    -1:{ 'name': 'no_report',
+	'short': _('No data'),
+	'long': _('A sensor hasn\'t reported data for a long time'),
+	'set': lambda x: False,
+	'clear': lambda x: False,
+    },
     0: {'name': 'alert_over',
 	'short': _('Over Range'),
 	'long': _('A sensor reading has gone over range'),
@@ -155,12 +161,7 @@ ALERT_INFO= {
 	'set': lambda val,lim_m,lim_M: lim_m < val and val < lim_M,
 	'clear': lambda val,lim_M,lim_m: val < lim_m and lim_M > val,
     },
-    -1:{ 'name': 'no_report',
-	'short': _('No data'),
-	'long': _('A sensor hasn\'t reported data for a long time'),
-	'set': lambda x: False,
-	'clear': lambda x: False,
-    }
+
 }
 
 
@@ -197,7 +198,8 @@ class AlertDefinition(models.Model):
 		    'target': target,
 		    'value': value,
 		    'definition': self,
-		}
+		},
+		current_site="SensorSDK Notifications",
 	    )
 
     @classmethod
@@ -211,10 +213,12 @@ class AlertDefinition(models.Model):
 	print "do_work on AlertDefinition"
 	remote = get_subclass(record.remote)
 	record = get_subclass(record)
-	for notif in remote.alertdefinition_set.filter(enabled=True).all():
+	for notif in remote.alertdefinition_set.filter(enabled=True).exclude(mode=-1).all():
 	    val = getattr(record, notif.field)
 	    set = ALERT_INFO[notif.mode]['set'](val, notif.set, notif.clr)
 	    clear = ALERT_INFO[notif.mode]['clear'](val, notif.clr, notif.set)
+
+	    print "checking for alarm", ALERT_INFO[notif.mode]['name'], val, notif.set, notif.clr, set, clear
 	    if clear is True:
 		qs = notif.alert_set.filter(target=remote, active=True)
 		if qs.count() > 0:
@@ -225,7 +229,24 @@ class AlertDefinition(models.Model):
 		notif.sendNotification(target=remote, value=val)
 	    # there's another kind of alarm we would like to check
 	    # that's no data, but we do that on a scheduled basis
-    
+
+    @classmethod
+    def check_nodata(cls):
+	'''
+	    This method will check if there\'s a device whose no data alert needs to
+	    be triggered
+	'''
+	print "check_nodata on AlertDefinition"
+	for notif in AlertDefinition.objects.filter(enabled=True, mode=-1):
+	    timeout = datetime.fromtimestamp(time.time() - notif.set)
+	    #if last record for this alert was made before timeout then we have an alert
+	    for remote in notif.targets.all():
+		last_record = SensorSDKRecord.objects.filter(remote=remote).latest('time')
+		if timeout > last_record.time:
+		    print remote.address, "not sending for over", notif.set
+		    # ok we reached the time trigger
+		    notif.sendNotification(target=remote, value=last_record.time)
+
     def display_Mode(self):
 	return ALERT_INFO[self.mode]['short']
 
@@ -318,7 +339,7 @@ def post_init():
 	for i in ALERT_INFO:
 	    info=ALERT_INFO[i]
 	    notification.create_notice_type(info['name'], info['short'], info['long'])
-
+	post_plugins_load()
     except Exception, err:
 	print err
 

@@ -27,8 +27,10 @@ def post_environ():
     provides['rpc'] = handle            # provide rpc handle
     provides['rpc_register'] = register # sensorsdk generic client will register with us                                                                                    
     provides['found_action'] = device_found 
-    from models import post_init
+    from models import post_init, post_plugins_load
     post_init()
+    post_plugins_load()
+
 
 def reset_stats(connection):
     from django.db import models
@@ -49,15 +51,11 @@ def reset_stats(connection):
 
 def find_plugins():
     #look for all the sensorsdk plugins
+    out = list()
     from net.aircable.openproximity.pluginsystem import pluginsystem
     for plugin in pluginsystem.get_plugins('sensorsdk'):
 	print "SensorSDK plugin", plugin.module_name
 	yield plugin
-    try:
-	from models import post_plugins_load
-	post_plugins_load()
-    except Exception, err:
-	print err
 
 
 provides = { 
