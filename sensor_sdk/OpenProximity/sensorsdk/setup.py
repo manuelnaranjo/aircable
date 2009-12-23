@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(name="SensorSDK",
     version="0.2",
-    packages=['sensorsdk',],
+    packages=['sensorsdk','sensorsdk.management', 'sensorsdk.management.commands'],
     summary="SensorSDK core",
     description="""SensorSDK OpenProximity plugin""",
     long_description="""this plugin allows OpenProximity to be used for remote bluetooth sensing networks.

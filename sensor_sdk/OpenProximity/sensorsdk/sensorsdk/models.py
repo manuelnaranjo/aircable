@@ -164,6 +164,34 @@ ALERT_INFO= {
 
 }
 
+class AlertDefinitionTemplate(models.Model):
+    mode = models.IntegerField( choices=ALERT_TYPES,
+	help_text=_('Mode this template will handle'),
+	unique=True)
+    short = models.TextField(max_length=6000, blank=True, null=True,
+	help_text=_('Email subject when this notice is triggered'))
+    full = models.TextField(max_length=6000, blank=True, null=True,
+	help_text=_('Email body when this notice is triggered'))
+    notice = models.TextField(max_length=6000, blank=True, null=True,
+	help_text=_('This text will be displayed on the web site when the alert is triggered'))
+    full_html = models.TextField(max_length=6000, blank=True, null=True,
+	help_text=_('Not used yet'))
+	
+    def __unicode__(self):
+	return "Alert Definition Template %s" % ALERT_INFO[self.mode]['short']
+	
+    @classmethod
+    def getTemplates(cls, mode):
+	qs = AlertDefinitionTemplate.objects.filter(mode=mode)
+	if qs.count() == 0:
+	    return None
+	qs = qs.get()
+	return {
+	    'short.txt': qs.short,
+	    'full.txt': qs.full,
+	    'notice.html': qs.notice,
+	    'full.html': qs.full_html
+	}
 
 class AlertDefinition(models.Model):
     '''A class used to define automatic alerts'''
@@ -198,8 +226,10 @@ class AlertDefinition(models.Model):
 		    'target': target,
 		    'value': value,
 		    'definition': self,
+		    'time': datetime.now(),
 		},
 		current_site="SensorSDK Notifications",
+		templates=AlertDefinitionTemplate.getTemplates(self.mode)
 	    )
 
     @classmethod

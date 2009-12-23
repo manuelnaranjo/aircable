@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from django.contrib import admin
+from django.db import models
+from django import forms
 from models import *
 
 class SensorCampaignAdmin(admin.ModelAdmin):
@@ -34,6 +36,26 @@ class SensorCampaignAdmin(admin.ModelAdmin):
                 )
 
     ordering = [ 'name', 'start', 'end' , 'addr_filter', 'name_filter']
+
+class AlertDefinitionTemplateAdmin(admin.ModelAdmin):
+    fieldsets = (
+	(None, { 'fields': ('mode', )}),
+	('Email Settings', {'fields': ('short', 'full',)}),
+	('Web Site Settings:', {'fields': ('notice', 'full_html')}),
+    )
+    list_display = ('mode',)
+    
+    def formfield_for_dbfield(self, db_field, **kwargs):
+	if db_field.attname not in ['short', 'full', 'notice', 'full_html']:
+	    return super(AlertDefinitionTemplateAdmin, self).formfield_for_dbfield(db_field, **kwargs)
+	    
+	attrs = {'cols': 80}
+	if db_field.attname == 'short':
+	    attrs['rows'] = 4
+	elif db_field.attname in ['full', 'notice', 'full_html']:
+	    attrs['rows'] = 20
+	kwargs['widget'] = forms.Textarea(attrs=attrs)
+	return super(AlertDefinitionTemplateAdmin, self).formfield_for_dbfield(db_field, **kwargs)
 
 class AlertDefinitionAdmin(admin.ModelAdmin):
     fieldsets = (
@@ -94,5 +116,6 @@ myadmin = admin.AdminSite()
 
 myadmin.register(SensorSDKBluetoothDongle)
 myadmin.register(SensorCampaign, SensorCampaignAdmin)
+myadmin.register(AlertDefinitionTemplate, AlertDefinitionTemplateAdmin)
 myadmin.register(AlertDefinition, AlertDefinitionAdmin)
 myadmin.register(Alert, AlertAdmin)
