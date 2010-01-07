@@ -77,9 +77,14 @@ class LinkTHDevice(models.SensorSDKRemoteDevice):
 
     def findSensorForId(self, dev_id):
 	j = 0
+	dev_id=dev_id.strip().upper()
+	print "findSensorForId", dev_id
 	for i in range(MAXSENSORS):
-	    if dev_id==getattr(self, 'sensor%s_id' % i, None):
+	    prev_id = getattr(self, 'sensor%s_id' % i, None)
+	    if dev_id==prev_id:
 		return i
+	    elif prev_id==None:
+		break;
 	    j+=1
 	if j < MAXSENSORS:
 	    return j
@@ -107,7 +112,7 @@ for i in range(MAXSENSORS):
 	)
     )
 
-LINE=r'OWI\|(?P<id>[A-F][0-9]+)\|OWS\|(?P<val>.*)\|(?P<rest>.*)$'
+LINE=r'OWI\|(?P<id>[A-F0-9]+)\|OWS\|(?P<val>[^|]*)(\|)?(?P<rest>.*)$'
 LINE=compile(LINE)
     
 class LinkTHRecord(models.SensorSDKRecord):
@@ -133,17 +138,19 @@ class LinkTHRecord(models.SensorSDKRecord):
 	record.remote=device
 	record.dongle=dongle
 	record.time=datetime.fromtimestamp(seconds)
-	record.battery=battery/1000 # asume we get battery * 1000
+	record.battery=int(battery)/1000.0 # asume we get battery * 1000
 	
 	while len(reading) > 0:
 	    m = LINE.match(reading)
 	    if not m:
 		print "monitorlinkth NO MATCH", reading
-		return
+		break
 	    m=m.groupdict()
+	    print m
 	    reading = m['rest']
 	    val = m['val']
 	    typ = val.split(',')[0].strip()
+	    m['id']=m['id'].strip()
 	    
 	    try:
 		sen_id = device.findSensorForId(m['id'])
@@ -164,7 +171,7 @@ class LinkTHRecord(models.SensorSDKRecord):
 	    
 	    if typ in ['19', '1A', '1B']:
 		setattr(record, 'value%sa' % send_id, val['extra'])
-
+	print "saving record"
 	record.save()
 
 for i in range(MAXSENSORS):
