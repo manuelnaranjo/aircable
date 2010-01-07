@@ -15,12 +15,12 @@
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.            
 
 from django import forms
-from django.shortcuts import render_to_response
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.utils.translation import ugettext as _
 from django.utils import simplejson
+from django.shortcuts import render_to_response
 import models
 
 SET = settings.OPENPROXIMITY.getAllSettings()

@@ -55,6 +55,7 @@
 	
 	var gotData = function (data) {
 	    control=$(id);
+	    control.options.length=0;
 	    j = 0;
 	    for (i in data){
 		var v = Option(display(data[i]), sel_val(data[i]), false, false);
@@ -68,6 +69,8 @@
 
 	var dataFetchFailed = function (err) {
 	    //alert("The " + id + " data couldn't be fetched :(");
+	    control=$(id);
+	    control.options.length=0;
 	};
 	d.addCallbacks(gotData, dataFetchFailed);
     }

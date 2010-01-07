@@ -10,8 +10,8 @@ It provides plugin with basic stuff such: data storage, charting, data sync, ala
 SensorSDK is a plugin system it self, sensors talk to SensorSDK through plugins""",
     author="Naranjo Manuel Francisco",
     author_email= "manuel@aircable.net",
-    package_dir={'sensorsdk': 'sensorsdk'},
-    package_data={'sensorsdk': ['templates/sensorsdk/*.html',]},
+    package_dir={'sensorsdk': 'sensorsdk',},
+    package_data={'sensorsdk': ['templates/sensorsdk/*.html', 'templates/admin/sensorsdk/alertdefinitiontemplate/*.html']},
     license="GPL2",
     url="http://code.google.com/p/aircable/", 
 )

@@ -56,7 +56,7 @@ class SensorAdapter(Adapter):
 	self.manager.tellListener(signal, dongle=self.bt_address, target=target)
 
 
-    def connect(self, target, service="spp"):
+    def connect(self, target, service="spp", channel=-1):
         if len(self.connections)>=self.max_conn:
 	    self.manager.connections.pop(target)
 	    self.manager.tellListener(signals.TOO_BUSY, dongle=self.bt_address, target=target)
@@ -65,7 +65,8 @@ class SensorAdapter(Adapter):
 	client = sppClient(
 	    target,
 	    service=service,
-	    device=self.bt_address
+	    device=self.bt_address,
+	    channel=channel
 	);
 
 	try:
@@ -106,6 +107,7 @@ class SensorAdapter(Adapter):
 	    history=history,
 	    model=model)
 	self.disconnect(target, client, result)
+	del client
 
 class SensorManager:
 	__dongles = dict()
@@ -176,14 +178,14 @@ class SensorManager:
 	    except Exception, err:
 		print err
 
-	def exposed_connect(self, target, service="spp"):
+	def exposed_connect(self, target, service="spp", channel=-1):
 	    if target in self.connections:
 		raise Exception("All ready connected to %s" % target)
 	    self.connections[target]=None
 	    logger.info("connect to %s" % target)
 	    dongle=self.__sequence[self.__index]
 	    t = Thread(target=dongle.connect, 
-		kwargs={'target':target, 'service':service})
+		kwargs={'target':target, 'service':service, 'channel': channel})
 	    t.daemon=True
 	    t.start()
 	    self.connections[target]=t

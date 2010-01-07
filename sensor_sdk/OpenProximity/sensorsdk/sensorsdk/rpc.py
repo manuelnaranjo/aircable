@@ -22,6 +22,7 @@ from serverxr import SensorManager
 from openproximity.models import getMatchingCampaigns
 from re import compile
 from rpyc import async
+from utils import isAIRcable
 import signals
 import time
 
@@ -111,10 +112,15 @@ def device_found(record, services):
     if latest.count() > 0:
 	for k in latest.all():
 	    k.save() # mark elements as served, so timeout can exist
-	
-    print "handling device %s" % record.remote.address
+    
+    address = record.remote.address
+    print "handling device %s" % address
     client = clients[dongle]
-    client.connect(record.remote.address)
+    channel=-1
+    
+    if isAIRcable(address):
+	channel=1
+    client.connect(record.remote.address, channel=channel)
     return True
 
 CLOCK=compile(r'^CLOCK\|(?P<clock>(\d+)*.?(\d+)*)$')
@@ -135,7 +141,6 @@ def parse_history(model=None, history=None, target=None, success=False,
 	    print "SDK time sync", last_time
 	elif READING.match(line):
 	    reg = READING.match(line).groupdict()
-	    print "SDK reading line", reg
 	    last_time+=float(reg['secs'])
 	    if NEXT.match(reg['reading']):
 		count_ = NEXT.match(reg['reading']).groupdict().get('amount','1')
@@ -147,13 +152,15 @@ def parse_history(model=None, history=None, target=None, success=False,
 		last_reg = reg
 		last_reg['reading']=""
 	    else:
+		print "SDK reading line", reg
 		readings.append( (last_time, reg['batt'], reg['reading']), )
-	elif flag and count_ > 0:
+	elif flag:
 	    count_ -= 1
-	    last_reg['reading']+=line.strip()
+	    last_reg['reading']+= line.strip()
 	    if count_ > 0:
-		count_ -= 1
+		last_reg['reading']+="|"
 	    else:
+		print "SDK reading line", last_time, last_reg['batt'], last_reg['reading']
 		readings.append( (last_time, last_reg['batt'], last_reg['reading']), )
 		flag = False
 	else:
