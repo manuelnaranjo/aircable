@@ -22,6 +22,7 @@ try:
 except:
     from plugins.sensorsdk import models
 
+from net.aircable.utils import logger
 from django.utils.translation import ugettext as _
 from django.db import models as mod
 from re import compile
@@ -40,10 +41,10 @@ class AmbientDevice(models.SensorSDKRemoteDevice):
 	
     def getTemperature(self, reading):
 	# calculate real temperature
-	print reading
 	if (self.Vref/reading-1) < 0:
-	    return -9000 # return back a non real temperature
-	return (-1.0/self.alpha)*math.log((self.Vref/reading -1)*self.R/self.Ro)
+	    out = -9000 # return back a non real temperature
+	out= (-1.0/self.alpha)*math.log((self.Vref/reading -1)*self.R/self.Ro)
+	logger.info('getTemperature: %s->%s°C' %(reading, out))
     
     @staticmethod
     def getMode():
@@ -74,7 +75,7 @@ class AmbientRecord(models.SensorSDKRecord):
 	#extract parameters from reading string
 	m = tamb.match(reading)
 	if not m:
-	    print "NO MATCH", reading
+	    logging.error("NO MATCH %s" % reading)
 	    return
 	temp=m.groupdict()['temperature']
 	
