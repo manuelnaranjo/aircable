@@ -24,6 +24,7 @@ except:
     # might be running without sensorsdk egg
     from plugins.sensorsdk import models
 
+from net.aircable.utils import logger
 from django.utils.translation import ugettext as _
 from django.db import models as mod
 from re import compile
@@ -50,11 +51,15 @@ class SolarDevice(models.SensorSDKRemoteDevice):
 
     @staticmethod
     def ntc_to_temperature(ntc):
-	return 105.1-int(ntc)*0.06957
+	out=105.1-int(ntc)*0.06957
+	logger.info("ntc_to_temperature %s->%s°C" % (ntc, out))
+	return out
 
     @staticmethod
     def flow(mv):
-	return int(mv)*11.0/15.0/100.0;
+	out = int(mv)*11.0/15.0/100.0;
+	logger.info("flow %s->%s" % (mv, out))
+	return out
 
     @staticmethod
     def gpm2lpm(gpm):
@@ -64,6 +69,7 @@ class SolarDevice(models.SensorSDKRemoteDevice):
     def power(flow, hot, cold):
 	dt = ( hot - cold ) / 9.0 - 2
 	power = flow * 90.0 * dt * 5.0 / 17.0
+	logger.info("power %s %s %s ->%s" % (flow, hot, cold, power))
 	return power
 
 READING=compile(r'SOL\|(?P<solar>\d+)\|(?P<pool>\d+)\|(?P<tank>\d+)\|(?P<flow>[+-]?\d+)\|(?P<wattm>[+-]?\d+)\|(?P<day>[01]).*$')
@@ -102,11 +108,11 @@ class SolarRecord(models.SensorSDKRecord):
     @staticmethod
     def parsereading(device=None, seconds=None, battery=None, reading=None, dongle=None):
 	'''This method expects to get a valid reading, generating a record out of it'''
-	print device, reading
+	logger.info("parsereading %s: %s" % (device, reading))
 	#extract parameters from reading string
 	m=READING.match(reading)
 	if not m:
-	    print "NO MATCH!!!!", reading
+	    logger.error("NO MATCH %s" % reading)
 	    return 
 	    
 	vals=m.groupdict()
@@ -142,3 +148,4 @@ class SolarRecord(models.SensorSDKRecord):
 	record.time=datetime.fromtimestamp(seconds)
 	record.battery=int(battery)/1000.0
 	record.save()
+	logger.info("work done")

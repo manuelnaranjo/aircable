@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name="SensorSDK Solar Sensor",
-    version="0.1",
+    version="0.2",
     packages=['monitorsolar',],
     summary="SensorSDK Solar Sensor",
     description="""SensorSDK plugin""",
