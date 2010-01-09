@@ -22,6 +22,7 @@ try:
 except:
     from plugins.sensorsdk import models
 
+from net.aircable.utils import logger
 from django.utils.translation import ugettext as _
 from django.db import models as mod
 from re import compile
@@ -78,15 +79,14 @@ class LinkTHDevice(models.SensorSDKRemoteDevice):
     def findSensorForId(self, dev_id):
 	j = 0
 	dev_id=dev_id.strip().upper()
-	print "findSensorForId", dev_id
+	
 	for i in range(MAXSENSORS):
 	    prev_id = getattr(self, 'sensor%s_id' % i, None)
-	    if dev_id==prev_id:
-		return i
-	    elif prev_id==None:
+	    if dev_id==prev_id or prev_id==None:
 		break;
 	    j+=1
 	if j < MAXSENSORS:
+	    logger.info("LinkTHDevice.findSensorForId %s->%s" % (dev_id, j))
 	    return j
 	raise Exception("Sensor not found, no more slots available")
 	
@@ -126,6 +126,7 @@ class LinkTHRecord(models.SensorSDKRecord):
     def parsereading(device=None, seconds=None, battery=None, reading=None, dongle=None):
 	'''This method expects to get a valid reading, generating a record out of it'''
 	
+	logger.info("linkthrecord parsereading: %s" % reading)
 	#find ambient device, or create if there's none yet created
 	device,created=LinkTHDevice.objects.get_or_create( address=device,
 	    defaults={
@@ -143,10 +144,9 @@ class LinkTHRecord(models.SensorSDKRecord):
 	while len(reading) > 0:
 	    m = LINE.match(reading)
 	    if not m:
-		print "monitorlinkth NO MATCH", reading
+		logger.error("monitorlinkth NO MATCH: %s" % reading)
 		break
 	    m=m.groupdict()
-	    print m
 	    reading = m['rest']
 	    val = m['val']
 	    typ = val.split(',')[0].strip()
@@ -157,7 +157,7 @@ class LinkTHRecord(models.SensorSDKRecord):
 	    except Exception, err:
 		# if we got here then we have more than MAXSENSORS
 		# registered on this linkth
-		print err
+		logger.exception(err)
 		break
 	    
 	    if not getattr(device, 'sensor%s_id' % sen_id, None):
@@ -171,7 +171,7 @@ class LinkTHRecord(models.SensorSDKRecord):
 	    
 	    if typ in ['19', '1A', '1B']:
 		setattr(record, 'value%sa' % send_id, val['extra'])
-	print "saving record"
+	logger.info("saving record, work done")
 	record.save()
 
 for i in range(MAXSENSORS):
