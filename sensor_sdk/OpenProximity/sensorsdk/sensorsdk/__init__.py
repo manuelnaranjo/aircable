@@ -22,6 +22,8 @@ try:
 except:
     SensorManager=None
     
+from net.aircable.utils import logger
+    
 def post_environ():
     from rpc import handle, register, device_found
     provides['rpc'] = handle            # provide rpc handle
@@ -44,7 +46,7 @@ def reset_stats(connection):
 
     tables.append(models.SensorSDKRecord._meta.db_table,)
     
-    print tables
+    logger.info("droping: %s" % tables)
     
     for table in tables:
 	connection.cursor().execute("drop table %s" % table)
@@ -54,7 +56,7 @@ def find_plugins():
     out = list()
     from net.aircable.openproximity.pluginsystem import pluginsystem
     for plugin in pluginsystem.get_plugins('sensorsdk'):
-	print "SensorSDK plugin", plugin.module_name
+	logger.info("Plugin %s" % plugin.module_name)
 	yield plugin
 
 

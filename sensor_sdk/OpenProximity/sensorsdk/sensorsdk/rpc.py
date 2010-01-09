@@ -22,6 +22,7 @@ from serverxr import SensorManager
 from openproximity.models import getMatchingCampaigns
 from re import compile
 from rpyc import async
+from net.aircable.utils import logger
 from utils import isAIRcable
 import signals
 import time
@@ -49,12 +50,12 @@ def handle(signal, services, manager, *args, **kwargs):
 	return
     global handlers
     
-    print "SDK HANDLE", signal, args, kwargs
+    logger.info("SDK HANDLE %s %s %s" % (signals.TEXT[signal], args, kwargs) )
     
     if signal in handlers:
 	return handlers[signal](manager=manager, *args, **kwargs)
 	
-    print "SDK, no handler", signal
+    logger.error("SDK, no handler %s" % signals.TEXT[signal])
 
 def get_dongles(dongles):
     return SensorSDKBluetoothDongle.objects.filter(address__in=dongles, enabled=True).\
@@ -68,7 +69,7 @@ class Client:
 	self.connect=async(client.connect)
 
 def register(client=None, dongles=None):
-    print client.__class__, dongles
+    logger.info("register  %s %s" % (client.__class__, dongles))
     if client.__class__ != SensorManager:
 	return False
 
@@ -87,14 +88,16 @@ TIMEOUT=60
 
 def device_found(record, services):
     dongle = record.dongle.address
-    print "sensorsdk device_found", dongle , record.remote.address, record.remote.name
+    logger.info("sensorsdk device_found %s: %s[%s]" % (dongle , record.remote.address, record.remote.name))
     camps = getMatchingCampaigns(record.remote, enabled=True, classes=[SensorCampaign,])
     if len(camps) == 0:
 	return False
     if len(camps) > 1:
-	raise Exception("There's more than one campaign that matches, check settings")
+	e = Exception("There's more than one campaign that matches, check settings")
+	logger.exception(e)
+	raise e
 
-    print "found campaign"
+    logger.debug("found campaign")
     camp = camps[0]
     
     latest=SensorSDKRemoteDevice.objects.filter(
@@ -102,7 +105,7 @@ def device_found(record, services):
     
     if latest.count() > 0 and time.time() - \
 	time.mktime(latest.latest('latest_served').latest_served.timetuple()) < TIMEOUT:
-	print "has served in less than %s seconds" % TIMEOUT
+	logger.info("has served in less than %s seconds" % TIMEOUT)
 	return False
 
     global clients
@@ -114,7 +117,7 @@ def device_found(record, services):
 	    k.save() # mark elements as served, so timeout can exist
     
     address = record.remote.address
-    print "handling device %s" % address
+    logger.info("handling device %s" % address)
     client = clients[dongle]
     channel=-1
     
@@ -138,7 +141,7 @@ def parse_history(model=None, history=None, target=None, success=False,
 	line = remove_control_chars(line.strip())
 	if CLOCK.match(line):
 	    last_time = float(CLOCK.match(line).groupdict()['clock'])
-	    print "SDK time sync", last_time
+	    logger.debug("time sync %s" % last_time)
 	elif READING.match(line):
 	    reg = READING.match(line).groupdict()
 	    last_time+=float(reg['secs'])
@@ -152,7 +155,7 @@ def parse_history(model=None, history=None, target=None, success=False,
 		last_reg = reg
 		last_reg['reading']=""
 	    else:
-		print "SDK reading line", reg
+		logger.debug("reading line %s" % reg)
 		readings.append( (last_time, reg['batt'], reg['reading']), )
 	elif flag:
 	    count_ -= 1
@@ -160,11 +163,11 @@ def parse_history(model=None, history=None, target=None, success=False,
 	    if count_ > 0:
 		last_reg['reading']+="|"
 	    else:
-		print "SDK reading line", last_time, last_reg['batt'], last_reg['reading']
+		logger.debug("reading line %s %s %s" % (last_time, last_reg['batt'], last_reg['reading']))
 		readings.append( (last_time, last_reg['batt'], last_reg['reading']), )
 		flag = False
 	else:
-	    print "SDK wrong line", line
+	    logger.error("wrong line %s" % line)
     
     dongle = SensorSDKBluetoothDongle.objects.get(address=dongle)
 
@@ -177,7 +180,7 @@ def parse_history(model=None, history=None, target=None, success=False,
 handlers[signals.HANDLED_HISTORY]=parse_history
 
 def handle_failed(pending, target, *args, **kwargs):
-    print "handle failed", target
+    logger.error("handle failed %s" % target)
     pending.remove(target)
 
 handlers[signals.TOO_BUSY]=handle_failed

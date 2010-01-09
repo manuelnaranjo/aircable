@@ -132,7 +132,6 @@ def generate_chart_data(request,
 	    'x': a, 
 	    'text': '#date:%s#' % format,
 	} for a in range(x_axis.min, x_axis.max, x_axis.steps)]
-    print labels
     x_axis.labels=pyofc2.x_axis_labels(labels=labels, rotate='45')
     
     y_axis = pyofc2.y_axis()

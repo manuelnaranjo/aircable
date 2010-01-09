@@ -71,12 +71,12 @@ class SensorAdapter(Adapter):
 
 	try:
 	    client.connect()
-	    print "Connected"
+	    logger.info("Connected")
 	    self.manager.tellListener(signals.CONNECTED, dongle=self.bt_address, target=target)
 	    self.connections.append(client)
-	    print "appended to list of connections"
+	    logger.debug("appended to list of connections")
 	except Exception, err:
-	    print err
+	    logger.exception(err)
 	    self.disconnect(target, client, signals.CONNECTION_FAILED)
 	    return
 
@@ -86,6 +86,7 @@ class SensorAdapter(Adapter):
 	try:
 	    logger.info("Grabbing History")
 	    history = client.shellGrabFile("history.txt")
+	    logger.debug(history)
 	    client.shellDeleteFile('history.txt')
 	    if self.manager.sdk:
 		self.manager.sdk.extra_action(
@@ -96,8 +97,9 @@ class SensorAdapter(Adapter):
 	    client.shellPushIntoHistory("CLOCK|%s" % time.time())
 	    time.sleep(2)
 	    logger.info("work done %s" % target)
-	except SocketError:
-	    logger.info("lost connection %s" % target)
+	except SocketError,err:
+	    logger.error("lost connection %s" % target)
+	    logger.exception(err)
 	    result=signals.HANDLED_LOST_CONNECTION
 
 	self.manager.tellListener(signals.HANDLED_HISTORY,
@@ -176,7 +178,7 @@ class SensorManager:
 		logger.info("telling listener, %s, %s" % (args, kwargs))
 		self.remote_listener(*args,**kwargs)
 	    except Exception, err:
-		print err
+		logger.exception(err)
 
 	def exposed_connect(self, target, service="spp", channel=-1):
 	    if target in self.connections:
@@ -189,4 +191,4 @@ class SensorManager:
 	    t.daemon=True
 	    t.start()
 	    self.connections[target]=t
-	    print t, activeCount()
+	    logger.debug("running with %s threads" % activeCount())

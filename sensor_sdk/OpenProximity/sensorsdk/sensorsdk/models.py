@@ -25,6 +25,7 @@ from django.utils.translation import ugettext as _
 from django.contrib.auth.models import User
 from datetime import datetime
 from django.forms import widgets
+from net.aircable.utils import logger
 import time
 
 
@@ -62,7 +63,7 @@ class SensorSDKRemoteDevice(RemoteDevice):
     def getHandler(mode):
 	'''A static method that allows sensorsdk to tell which class handles which mode'''
 	mode = str(mode).strip().lower()
-	print "SensorSDKRemoteDevice.getHandler", mode
+	logger.info("SensorSDKRemoteDevice.getHandler %s" % mode)
 	if mode in remote_classes:
 	    return remote_classes[mode]
 	
@@ -110,7 +111,7 @@ class SensorSDKRecord(RemoteBluetoothDeviceRecord):
     def getHandler(mode):
 	'''A static method that allows sensorsdk to tell which class handles which mode'''
 	mode = mode.strip().lower()
-	print "SensorSDKRecord.getHandler", mode, list(get_subclasses(SensorSDKRecord))
+	logger.info("SensorSDKRecord.getHandler %s available: [%s]" % (mode, list(get_subclasses(SensorSDKRecord))))
 	if mode in record_classes:
 	    return record_classes[mode]
 	
@@ -218,7 +219,7 @@ class AlertDefinition(models.Model):
 	if not self.enabled:
 	    return
 	if Alert.doAlert(self, target) is True:
-	    print "doing mail"
+	    logger.info("sending mail")
 	    notification.send(
 		self.users.all(), 
 		ALERT_INFO[self.mode]['name'],
@@ -240,7 +241,7 @@ class AlertDefinition(models.Model):
 	    this instance, and in case there is check if any of the fields has gone
 	    outside the spected values.
 	'''
-	print "do_work on AlertDefinition"
+	logger.info("do_work on AlertDefinition")
 	remote = get_subclass(record.remote)
 	record = get_subclass(record)
 	for notif in remote.alertdefinition_set.filter(enabled=True).exclude(mode=-1).all():
@@ -248,14 +249,20 @@ class AlertDefinition(models.Model):
 	    set = ALERT_INFO[notif.mode]['set'](val, notif.set, notif.clr)
 	    clear = ALERT_INFO[notif.mode]['clear'](val, notif.clr, notif.set)
 
-	    print "checking for alarm", ALERT_INFO[notif.mode]['name'], val, notif.set, notif.clr, set, clear
+	    logger.debug("checking for alarm %s %s %s %s %s %s" % (
+		ALERT_INFO[notif.mode]['name'], 
+		val, 
+		notif.set, 
+		notif.clr, 
+		set, 
+		clear))
 	    if clear is True:
 		qs = notif.alert_set.filter(target=remote, active=True)
 		if qs.count() > 0:
-		    print "Clearing alarm"
+		    logger.info("clearing alarm")
 		qs.update(active=False)
 	    elif set is True:
-		print "set alarm"
+		logger.info("setting alarm")
 		notif.sendNotification(target=remote, value=val)
 	    # there's another kind of alarm we would like to check
 	    # that's no data, but we do that on a scheduled basis
@@ -266,14 +273,14 @@ class AlertDefinition(models.Model):
 	    This method will check if there\'s a device whose no data alert needs to
 	    be triggered
 	'''
-	print "check_nodata on AlertDefinition"
+	logger.info("check_nodata on AlertDefinition")
 	for notif in AlertDefinition.objects.filter(enabled=True, mode=-1):
 	    timeout = datetime.fromtimestamp(time.time() - notif.set)
 	    #if last record for this alert was made before timeout then we have an alert
 	    for remote in notif.targets.all():
 		last_record = SensorSDKRecord.objects.filter(remote=remote).latest('time')
 		if timeout > last_record.time:
-		    print remote.address, "not sending for over", notif.set
+		    logger.info("%s not sending for over %s seconds" % (remote.address, notif.set))
 		    # ok we reached the time trigger
 		    notif.sendNotification(target=remote, value=last_record.time)
 
@@ -310,20 +317,19 @@ class Alert(models.Model):
     @classmethod
     def doAlert(cls, alert, target):
 	Alert.updateActive()
-	print "alert", alert.field, target.address
+	logger.info("alert %s %s" % (alert.field, target.address))
 	qs = Alert.objects.filter(alert=alert, target=target)
 	if qs.filter(active=True).count() > 0:
-	    print "Alert all ready set for target"
+	    logger.debug("Alert all ready set for target")
 	    return False
 
-	print "Alert will be sent"
+	logger.debug("Alert will be sent")
 	a=Alert()
 	a.active=True
 	a.alert=alert
 	a.target=target
 	a.setAlarm()
 	a.save()
-	print a.pk
 	return True
 	
 
@@ -360,7 +366,7 @@ def get_subclasses(base):
 
 def handle_SensorSDKRecord_post_save(sender, instance, created, **kwargs):
     if isinstance(instance, SensorSDKRecord):
-	print "handle_sensorsdk_post_save"
+	logger.debug("handle_sensorsdk_post_save")
 	AlertDefinition.do_work(instance)
 models.signals.post_save.connect(handle_SensorSDKRecord_post_save)
 
@@ -371,7 +377,7 @@ def post_init():
 	    notification.create_notice_type(info['name'], info['short'], info['long'])
 	post_plugins_load()
     except Exception, err:
-	print err
+	logger.exception(err)
 
 def post_plugins_load():
     field = models.CharField( max_length=100, 
