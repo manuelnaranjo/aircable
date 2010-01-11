@@ -130,6 +130,22 @@ CLOCK=compile(r'^CLOCK\|(?P<clock>(\d+)*.?(\d+)*)$')
 READING=compile(r'^BATT\|(?P<batt>(\d+))\s*\|SECS\|(?P<secs>(\d+))\s*\|(?P<reading>.*)$')
 NEXT=compile(r'^NEXT(?P<amount>(\d*))')
 
+def process_pending_history(last_reg, last_time):
+    last_reg['reading'] = last_reg['reading'][:-1] # remove the last |
+    logger.debug(
+        "reading line %s %s %s" % (
+        last_time, 
+        last_reg['batt'], 
+        last_reg['reading']
+	)
+    )
+
+    return (
+	last_time, 
+    	last_reg['batt'], 
+	last_reg['reading']
+    )
+
 def parse_history(model=None, history=None, target=None, success=False, 
 	    dongle=None, pending=None, *args, **kwargs):
     last_time = time.time()
@@ -143,14 +159,14 @@ def parse_history(model=None, history=None, target=None, success=False,
 	    last_time = float(CLOCK.match(line).groupdict()['clock'])
 	    logger.debug("time sync %s" % last_time)
 	elif READING.match(line):
+	    if flag and len(last_reg['reading'].strip()) > 0:
+		# ok we have stuff in our stack we need to push
+		readings.append( process_pending_history(last_reg, last_time), )
+		flag = False
+
 	    reg = READING.match(line).groupdict()
 	    last_time+=float(reg['secs'])
 	    if NEXT.match(reg['reading']):
-		count_ = NEXT.match(reg['reading']).groupdict().get('amount','1')
-		try:
-		    count_ = int(count_)
-		except:
-		    count_ = 1
 		flag = True
 		last_reg = reg
 		last_reg['reading']=""
@@ -158,14 +174,8 @@ def parse_history(model=None, history=None, target=None, success=False,
 		logger.debug("reading line %s" % reg)
 		readings.append( (last_time, reg['batt'], reg['reading']), )
 	elif flag:
-	    count_ -= 1
 	    last_reg['reading']+= line.strip()
-	    if count_ > 0:
-		last_reg['reading']+="|"
-	    else:
-		logger.debug("reading line %s %s %s" % (last_time, last_reg['batt'], last_reg['reading']))
-		readings.append( (last_time, last_reg['batt'], last_reg['reading']), )
-		flag = False
+	    last_reg['reading']+="|"
 	else:
 	    logger.error("wrong line %s" % line)
     
