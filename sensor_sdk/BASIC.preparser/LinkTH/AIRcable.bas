@@ -19,7 +19,11 @@
 4 AIRlinkTH
 
 ## implement history manually
-10 NEXT4
+10 REM
+## clear up a few not needed lines
+939 REM
+940 REM
+
 
 ## interrupt insertion points
 ## extra @INIT
@@ -64,7 +68,7 @@
 ## then "EOD"
 
 ## store previous content
-517 PRINTV"NEXT4";
+517 PRINTV"NEXT";
 518 GOSUB 660
 ## RS232_OFF set to power on MAX chip
 519 A = pioset 11;
@@ -86,9 +90,7 @@
 ## got EOD, power off and return
 530 A = pioclr 11;
 531 A = uartoff;
-532 $10=""
-533 $0=""
-534 RETURN
+532 RETURN
 
 ## timeout we give up
 535 IF $0[0] = 0 THEN 530;

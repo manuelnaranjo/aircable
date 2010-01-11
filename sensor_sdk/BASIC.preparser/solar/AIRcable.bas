@@ -62,6 +62,9 @@ V stores the last commit time
 
 ##we handle history pushing
 10 NEXT
+##disable some code lines
+939 REM
+940 REM
 
 
 ## we'll store reading in $500
@@ -239,9 +242,8 @@ V stores the last commit time
 712 PRINTV"|"
 713 A=pioget11;
 714 PRINTV A;
-715 $10=$0;
-716 $0="";
-717 RETURN
+715 GOSUB 660
+716 RETURN
 
 ## FLOW SENSOR calculation
 ## analog AIO1 to GPM, linear
