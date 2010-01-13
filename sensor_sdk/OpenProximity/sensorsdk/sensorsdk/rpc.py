@@ -30,7 +30,6 @@ import time
 import unicodedata, re
 
 all_chars = (unichr(i) for i in xrange(0x110000))
-control_chars = ''.join(c for c in all_chars if unicodedata.category(c) == 'Cc')
 # or equivalently and much more efficiently
 control_chars = ''.join(map(unichr, range(0,32) + range(127,160)))
 
@@ -39,11 +38,11 @@ control_char_re = re.compile('[%s]' % re.escape(control_chars))
 def remove_control_chars(s):
     return control_char_re.sub('', s)
 
-
-
 clients = dict()
 serving = dict()
 handlers = dict()
+service = dict()
+''' a dict holding when each device was last time served '''
 
 def handle(signal, services, manager, *args, **kwargs):
     if not signals.isSensorSDKSignal(signal):
@@ -54,7 +53,7 @@ def handle(signal, services, manager, *args, **kwargs):
     
     if signal in handlers:
 	return handlers[signal](manager=manager, *args, **kwargs)
-	
+
     logger.error("SDK, no handler %s" % signals.TEXT[signal])
 
 def get_dongles(dongles):
@@ -86,6 +85,28 @@ def register(client=None, dongles=None):
 
 TIMEOUT=60
 
+def check_if_service(address):
+    clean_service()
+    if address in service:
+	if time.time()-service[address] < TIMEOUT:
+	    logger.info("has served in less than %s seconds" % TIMEOUT)
+	    return True
+	
+    latest=SensorSDKRemoteDevice.objects.filter(
+	address=address)
+    
+    if latest.count() > 0 and time.time() - \
+	time.mktime(latest.latest('latest_served').latest_served.timetuple()) < TIMEOUT:
+	logger.info("has served in less than %s seconds" % TIMEOUT)
+	return False
+    return True
+    
+def clean_service():
+    for addr, val in service.copy().iteritems():
+	if time.time() - val > TIMEOUT:
+	    service.popitem(addr)
+
+
 def device_found(record, services):
     dongle = record.dongle.address
     logger.info("sensorsdk device_found %s: %s[%s]" % (dongle , record.remote.address, record.remote.name))
@@ -100,24 +121,22 @@ def device_found(record, services):
     logger.debug("found campaign")
     camp = camps[0]
     
-    latest=SensorSDKRemoteDevice.objects.filter(
-	address=record.remote.address)
-    
-    if latest.count() > 0 and time.time() - \
-	time.mktime(latest.latest('latest_served').latest_served.timetuple()) < TIMEOUT:
-	logger.info("has served in less than %s seconds" % TIMEOUT)
-	return False
-
     global clients
     if clients.get(dongle, None) is None:
 	return False # there's no registered service I can't do a thing
+	
+    address = record.remote.address
+    if not check_if_service(address):
+	return False
 
+    latest = SensorSDKRemoteDevice.objects.filter(
+	address=address)
     if latest.count() > 0:
 	for k in latest.all():
 	    k.save() # mark elements as served, so timeout can exist
     
-    address = record.remote.address
     logger.info("handling device %s" % address)
+    service[address] = time.time()
     client = clients[dongle]
     channel=-1
     
