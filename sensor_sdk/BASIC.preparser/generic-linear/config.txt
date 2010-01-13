@@ -1,0 +1,4 @@
+// analog input corrector
+@0008 = 03E8 03E8
+// security
+@0006 = 0002 0001 0000 0000

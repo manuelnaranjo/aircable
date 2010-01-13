@@ -1,0 +1,9 @@
+#* 
+    Example usage, this will generate
+    monitor generic linear testing code as SLAVE
+*#
+#set global $stream="slave"
+#include "base/AIRcable.bas"
+#include "shell/AIRcable.bas"
+#include "monitor/AIRcable.bas"
+#include "generic-linear/AIRcable.bas"
