@@ -75,7 +75,7 @@ class AmbientRecord(models.SensorSDKRecord):
 	#extract parameters from reading string
 	m = tamb.match(reading)
 	if not m:
-	    logging.error("NO MATCH %s" % reading)
+	    logger.error("NO MATCH %s" % reading)
 	    return
 	temp=m.groupdict()['temperature']
 	
