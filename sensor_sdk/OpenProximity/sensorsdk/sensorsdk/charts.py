@@ -153,7 +153,7 @@ def generate_chart_data(request,
     y_axis.steps=(y_axis.max-y_axis.min)/10
 
     chart = pyofc2.open_flash_chart()
-    chart.title=pyofc2.title(text="%s: %s" % (address, fields))
+    chart.title=pyofc2.title(text="%s [%s]: %s" % (dev.friendly_name, address, fields))
     chart.tooltip=pyofc2.tooltip(text="#date: Y-m-d H:i#<br>#y#\n")
     for c in fields:
 	s = pyofc2.scatter_line()
