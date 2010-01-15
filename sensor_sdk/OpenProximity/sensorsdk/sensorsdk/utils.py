@@ -18,6 +18,16 @@ import logging
 import logging.handlers
 import os, sys, time
 
+try:
+    from net.aircable.utils import logger
+except:
+    import logging
+    logger = logging.getLogger('sensorsdk')
+    logger.setLevel(logging.DEBUG)
+    c = logging.StreamHandler()
+    c.setFormatter(logging.Formatter(logging.BASIC_FORMAT))
+    logger.addHandler(c)
+
 def isAIRcable(address):
 	return address[:8].upper() in const.AIRCABLE_MAC    
 
@@ -60,40 +70,6 @@ def store_settings():
 			else:
 				out.write('%s = %s\n' % (key, val))
 	out.close()
-
-#init logging
-def __initLog():
-	logger=logging.getLogger('openproximity')
-	logger.setLevel(logging.DEBUG)
-	
-	formatter=logging.Formatter('%(asctime)-12s %(name)-4s: %(levelno)-2s %(message)s')
-	
-	if os.environ.get('LOG_PORT') is not None:
-	    socketHandler=logging.handlers.SocketHandler('localhost',
-		os.environ.get('LOG_PORT'))
-	    #socketHandler.addFormatter(formatter)
-	    logger.addHandler(socketHandler)
-	    logger.info('Socket Handler ready')
-	
-	if os.environ.get('CONSOLE_LOG') == 'yes' or \
-		    os.environ.get('DEBUG')=="yes":
-	    console=logging.StreamHandler()
-    	    console.setLevel(logging.DEBUG)
-	    console.setFormatter(formatter)
-	    logger.addHandler(console)
-	    logger.info('Console Handler Ready')
-	
-	if os.environ.get('LOG_FILE', None) is not None:
-	    log_=logging.FileHandler(os.environ.get('LOG_FILE'))
-    	    log_.setLevel(logging.DEBUG)
-	    log_.setFormatter(formatter)
-	    logger.addHandler(log_)
-	    logger.info('File Handler Ready')
-	    
-	return logger
-
-# some shared variables
-logger = __initLog()
 
 try:
 	import settings
