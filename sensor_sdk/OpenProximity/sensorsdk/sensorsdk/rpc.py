@@ -15,7 +15,7 @@
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-from django.db import models
+from django.db import transaction
 from django.utils import simplejson as json
 from models import *
 from serverxr import SensorManager
@@ -24,6 +24,7 @@ from re import compile
 from rpyc import async
 from net.aircable.utils import logger
 from utils import isAIRcable
+from threading import Thread
 import signals
 import time
 
@@ -83,14 +84,14 @@ def register(client=None, dongles=None):
     client.refreshDongles()
     return True
 
-TIMEOUT=60
+TIMEOUT=300
 
 def check_if_service(address):
     clean_service()
     if address in service:
 	if time.time()-service[address] < TIMEOUT:
 	    logger.info("has served in less than %s seconds" % TIMEOUT)
-	    return True
+	    return False
 	
     latest=SensorSDKRemoteDevice.objects.filter(
 	address=address)
@@ -104,7 +105,8 @@ def check_if_service(address):
 def clean_service():
     for addr, val in service.copy().iteritems():
 	if time.time() - val > TIMEOUT:
-	    service.popitem(addr)
+	    logger.info("more than %s seconds elapsed since last serve taking out of services" % TIMEOUT)
+	    service.pop(addr)
 
 
 def device_found(record, services):
@@ -165,13 +167,34 @@ def process_pending_history(last_reg, last_time):
 	last_reg['reading']
     )
 
+@transaction.commit_manually
+def parse_readings(handler=None, readings=None, target=None, dongle=None):
+    '''
+	function used to push history readings into database itself, this function
+	is called on a new thread so that rpc process does not get delayed
+    '''
+    logger.debug('started parse reading thread')
+    for secs, batt, read in readings:
+	handler.parsereading(device=target, seconds=secs, battery=batt, reading=read, dongle=dongle)
+    transaction.commit()
+    logger.debug('stopping parse reading thread')
+
 def parse_history(model=None, history=None, target=None, success=False, 
 	    dongle=None, pending=None, *args, **kwargs):
-    last_time = time.time()
+
     readings = list()
     flag = False
     last_reg = None
     count_ = 0
+
+    qs = SensorSDKRecord.objects.filter(remote__address=target)
+    if qs.count() > 0:
+	last_time = time.mktime(qs.latest('time').time.timetuple())
+	logger.debug("using last time from last record")
+    else:
+	last_time = time.time()
+	logger.debug("using now as last time")
+
     for line in history.splitlines():
 	line = remove_control_chars(line.strip())
 	if CLOCK.match(line):
@@ -198,12 +221,20 @@ def parse_history(model=None, history=None, target=None, success=False,
 	else:
 	    logger.error("wrong line %s" % line)
     
-    dongle = SensorSDKBluetoothDongle.objects.get(address=dongle)
-
-    handler = SensorSDKRecord.getHandler(model)
-    for secs, batt, read in readings:
-	handler.parsereading(device=target, seconds=secs, battery=batt, reading=read, dongle=dongle)
+    try:
+	dongle = SensorSDKBluetoothDongle.objects.get(address=dongle)
+	handler = SensorSDKRecord.getHandler(model)
     
+	logger.debug('starting parse reading thread')
+	Thread(target=parse_readings, kwargs={
+	    'handler':handler, 
+	    'readings': readings, 
+	    'target': target, 
+	    'dongle': dongle,
+	}).start()
+    except Exception, err:
+	logger.exception(err)
+
     pending.remove(target)
 
 handlers[signals.HANDLED_HISTORY]=parse_history
