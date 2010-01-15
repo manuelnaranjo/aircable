@@ -16,13 +16,14 @@
 
 # SensorSDK handler
 
+__version_info__=('0','3','0')
+__version__ = '.'.join(__version_info__)
+
 #from rpc import handle
 try:
     from serverxr import SensorManager
 except:
     SensorManager=None
-    
-from net.aircable.utils import logger
     
 def post_environ():
     from rpc import handle, register, device_found
@@ -38,6 +39,7 @@ def reset_stats(connection):
     from django.db import models
     from django.core.management.color import no_style
     from django.core.management import sql
+    from net.aircable.utils import logger
     import models
     
     tables = []
@@ -46,6 +48,11 @@ def reset_stats(connection):
 
     tables.append(models.SensorSDKRecord._meta.db_table,)
     
+    for klass in models.SensorSDKRemoteDevice.__subclasses__():
+	tables.append(klass._meta.db_table,)
+
+    tables.append(models.SensorSDKRemoteDevice._meta.db_table,)
+    
     logger.info("droping: %s" % tables)
     
     for table in tables:
@@ -53,7 +60,7 @@ def reset_stats(connection):
 
 def find_plugins():
     #look for all the sensorsdk plugins
-    out = list()
+    from net.aircable.utils import logger
     from net.aircable.openproximity.pluginsystem import pluginsystem
     for plugin in pluginsystem.get_plugins('sensorsdk'):
 	logger.info("Plugin %s" % plugin.module_name)
