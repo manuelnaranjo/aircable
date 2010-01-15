@@ -4,6 +4,7 @@ from django.contrib import admin
 from django.db import models
 from django import forms
 from models import *
+from net.aircable.utils import logger
 
 class SensorCampaignAdmin(admin.ModelAdmin):
     fieldsets = (
@@ -119,3 +120,18 @@ myadmin.register(SensorCampaign, SensorCampaignAdmin)
 myadmin.register(AlertDefinitionTemplate, AlertDefinitionTemplateAdmin)
 myadmin.register(AlertDefinition, AlertDefinitionAdmin)
 myadmin.register(Alert, AlertAdmin)
+
+# now it's time to get the rest of the admins
+from net.aircable.openproximity.pluginsystem import pluginsystem
+for plugin in pluginsystem.get_plugins('sensorsdk'):
+    try:
+	logger.debug("import admin for plugin %s" % plugin.module_name)
+	mod = __import__("%s.sdkadmin" % plugin.module_name, fromlist=['register'])
+	if not getattr(mod, 'register', None):
+	    logger.debug("no admin provided by %s" % plugin.module_name)
+	    continue
+	for k, a in getattr(mod, 'register')():
+	    myadmin.register(k, a)
+	logger.debug("admin loaded for %s" % plugin.module_name)
+    except Exception, err:
+	logger.exception(err)
