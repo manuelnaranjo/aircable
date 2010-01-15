@@ -91,7 +91,7 @@
 	generic_update_list(
 	    url, 
 	    "node_address",
-	    function (elem) { return elem.name + ' ' + elem.address },
+	    function (elem) { return elem.friendly_name + ' - '  + elem.name + ' ' + elem.address },
 	    function (elem) { return elem.address },
 	    update_fields_list);
     };
