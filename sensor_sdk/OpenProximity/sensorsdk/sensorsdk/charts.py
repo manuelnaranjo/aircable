@@ -1,10 +1,75 @@
 from django.conf import settings
 from django.db.models import Max, Min
 from django.http import HttpResponse
+from django.utils.translation import gettext as _
 from datetime import datetime
 import models
 import pyofc2
 import time
+
+class RingBuffer:
+    def __init__(self, size):
+	self.data = [None for i in xrange(size)]
+
+    def append(self, x):
+	self.data.pop(0)
+	self.data.append(x)
+
+    def get(self):
+	return self.data
+	
+def low_pass_filter(data, alpha=0.1):
+    if len(data)==0:
+	raise StopIteration("No data")
+
+    last=data[0]['y']
+    yield data[0]['x'], data[0]['y']
+    for cur in data[1:]:
+	cur['x'] = int(cur['x'])
+	y = cur['y'] * alpha + (1-alpha)*last
+	yield cur['x'], y
+	last = y
+
+def moving_average(data, smooth_len):
+    if len(data) == 0:
+	raise StopIteration("No data")
+    x = 0
+    LEN = int(len(data)*smooth_len) # dynamic buffer length
+    buff = RingBuffer(LEN)
+    div=(LEN*(LEN+1))/2.
+    B=[(LEN-i)/div for i in range(LEN)]
+    r=range(LEN)
+    for rec in data:
+	tim, val=rec['x'], rec['y']
+        x+=1
+	if x < LEN+1:
+	    buff.append(val)
+	    div=(x*(x+1))/2.
+	    b=[(x-i)/div for i in range(x)]
+	    val=sum([buff.data[-(i+1)]*b[i] for i in r[:x]])
+	    yield {'x':tim, 'y':val}
+	    continue
+
+	buff.append(val)
+	val=sum([buff.data[-(i+1)]*B[i] for i in r])
+	yield {'x': tim, 'y': val}
+	
+def clear_duplicates(data, field):
+    if len(data) == 0:
+	raise StopIteration("No data")
+
+    prev = data[0]
+    yield data[0]['timestamp'], prev[field]
+    last_timestamp = prev['timestamp']
+
+    for rec in data[1:]:
+	if prev[field] != rec[field]:
+	    if last_timestamp != prev['timestamp']: # prevent duplicated points
+		yield prev['timestamp'], prev[field]
+	    yield rec['timestamp'], rec[field] # include new point
+	    last_timestamp = rec['timestamp']
+	prev = rec
+#	yield rec['timestamp'], rec[field]
 
 def __check_field_is_valid(device, fields):
     for field in fields:
@@ -34,7 +99,7 @@ SPANS={
     'hour': 60,
     'day': 60*24,
     'week': 60*24*7,
-    'month': 60*24*7*30,
+    'month': 60*24*30,
     None: 60
 }
 
@@ -56,6 +121,9 @@ def generate_chart_data(request,
     colours = request.GET.get('colours', None)
     start = request.GET.get('start', None)
     end = request.GET.get('end', None)
+    raw = request.GET.get('raw', "true").lower() == "true"
+    smooth = request.GET.get('smooth', "false").lower() == "true"
+    smooth_len=float(request.GET.get('smooth_factor', "0.2"))
     
     fields=fields.split(',')
     address=address.replace('_',':')
@@ -89,30 +157,22 @@ def generate_chart_data(request,
 	    i+=1;
 	    if i>=len(COLOURS):
 		i=0;
+	for field in fields:
+	    colours['%s_average' % field]=COLOURS[i]
+	    i+=1;
+	    if i>=len(COLOURS):
+		i=0;
 
     sets = {}
-    prev = {}
-    prev_1 = {}
-    for a in fields:
-	sets[a] = list()
-	prev[a] = None
-	prev_1[a] = None
 
-    for rec in data:
-	for a in fields:
-	    if prev[a] != rec[a] and prev_1[a] == prev[a]:
-		tstamp = rec['timestamp']
-		if isinstance(prev[a], bool):
-		    sets[a].append( pyofc2.scatter_value( x=float(tstamp)-0.1, y=prev[a] ) ) #include last point
-		sets[a].append( pyofc2.scatter_value( x=rec['timestamp'], y=rec[a] ) ) # include new point
-		prev[a] = rec[a]
-	    prev_1[a]=rec[a]
+    for field in fields:
+	sets[field]=clear_duplicates(data, field)
 
-    # now include the end of chart values
-    if qs.count() > 0:
-	latest=data[qs.count()-1]
-	for a in fields:
-	    sets[a].append( pyofc2.scatter_value( x=latest['timestamp'], y=latest[a] ) )
+    if smooth:
+        for f in fields:
+	    #sets[a] = [pyofc2.scatter_value(**vals) for vals in moving_average(sets(f), smooth_len)]
+	    s = [({'x':a['timestamp'], 'y':a[f]}) for a in data]
+	    sets["%s_average" % f] = low_pass_filter(s, smooth_len)
 
     x_axis = pyofc2.x_axis()
 
@@ -120,18 +180,16 @@ def generate_chart_data(request,
     x_axis.max=int(time.mktime(end.timetuple()))
     x_axis.steps=(x_axis.max-x_axis.min)/10
     
-    labels = list()
     if x_axis.max - x_axis.min <= 60*60*24:
-	format = 'H:i'
+        format = 'H:i'
     else:
-	format = 'm-d-Y H:i'
-    for i in range(x_axis.min, x_axis.max, x_axis.steps):
-	labels.append(datetime.fromtimestamp(i).strftime(format),)
+        format = 'm-d-Y H:i'
+    
     labels = [
 	{ 
 	    'x': a, 
 	    'text': '#date:%s#' % format,
-	} for a in range(x_axis.min, x_axis.max, x_axis.steps)]
+	} for a in range(x_axis.min, x_axis.max+x_axis.steps, x_axis.steps)]
     x_axis.labels=pyofc2.x_axis_labels(labels=labels, rotate='45')
     
     y_axis = pyofc2.y_axis()
@@ -154,11 +212,16 @@ def generate_chart_data(request,
 
     chart = pyofc2.open_flash_chart()
     chart.title=pyofc2.title(text="%s [%s]: %s" % (dev.friendly_name, address, fields))
-    chart.tooltip=pyofc2.tooltip(text="#date: Y-m-d H:i#<br>#y#\n")
-    for c in fields:
+    #chart.tooltip=pyofc2.tooltip(text="#date: Y-m-d H:i#<br>#y#\n")
+    for c in sets:
+	if not raw and not c.endswith('average'):
+	    continue
+	if not smooth and c.endswith('average'):
+	    continue
 	s = pyofc2.scatter_line()
-	s.values = sets[c]
+	s.values = [pyofc2.scatter_value(x=x,y=y) for x,y in sets[c]]
 	s.text = c
+	s.dot_style = {'tip': "%s<br>#date:Y-m-d H:i#<br>%s: #val#" % (c, _("Value") )}
 	if colours.get(c, None):
 	    s.colour=colours[c]
 	chart.add_element(s)
