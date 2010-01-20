@@ -84,8 +84,7 @@ do it's work.
 907 IF L > 0 THEN 930;
 
 # time to do reading?
-908 A = readcnt;
-909 IF A > V THEN 930;
+908 GOTO 930
 
 ## @alarm ended
 ## trigger again
@@ -159,3 +158,4 @@ do it's work.
 ## @INIT
 990 ALARM 1;
 991 RETURN
+
