@@ -9,6 +9,12 @@
 
     var charts=new Object;
     var last_chart = null;
+    
+    function get_url(name){
+	out = "/sensorsdk/API/get-chart-data/"+charts[name].target+"/"+fields+"/data.json?"+ queryString(charts[name])
+	
+	return out
+    }
 
     function findSWF(movieName) {
 	if (navigator.appName.indexOf("Microsoft")!= -1) {
@@ -18,36 +24,33 @@
 	}
     }
 
-    function create_chart(name, target, fields, span){
-	so=swfobject.embedSWF(
-	    "/site_media/open-flash-chart-full-embedded-font.swf", 
-	    name, "100%", "400", "9.0.0","",
-	    {
-		'data-file': "/sensorsdk/API/get-chart-data/"+target+"/"+fields+"/data.json?span="+span
-	    }
-	    );
-	last_chart=name;
+    function create_chart(name, target, fields){
 	charts[name]=new Object;
 	charts[name]['target']=target;
 	charts[name]['fields']=fields;
 	charts[name]['span']=span;
+	charts[name]['raw']=$('chart_raw').checked;
+	charts[name]['smooth']=$('chart_smooth').checked;
+	charts[name]['smooth_factor']=$('chart_smooth_factor').text
+
+	swfobject.embedSWF(
+	    "/site_media/open-flash-chart-full-embedded-font.swf", 
+	    name, "100%", "400", "9.0.0","",
+		{
+		    "loading": "{% trans "Loading charts please wait..."%}",
+		    "data-file": escape(get_url(name))
+		}
+	    );
+	
+	last_chart=name;
     }
 
     function update_chart(chart){
 	var shared_data = "";
 	
-	url="/sensorsdk/API/get-chart-data/"+charts[chart].target+"/"+charts[chart].fields+"/data.json?span="+charts[chart].span;
-	chart=$(chart)
-	var d = loadJSONDoc(url);
-
-	var gotData = function (data) {
-	    chart.load(JSON.stringify(data));
-	};
-
-	var dataFetchFailed = function (err) {
-	    alert("The data couldn't be fetched :(");
-	};
-	d.addCallbacks(gotData, dataFetchFailed);
+	url=get_url(chart);
+	holder=findSWF(chart)
+	holder.reload(url)
     }
     
     function generic_update_list(url, id, display, sel_val, success){
@@ -176,6 +179,8 @@
 	last_chart=chart.id;
     }
     
+    
+    
     </script>
 {% endblock %}
 
@@ -204,6 +209,15 @@
 	    <input type="radio" name="time_span" value="month">{% trans "Last Month" %}</input>
 	    </form>
 	</td>
+    </tr>
+    <tr>
+	<td>{% trans "Options" %}</td>
+	<td>
+	    <input type="checkbox" id="chart_raw" checked>{% trans "Raw Data" %}</input>
+	    <input type="checkbox" id="chart_smooth">{% trans "Smooth Data" %}</input>
+	    {% trans "Smooth Factor" %}:<input type="text" id="chart_smooth_factor" value="0.2" />
+	</td>
+    </tr>
 </table>
 <p></p>
 <span>
