@@ -105,7 +105,7 @@ def check_if_service(address):
 def clean_service():
     for addr, val in service.copy().iteritems():
 	if time.time() - val > TIMEOUT:
-	    logger.info("more than %s seconds elapsed since last serve taking out of services" % TIMEOUT)
+	    logger.info("more than %s seconds had happend since last time %s was served" % (TIMEOUT, addr))
 	    service.pop(addr)
 
 
@@ -126,7 +126,7 @@ def device_found(record, services):
     global clients
     if clients.get(dongle, None) is None:
 	return False # there's no registered service I can't do a thing
-	
+
     address = record.remote.address
     if not check_if_service(address):
 	return False
@@ -135,10 +135,11 @@ def device_found(record, services):
 	address=address)
     if latest.count() > 0:
 	for k in latest.all():
+
 	    k.save() # mark elements as served, so timeout can exist
+    service[address] = time.time()
     
     logger.info("handling device %s" % address)
-    service[address] = time.time()
     client = clients[dongle]
     channel=-1
     
@@ -177,6 +178,7 @@ def parse_readings(handler=None, readings=None, target=None, dongle=None):
     for secs, batt, read in readings:
 	handler.parsereading(device=target, seconds=secs, battery=batt, reading=read, dongle=dongle)
     transaction.commit()
+    del handler, readings, target, dongle
     logger.debug('stopping parse reading thread')
 
 def parse_history(model=None, history=None, target=None, success=False, 
