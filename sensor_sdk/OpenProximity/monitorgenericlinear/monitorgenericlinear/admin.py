@@ -15,13 +15,41 @@
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.            
 
-try:
-    from sensorsdk import admin as admin_
-except:
-    from plugins.sensorsdk import admin as admin_
-
-from django.contrib import admin as admin
+from net.aircable.utils import logger
+from django.contrib import admin
+from django.utils.translation import gettext_lazy as _
 import models
 
-# defines new clases for admin panel
-admin_.myadmin.register(models.GenericLinearDevice)
+logger.debug("monitorgenericlinear admin loading")
+
+class GenericLinearDeviceAdmin(admin.ModelAdmin):
+    fieldsets = (
+	(_('General Settings'), {
+	    'fields': ('address', 'friendly_name', 'mode'),
+	}),
+	(_('Sensor Settings'), {
+	    'fields': ('sensor', 'slope', 'offset', 'units'),
+	}),
+	(_('Other Settings'), {
+	    'fields': ('name', 'devclass'),
+	})
+    )
+    list_display=('address','friendly_name', 'sensor', 'name', 'latest_served')
+
+class GenericLinearRecordAdmin(admin.ModelAdmin):
+    fieldsets = (
+	(_('Reading data'), {
+	    'fields': ('reading', 'reading_mv', 'slope', 'offset', 'time'),
+	}),
+	(_('Sensor'), {
+	    'fields': ('battery', 'dongle', 'remote'),
+	}),
+    )
+    list_display=('remote', 'reading', 'reading_mv', 'slope', 'offset', 'time')
+    list_filter=('remote', 'dongle', 'slope', 'offset')
+
+def register():
+    # defines new clases for admin panel
+    yield models.GenericLinearDevice, GenericLinearDeviceAdmin
+    yield models.GenericLinearRecord, GenericLinearRecordAdmin
+
