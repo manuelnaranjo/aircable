@@ -27,10 +27,10 @@ line 595
 31 GOTO 595;
 
 ## over ride a few lines
-941 IF U-V>300 THEN 943;
-942 GOTO 910;
-
-943 V=U;
+941 IF U-V>=300 THEN 944;
+942 IF V>=U THEN 944;
+943 GOTO 910;
+944 V=U;
 
 ## $500 stores our mode
 ## $501 stores our slope
