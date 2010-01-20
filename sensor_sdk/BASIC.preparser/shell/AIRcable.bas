@@ -111,7 +111,7 @@ shell over $stream
 ## line 662 is hardcoded in python code
 ## UPDATE! python code if you change
 ## something here
-662 IF K>=4 THEN 665;
+662 IF K>=10 THEN 665;
 663 B=0
 664 RETURN
 
