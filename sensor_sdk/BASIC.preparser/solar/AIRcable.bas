@@ -47,10 +47,11 @@ V stores the last commit time
 182 ALARM 2;
 
 ## commit each 5 minutes
-941 IF U-V>300 THEN 943;
-942 GOTO 910;
-
-943 V=U;
+## or in clock overflow
+941 IF U-V>=300 THEN 944;
+942 IF V>=U THEN 944;
+943 GOTO 910;
+944 V=U;
 
 ## type
 19 MONITOR-SOLAR
