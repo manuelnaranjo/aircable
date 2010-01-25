@@ -17,6 +17,7 @@ import const
 import logging
 import logging.handlers
 import os, sys, time
+from django.conf import settings
 
 try:
     from net.aircable.utils import logger
@@ -70,6 +71,76 @@ def store_settings():
 			else:
 				out.write('%s = %s\n' % (key, val))
 	out.close()
+
+def save_email_settings(mail, *args, **kwargs):
+    def store(mail):
+	out = ""
+	out+="#AUTO GENERATED EMAIL CONFIG\n"
+	for key, val in mail.iteritems():
+	    out+='%s="%s"\n' % ( key, val)
+	    setattr(settings, key, val)
+	out+="#END AUTO GENERATED EMAIL CONFIG\n"
+	return out
+
+    print "save email", mail
+    inp = file(settings.OPENPROXIMITY_CONFIG_FILE, "r")
+    lines = inp.readlines()
+    inp.close()
+    
+    out = ""
+    #file(conf.OPENPROXIMITY_CONFIG_FILE, "w")
+    flag = False
+    conf_stored = False
+    for line in lines:
+	if line.startswith("#AUTO GENERATED EMAIL CONFIG"):
+	    flag = True
+	elif line.startswith("#END AUTO GENERATED EMAIL CONFIG"):
+	    out+=store(mail)
+	    flag = False
+	    conf_stored = True
+	elif not flag:
+	    out+=line.strip()
+	    out+="\n"
+    if not conf_stored:
+	out+=store(mail)
+    f = file(settings.OPENPROXIMITY_CONFIG_FILE, "w")
+    f.write(out)
+    f.close()
+    print out
+
+#init logging
+def __initLog():
+	logger=logging.getLogger('openproximity')
+	logger.setLevel(logging.DEBUG)
+	
+	formatter=logging.Formatter('%(asctime)-12s %(name)-4s: %(levelno)-2s %(message)s')
+	
+	if os.environ.get('LOG_PORT') is not None:
+	    socketHandler=logging.handlers.SocketHandler('localhost',
+		os.environ.get('LOG_PORT'))
+	    #socketHandler.addFormatter(formatter)
+	    logger.addHandler(socketHandler)
+	    logger.info('Socket Handler ready')
+	
+	if os.environ.get('CONSOLE_LOG') == 'yes' or \
+		    os.environ.get('DEBUG')=="yes":
+	    console=logging.StreamHandler()
+    	    console.setLevel(logging.DEBUG)
+	    console.setFormatter(formatter)
+	    logger.addHandler(console)
+	    logger.info('Console Handler Ready')
+	
+	if os.environ.get('LOG_FILE', None) is not None:
+	    log_=logging.FileHandler(os.environ.get('LOG_FILE'))
+    	    log_.setLevel(logging.DEBUG)
+	    log_.setFormatter(formatter)
+	    logger.addHandler(log_)
+	    logger.info('File Handler Ready')
+	    
+	return logger
+
+# some shared variables
+logger = __initLog()
 
 try:
 	import settings

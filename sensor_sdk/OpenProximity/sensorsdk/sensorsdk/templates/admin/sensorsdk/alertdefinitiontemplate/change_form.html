@@ -2,25 +2,54 @@
 
 {% load i18n %}
 
-{% block extrastyle %} 
+{% block extrastyle %}
+<style media="all" type="text/css">
+{% include "admin/sensorsdk/reset.css" %}
+</style>
+
 {{ block.super }}
 
 <style media="all" type="text/css">
     #help_info { 
 	position: absolute;
 	float: right;
-	top: 110px; 
+	top: 94px; 
 	right: 15px; 
 	z-index: 1; 
-	width: 400px; 
-	padding: 10px;
+	width: 45%; 
+	padding: 1%;
     }
 </style>
+<script type="text/javascript" src="/site_media/MochiKit.js"></script>
+
+<script type="text/javascript">
+    function setButtonText(button, text){
+	$(button).textContent = text
+    }
+
+    function blind(field, button, hide_text, show_text){
+	toggle(field, 'blind')
+	
+	if (getStyle($(field), 'display') == 'none') {
+	    setTimeout('setButtonText("'+button+'","'+hide_text+'")',500);
+	}
+	else {
+	    setTimeout('setButtonText("'+button+'","'+show_text+'")',500);
+	}
+    }
+</script>
 
 {% endblock %}
 
 {% block extrabody %}
 <div id="help_info" class="module aligned">
+<button id="help_info_button" 
+    type="button" 
+    onclick="blind('help_info_body', 
+	'help_info_button',
+	'{% trans "Hide Information"%}',
+	'{% trans "Show Information"%}');">{% trans "Hide Information" %}</button>
+<div id="help_info_body">
 <h1>{% trans "Template Settings" %}</h1>
 <p>
 {% trans "On this page you will be able to set the templates for all the alarm system used by SensorSDK." %}<br>
@@ -56,5 +85,6 @@
 </p>
 <br>
 <p>{% trans "For more template tags and variables check SensorSDK, OpenProximity and Django documentations" %}
+</div>
 </div>
 {% endblock %}

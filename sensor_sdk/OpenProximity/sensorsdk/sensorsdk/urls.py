@@ -17,24 +17,18 @@
 
 from django.conf.urls.defaults import *
 
-from django.http import HttpResponse
-
-#from agent.admin import myadmin
 from admin import myadmin
 
 import views
 import charts
 
 urlpatterns = patterns( '',
-	(r'^admin/', myadmin.urls),
+	url(r'^admin/', include(myadmin.get_urls()), name="sensorsdk-admin"),
 	(r'^API/get-chart-data/(?P<address>.+)/(?P<fields>.+)/data.json$', charts.generate_chart_data),
 	(r'^API/get-chart-data/data.json$', charts.generate_chart_data),
 	(r'^API/get-chart-fields/(?P<address>.+)$', views.get_chart_fields_for_sensor),
 	(r'^API/get-sensors/(?P<mode>.*)$', views.get_sensors),
 	(r'^API/get-modes/$', views.get_modes),
-	(r'^chart/$', views.chart),
-	(r'^rpc/last_records/$', views.get_last_records),
-	(r'^$', views.index),
-#	(r'^configure', views.configure),
-#	(r'(.*)', views.index ),
+	url(r'^chart/$', views.chart, name="sensorsdk-chart"),
+	url(r'^$', views.index, name="sensorsdk-index"),
     )

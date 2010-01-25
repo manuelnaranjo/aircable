@@ -1,0 +1,55 @@
+{% extends "sensorsdk/base_setup.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Wizard is completed" %} | {% trans 'SensorSDK Setup' %}{% endblock %}
+
+{% block bodyclass %}wizard-done{% endblock %} 
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+     <a href="../">{% trans "Home" %}</a> &rsaquo;
+     {% trans "Wizard" %} 
+</div>
+{% endblock %} 
+
+{% block content %}
+<div id="content-main">
+{% blocktrans %}
+<h1> SensorSDK Wizard is completed! </h1>
+<p>You have completed all the basic setup steps.<br />
+SensorSDK is ready to start working, there are a few administrative tasks
+you might still want to handle:<br />
+</p>
+
+<ul>
+    <li>SensorSDK Wizard
+	<ul>
+	    <li><a href="email_setup/">Email Setup</a>
+		<ul>You will be able to configure your smtp server again</ul>
+	    <li><a href="dongle_setup/">Bluetooth Dongles Setup</a>
+		<ul>If you added more dongles to your server then use this wizard which will autofill some fields</ul>
+	    <li><a href="campaign_setup/">SensorSDK Campaign</a>
+		<ul>If you added more types of sensors or took out a few then you will need to create new campaigns.</ul>
+	</ul>
+    <li>SensorSDK Admin
+	<ul>
+	    <li><a href="../">Index</a>
+		<ul>This is the standard django admin based admin interface, from here you can access to all the available admin panels</ul>
+	    <li><a href="../sensorsdk/alertdefinition/">Notifications</a>
+		<ul>SensorSDK can wait for some events to happen, when this even happens then it can send mails to everyone telling what has happened</ul>
+	    <li><a href="../sensorsdk/alertdefinitiontemplate/">Notification Templates</a>
+		<ul>Each notification type has an asociated template, from here you will be able to edit those templates.</ul>
+	</ul>
+    <li>OpenProximity
+	<ul>
+	    <li><a href="/admin/">Index</a>
+		<ul>In case you need to modify something related to OpenProximity you can do it from here.</ul>
+	    <li><a href="/admin/auth/user/">Users</a></li>
+		<ul>Notification emails are sent to registered django users, you can add/edit/delete users from this page</ul>
+	</ul>
+</ul>
+
+{% endblocktrans %}
+</div>
+{% endblock %}
+

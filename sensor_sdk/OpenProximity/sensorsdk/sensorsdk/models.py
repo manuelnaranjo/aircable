@@ -193,6 +193,57 @@ class AlertDefinitionTemplate(models.Model):
 	    'notice.html': qs.notice,
 	    'full.html': qs.full_html
 	}
+	
+
+ALERT_TEMPLATES={
+    -1: {
+	'short': _("[SensorSDK - Alerts] {{target.friendly_name}}[{{target.address}}]: is not reporting"),
+	'full': _('''This is an automatically generated message, don\'t try replying to it.
+{{target.friendly_name}}[{{target.address}}] hasn\'t reported for the last {{ definition.set }} seconds.
+Please check what\'s wrong. This alert will be sent again in {{ definition.timeout }} seconds if not cleared first.
+Regards,
+SensorSDK Automatic alerts
+'''),
+	'notice':_('''{{target.friendly_name}}[{{target.address}}] not reporting'''),
+	'full_html': ''
+    },
+
+    0: {
+	'short': _("[SensorSDK - Alerts] {{target.friendly_name}}[{{target.address}}]: {{definition.field}} is over {{definition.set}}"),
+	'full': _('''This is an automatically generated message, don\'t try replying to it.
+{{target.friendly_name}}[{{target.address}}] {{defintion.field}} is over {{definition.set}}.
+Please check what\'s wrong. This alert will be automatically cleared once {{definition.field}} gets under {{definition.clr}} again.
+Regards,
+SensorSDK Automatic alerts
+'''),
+	'notice':_('''{{target.friendly_name}}[{{target.address}}] {{field}} is over range'''),
+	'full_html': ''
+    },
+
+    1: {
+	'short': _("[SensorSDK - Alerts] {{target.friendly_name}}[{{target.address}}]: {{definition.field}} is under {{definition.set}}"),
+	'full': _('''This is an automatically generated message, don\'t try replying to it.
+{{target.friendly_name}}[{{target.address}}] {{defintion.field}} is under {{definition.set}}.
+Please check what\'s wrong. This alert will be automatically cleared once {{definition.field}} gets over {{definition.clr}} again.
+Regards,
+SensorSDK Automatic alerts
+'''),
+	'notice':_('''{{target.friendly_name}}[{{target.address}}] {{field}} is under range'''),
+	'full_html': ''
+    },
+
+    2: {
+	'short': _("[SensorSDK - Alerts] {{target.friendly_name}}[{{target.address}}]: {{definition.field}} is in range {{definition.set}}-{{defintion.clr}}"),
+	'full': _('''This is an automatically generated message, don\'t try replying to it.
+{{target.friendly_name}}[{{target.address}}] {{defintion.field}} got into {{definition.set}}-{{defintion.clr}}.
+Please check what\'s wrong. This alert will be automatically cleared once {{definition.field}} gets out of this range again.
+Regards,
+SensorSDK Automatic alerts
+'''),
+	'notice':_('''{{target.friendly_name}}[{{target.address}}] {{field}} in range'''),
+	'full_html': ''
+    }
+}
 
 class AlertDefinition(models.Model):
     '''A class used to define automatic alerts'''
