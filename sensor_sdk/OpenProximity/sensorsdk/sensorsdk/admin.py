@@ -5,6 +5,7 @@ from django.shortcuts import render_to_response
 from django.db import models
 from django import forms
 from models import *
+from django.http import HttpResponseRedirect
 from forms import EmailForm, AlertTemplateForm
 from django.utils.functional import update_wrapper
 from django.utils.translation import ugettext as _
@@ -14,16 +15,35 @@ from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.conf import settings
 from utils import save_email_settings, isAIRcable
-import re 
 import rpyc
 
-email_re = re.compile(
-    r"(^[-!#$%&'*+/=?^_`{}|~0-9A-Z]+(\.[-!#$%&'*+/=?^_`{}|~0-9A-Z]+)*"  # dot-atom
-    r'|^"([\001-\010\013\014\016-\037!#-\[\]-\177]|\\[\001-011\013\014\016-\177])*"' # quoted-string
-    r')@(?:[A-Z0-9]+(?:-*[A-Z0-9]+)*\.)+[A-Z]{2,6}$', re.IGNORECASE)  # domain
+class MyModelAdmin(admin.ModelAdmin):
+    change_form_template = 'admin/sensorsdk/change_form.html'
+    
+    def add_view(self, request, from_url='', extra_context=None):
+	extra_context=extra_context or {}
+	if getattr(self, 'help_text', None):
+	    extra_context['help_text'] = mark_safe(self.help_text)
+	if getattr(self, 'help_text_title', None):
+	    extra_context['help_text_title'] = mark_safe(self.help_text_title)
 
+	return super(MyModelAdmin, self).add_view(request, from_url, extra_context)
+	
+    def response_add(self, request, obj, post_url_continue='../%s/'):
+	#if request.POST.has_key('setup_wizard'):
+	    return HttpResponseRedirect('../../../')
+	#return super(MyModelAdmin, self).response_add(request, obj, post_url_continue)
+	
+    def change_view(self, request, object_id, extra_context=None):
+	extra_context=extra_context or {}
+	if getattr(self, 'help_text', None):
+	    extra_context['help_text'] = mark_safe(self.help_text)
+	if getattr(self, 'help_text_title', None):
+	    extra_context['help_text_title'] = mark_safe(self.help_text_title)
+	
+	return super(MyModelAdmin, self).change_view(request, object_id, extra_context)
 
-class SensorCampaignAdmin(admin.ModelAdmin):
+class SensorCampaignAdmin(MyModelAdmin):
     fieldsets = (
         (None, {
             'fields': ('name', 'enabled', 'addr_filter', 'name_filter', 'devclass_filter'),
@@ -54,8 +74,19 @@ class SensorCampaignAdmin(admin.ModelAdmin):
                 )
 
     ordering = [ 'name', 'start', 'end' , 'addr_filter', 'name_filter']
+    
+    help_text_title=_("SensorSDK Campaign")
+    help_text=_('''A <b>SensorSDK campaign</b> is used to tell to which devices we try to <b>connect</b>.<br>
+<br>
+You can\'t use <b>SensorSDK</b> without having an <b>enabled</b> campaign first.<br>
+Important fields are:<ul>
+<li>Enabled.
+<li>Address Filter.
+<li>Name Filter.</ul>
+<br>
+<br>Plugin handling per device is handled by each plugin, <b>you don\'t have to worry about it</b>.''')
 
-class AlertDefinitionTemplateAdmin(admin.ModelAdmin):
+class AlertDefinitionTemplateAdmin(MyModelAdmin):
     fieldsets = (
 	(None, { 'fields': ('mode', )}),
 	('Email Settings', {'fields': ('short', 'full',)}),
@@ -74,8 +105,52 @@ class AlertDefinitionTemplateAdmin(admin.ModelAdmin):
 	    attrs['rows'] = 20
 	kwargs['widget'] = forms.Textarea(attrs=attrs)
 	return super(AlertDefinitionTemplateAdmin, self).formfield_for_dbfield(db_field, **kwargs)
+	
+    help_text_title=_("Alert Definition Template")
+    help_text=_('''An <b>Alert Definition Template</b> is used to generate email content when an alert is triggered.<br>
+<br>
+You can only define one template per kind of alert available.<br>
+<br>
+The Syntaxis is the same used on Django templates, remember to add double brackets to each variable {{ variable }}.<br>
+<br>
+<h3>Available variables from SensorSDK</h3>
+<ul>
+    <li><b>value</b>: Value from the reading that triggered the alarm</li>
+    <li><b>time</b>: Time when the alarm was triggered</li>
+    <li><b>user</b>: User whose getting this email</li>
+    <li><b>target</b>: Reference to the device that triggered the alarm. Available subset:
+	<ul>
+	    <li><b>target.address</b></li>
+	    <li><b>target.name</b></li>
+	    <li><b>target.mode</b></li>
+	    <li><b>target.friendly_name</b></li>
+	</ul>
+    </li>
+    <li><b>definition</b>:  Information related to the alarm definition
+	<ul>
+	    <li><b>definition.mode</b></li>
+	    <li><b>definition.field</b></li>
+	    <li><b>definition.set</b></li>
+	    <li><b>definition.clr</b></li>
+	    <li><b>definition.targets</b></li>
+	    <li><b>definition.timeout</b></li>
+	    <li><b>definition.users</b></li>
+	</ul>
+    </li>
+</ul>
+<br>
+<br>
+You can get more information on:
+<ul>
+<li><a href="http://www.opensensors.wikidot.com">OpenSensors Website</a></li>
+<li><a href="http://www.openproximity.org">OpenProximity Website</a></li>
+<li><a href="http://www.djangoproject.com/">Django Website</a></li>
+</ul>
+<br><br>
+''')
 
-class AlertDefinitionAdmin(admin.ModelAdmin):
+
+class AlertDefinitionAdmin(MyModelAdmin):
     fieldsets = (
         ('Alert configuration',{
             'fields': ('mode', 'field', 'set', 'clr',),
@@ -105,6 +180,52 @@ class AlertDefinitionAdmin(admin.ModelAdmin):
                 )
 
     ordering = [ 'mode', 'field', 'enabled']
+    help_text_title=_("Alert Definition")
+    help_text=_('''An <b>Alert Definition</b> defines the conditions for alarms to be triggered.<br>
+<br>
+There are four types of alarms:<ul>
+<li><b>Under Range</b></li>
+<li><b>Over Range</b></li>
+<li><b>In Range</b></li>
+<li><b>No data</b></li>
+</ul>
+<br>
+<br>
+All this types of alarms except for <b>No data</b> need a <b>set</b> and a <b>clear</b> value. 
+This values will define when an alarm condition is met.
+<br>
+<br>
+<b>No Data</b> is an special kind of alarm which is sent when more than <b>set</b> seconds are elapsed
+without any data from the monitored devices.
+<br>
+<br>
+For more information check <a href="http://opensensors.wikidot.com">OpenSensors Website</a>
+<br><br>
+''')
+
+class SensorDongleAdmin(MyModelAdmin):
+    help_text_title=_("SensorsDK Dongle Configuration")
+
+    @property
+    def help_text(self):
+	"""Get the known dongles list and show it as help text"""
+	out=_('''
+On this page you can setup the dongles you will with SensorSDK.<br>
+Don\'t forget to mark your dongles as enabled.<br>
+''')
+	try:
+	    from rpyc import connect
+	    server=connect('localhost', 8010)
+	    dongles=server.root.getAllDongles()
+	    if len(dongles) == 0:
+		out+=_("<b>No dongles available</b>")
+	    else:
+		out+="<h3 class='aligned'>Known dongles</h3>"
+		out+=' '.join(['* <b>%s</b>' % a for a in dongles])
+	except Exception, err:
+	    out+="<div class='errornote'>%s: %s</div>" % (_("Error while trying to reach list of dongles, reason"), err)
+	
+	return out
 
 class AlertAdmin(admin.ModelAdmin):
     fieldsets = (
@@ -154,6 +275,7 @@ def get_icon(state, alternate_text=None):
 
 class MyAdminSite(admin.AdminSite):
     shown_index = False
+    index_template = "admin/sensorsdk/index.html"
     
     def generateSetupStepContentForModel(self, klass, text, extra=None):
 	created = klass.objects.count() > 0
@@ -165,54 +287,56 @@ class MyAdminSite(admin.AdminSite):
 	    'text': text,
 	    'extra': extra
 	}
-	
-
 
     def generateSetupStepContentForEmail(self, text):
 	state = False
-	if getattr(settings, 'EMAIL_HOST', None) != None:
-	    state = email_re.match(settings.EMAIL_HOST)
 	
 	return {
 	    'url': mark_safe('setup_email/'), 
-	    'state': get_icon(state),
+	    'state': None,
 	    'text': text,
+	    'extra': mark_safe("<a href='setup_email/test' class='myviewsitelink'>%s</a>" % _('Check Email Configuration')),
 	}
-    
+
     def index(self, request, extra_context=None):
-	"""
-	Display the main admin index page, add extra help information
-	"""
-	
+        """
+    	SensorSDK customization
+        """
+        
+        # first add SensorSDK quick setup steps
 	if extra_context is None:
 	    extra_context = {}
 	
 	extra_context['setup_steps'] = [
 	    self.generateSetupStepContentForModel(
-		SensorCampaign, _('Create a SensorSDK campaign')),
+		SensorCampaign, _('Create a Campaign')),
 	    self.generateSetupStepContentForModel(
-		SensorSDKBluetoothDongle, _('Create a SensorSDK Bluetooth Dongle')),
+		SensorSDKBluetoothDongle, _('Assign a Dongle')),
 	    self.generateSetupStepContentForEmail(
 		_('Setup Email Server')),
 	    self.generateSetupStepContentForModel(
-		AlertDefinitionTemplate, _('Create a SensorSDK Email Templates'),
+		AlertDefinitionTemplate, _('Create Email Templates'),
 		extra=mark_safe('%s <a href="alert_template_fill">%s</a>' % (_('or'),_('Automatically Fill Templates')))),
-	    {'url': None, 'state': get_icon(SensorSDKRemoteDevice.objects.count()>0), 'text': _('Wait until your SenorSDK devices are discovered')},
+	    {
+		'url': None, 
+		'state': get_icon(SensorSDKRemoteDevice.objects.count()>0), 
+		'text': _('Wait until your SenorSDK devices are discovered')
+	    },
 	    self.generateSetupStepContentForModel(
-		AlertDefinition, _('Create a SensorSDK Alert Definition')),
+		AlertDefinition, _('Create Alert Definitions')),
 	]
 	
 	extra_context['extra_list'] = [
 	    {'url': mark_safe('setup_email/'), 'name': _("Setup Email Server")},
 	    {'url': mark_safe('alert_template_fill/'), 'name': _("Automatically Fill Alert Templates")},
 	]
-	
-	return super(MyAdminSite, self).index(request, extra_context=extra_context)
-    
+        return super(MyAdminSite, self).index(request, extra_context)
+
     def get_urls(self):
 	from django.conf.urls.defaults import patterns, url
 	urls = patterns('',
 	    url(r'^setup_email/$', self.admin_view(self.setup_email), name="sensorsdk-email"),
+	    url(r'^setup_email/test$', self.admin_view(self.test_email), name="sensorsdk-email-test"),
 	    url(r'^alert_template_fill/$', self.admin_view(self.templates_auto), name="sensorsdk-templates-auto"),
 	)
 	urls.extend(super(MyAdminSite, self).get_urls())
@@ -220,30 +344,58 @@ class MyAdminSite(admin.AdminSite):
 	
     def generic_setup(self, request, Form=None, action=None, 
 	    initial=None, template=None, step=None, step_form=None, 
-	    help_content=None):
+	    help_content=None, next=None):
+	next = next or HttpResponseRedirect('/sensorsdk/admin')
 	form = None
 	if request.method == "POST":
 	    form = Form(request.POST)
 	    if form.is_valid():
 		action(form.cleaned_data, request)
 		if '_addanother' not in request.POST:
-		    return HttpResponseRedirect('/sensorsdk/admin')
+		    return next
 		form = None
 	if not form:
 	    form = Form(initial)
 
 	return render_to_response(
-	    template or 'sensorsdk/base_setup.html', 
+	    template or 'admin/sensorsdk/base_setup.html', 
 	    {
 		'form': form,
 		'media': form.media,
 		'step': step,
 		'user': request.user,
 		'step_form': step_form,
-		'help_content': help_content,
+		'help_content': mark_safe(help_content),
 		'show_save': True
 	    })
 
+    def test_email(self, request, extra_context=None):
+	state = False
+	error = None
+
+	from django.core import mail
+	from smtplib import SMTP
+
+	try:
+	    connection = mail.SMTPConnection()
+	    server = SMTP(timeout=10)
+	    server.connect(connection.host, connection.port)
+	    if connection.use_tls:
+		server.starttls()
+	    if connection.username:
+		server.login(connection.username, connection.password)
+	    server.close()
+	    state = True
+	except Exception, err:
+	    error=err
+	    state = False
+	return render_to_response(
+	    'admin/sensorsdk/email_test.html',
+	    {
+		'state': get_icon(state),
+		'exception': error
+	    })
+	
     def setup_email(self, request, extra_context=None):
 	default = dict()
 	for i in ['DEFAULT_FROM_EMAIL', 
@@ -265,7 +417,9 @@ class MyAdminSite(admin.AdminSite):
 	    step=_('Email Setup'), 
 	    step_form='email_setup', 
 	    help_content=_('''On this page you will be able to setup the basic configuration settings so SensorSDK is able to send mails when alerts are triggered.
-You can use what ever smtp you have access too like for example gmail, hotmail, yahoo, etc or even your own maintained server.''')
+	    
+You can use what ever smtp you have access. Like for example gmail, hotmail, yahoo, etc or even your own maintained server.'''),
+	    next=HttpResponseRedirect('test')
 	)
 	
     def save_template(self, mode, short, full, notice, full_html):
@@ -275,7 +429,6 @@ You can use what ever smtp you have access too like for example gmail, hotmail, 
 	temp.notice=notice
 	temp.full_html=full_html
 	temp.save()
-	
 
     def save_alert_template_settings(self, form, request, *args, **kwargs):
 	if not form['ACCEPT']:
@@ -298,16 +451,14 @@ You can use what ever smtp you have access too like for example gmail, hotmail, 
 	    initial={}, 
 	    step=_('Alert Templates Wizard'), 
 	    help_content=_('''This wizard will automatically fill the available templates from predefined content. Take into account that there\'s no way to revert this step.
+	    
 Choose only the templates you want to get automatically filled.
-Don\'t forget to mark the "Save Settings" field if you want changes to be persisted''')
+
+Don\'t forget to mark the <b>Save Settings</b> field if you want changes to be persisted''')
 	)
 
-
-
 myadmin = MyAdminSite()
-
-myadmin.index_template="admin/sensorsdk/index.html"
-myadmin.register(SensorSDKBluetoothDongle)
+myadmin.register(SensorSDKBluetoothDongle, SensorDongleAdmin)
 myadmin.register(SensorCampaign, SensorCampaignAdmin)
 myadmin.register(AlertDefinitionTemplate, AlertDefinitionTemplateAdmin)
 myadmin.register(AlertDefinition, AlertDefinitionAdmin)
@@ -327,4 +478,4 @@ for plugin in pluginsystem.get_plugins('sensorsdk'):
            myadmin.register(k, a)
        logger.debug("admin loaded for %s" % plugin.module_name)
     except Exception, err:
-       logger.exception(err)
+       logger.error("couldn't load admin for %s" % plugin.module_name)
