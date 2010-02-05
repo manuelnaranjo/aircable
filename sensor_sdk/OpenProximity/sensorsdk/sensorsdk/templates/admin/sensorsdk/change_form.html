@@ -1,0 +1,35 @@
+{% extends "admin/change_form.html" %}
+
+{% load i18n admin_modify adminmedia %}
+
+{% if help_text %}
+{% block coltype %}colMS{% endblock %}
+{% endif %}
+
+{% block extrastyle %}
+{{ block.super }}
+
+<style media="all" type="text/css">
+    {% include "admin/sensorsdk/base.css" %}
+    {% comment %}{% include "admin/sensorsdk/reset.css" %}{% endcomment %}
+</style>
+
+{% endblock %}
+
+{% block content %}
+
+{{ block.super }}
+
+{% if help_text %}
+    <div id="content-related" class="module aligned small help">
+	{% if help_text_title %}
+    	    <h2>{{ help_text_title }}</h2>
+	    <br>
+	{% endif %}
+        {{ help_text }}
+        <br>
+        <br>
+    </div>
+{% endif %}
+
+{% endblock %}

@@ -5,12 +5,7 @@
 {{ block.super }}
 <link rel="stylesheet" type="text/css" href="{% load adminmedia %}{% admin_media_prefix %}css/dashboard.css" />
 <style type="text/css">
-    #my-content-related {
-	position: absolute;
-	right: 10px;
-	top 10px;
-	width: 50%;
-    }
+    {% include "admin/sensorsdk/base.css" %}
 </style>
 {% endblock %}
 
@@ -76,7 +71,7 @@
 {% endblock %}
 
 {% block sidebar %}
-<div id="my-content-related">
+<div id="content-related">
     {% if setup_steps %}
         <div class="module" id="help">
 	    <h2>{% trans "Quick Setup" %}</h2>

@@ -1,0 +1,32 @@
+{% load adminmedia %}
+
+a.myviewsitelink {
+	background: #999 url({% admin_media_prefix %}img/admin/tooltag-arrowright.gif) top right no-repeat;
+	padding-right: 28px;
+	padding-bottom: 0px;
+	padding-top: 2px;
+	padding-left: 0.1em;
+	color: white;
+	height: 14px;
+}
+
+a.myviewsitelink:hover {
+        background: #5b80b2 url({% admin_media_prefix %}img/admin/tooltag-arrowright_over.gif) top right no-repeat;
+}
+
+#my-content-related {
+    position: absolute;
+    right: 10px;
+    top 10px;
+    width: 50%;
+}
+
+#help_info {
+    position: absolute;
+    float: right;
+    top: 60px;
+    right: 1px;
+    z-index: 1;
+    width: 500px;
+    padding: 10px;
+}
