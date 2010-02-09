@@ -19,8 +19,8 @@ SensorSDK is a plugin system it self, sensors talk to SensorSDK through plugins"
     package_dir={'sensorsdk': 'sensorsdk',},
     package_data={
 	'sensorsdk': [
-	    'templates/sensorsdk/*.html', 
-	    'templates/admin/sensorsdk/alertdefinitiontemplate/*.html'
+	    'templates/sensorsdk/*', 
+	    'templates/admin/sensorsdk/*', 
 	]},
     license="GPL2",
     url="http://code.google.com/p/aircable/", 
