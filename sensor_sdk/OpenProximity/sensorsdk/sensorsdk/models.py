@@ -27,7 +27,10 @@ from datetime import datetime
 from django.forms import widgets
 from net.aircable.utils import logger
 import time
+from __init__ import find_plugins
 
+global NEED_LOADING
+NEED_LOADING=True
 
 # we depend on django-notification
 from notification import models as notification
@@ -37,6 +40,8 @@ class SensorSDKBluetoothDongle(BluetoothDongle):
 	default=4,
 	help_text="maximum allowed sensors to handle at the same time",
 	verbose_name=_("connections"))
+	
+SensorSDKBluetoothDongle._meta.get_field_by_name('enabled')[0].default=True
 
 remote_classes=dict()
 class SensorSDKRemoteDevice(RemoteDevice):
@@ -256,11 +261,13 @@ class AlertDefinition(models.Model):
 * No Data: the alarm will be set when the targets has\'t reported for <set> seconds, <clear> is ignored as long as <field>''')
     )
 
-    set = models.FloatField(verbose_name=_('set alert'))
-    clr = models.FloatField(verbose_name=_('clear alert'), blank=True, null=True)
+    set = models.FloatField(verbose_name=_('set alert'),
+	help_text=_("the value for the monitored variable that will trigger the alarm"))
+    clr = models.FloatField(verbose_name=_('clear alert'), blank=True, null=True,
+	help_text=_("the value for the monitored variable that will clear the alarm once reached"))
     targets = models.ManyToManyField(SensorSDKRemoteDevice,
 	help_text=_("devices observed by this alarm"))
-    timeout = models.IntegerField( default=86400, 
+    timeout = models.IntegerField( default=86400, verbose_name=_("reset time"),
 	help_text=_("amount of seconds before automatically resetting the alarm, default 1 day, -1 is not automatic"))
     enabled = models.BooleanField(default=True)
     users = models.ManyToManyField(User,
@@ -269,7 +276,7 @@ class AlertDefinition(models.Model):
     def sendNotification(self, target=None, value=None):
 	if not self.enabled:
 	    return
-	if Alert.doAlert(self, target) is True:
+	if Alert.doAlert(self, target, value) is True:
 	    logger.info("sending mail")
 	    notification.send(
 		self.users.all(), 
@@ -311,7 +318,7 @@ class AlertDefinition(models.Model):
 		qs = notif.alert_set.filter(target=remote, active=True)
 		if qs.count() > 0:
 		    logger.info("clearing alarm")
-		qs.update(active=False)
+		qs.update(active=False, auto_cleared=True)
 	    elif set is True:
 		logger.info("setting alarm")
 		notif.sendNotification(target=remote, value=val)
@@ -334,6 +341,7 @@ class AlertDefinition(models.Model):
 		    logger.info("%s not sending for over %s seconds" % (remote.address, notif.set))
 		    # ok we reached the time trigger
 		    notif.sendNotification(target=remote, value=last_record.time)
+	    Alert.updateActive()
 
     def display_Mode(self):
 	return ALERT_INFO[self.mode]['short']
@@ -359,14 +367,22 @@ class Alert(models.Model):
     active = models.BooleanField(
 	help_text=_('is active then no mail are received until either the administrator clears the alarm or it timesout')
     )
-    
+    auto_cleared = models.BooleanField(default=False,
+    	help_text=_("if true then this alarm was cleared by reaching the clear value"))
+    auto_timeout = models.BooleanField(default=False,
+    	help_text=_("if true then this alarm was cleared by reaching the timeout time"))
+    reviewed = models.BooleanField(default=False, verbose_name=_('action taken'),
+    	help_text=_("if true then someone has checked the cause for the alarm and fixed it."))
+    value = models.FloatField(null=True,
+	help_text=_("value that launched this alarm"))
+
     @classmethod
     def updateActive(cls):
 	qs = Alert.objects.filter(clrtime__lte=datetime.now()).filter(active=True)
-	qs.update(active=False)
+	qs.update(active=False, auto_timeout=True)
 
     @classmethod
-    def doAlert(cls, alert, target):
+    def doAlert(cls, alert, target, value):
 	Alert.updateActive()
 	logger.info("alert %s %s" % (alert.field, target.address))
 	qs = Alert.objects.filter(alert=alert, target=target)
@@ -380,9 +396,14 @@ class Alert(models.Model):
 	a.alert=alert
 	a.target=target
 	a.setAlarm()
+	a.value=value
 	a.save()
 	return True
 	
+    def save(self, *args, **kwargs):
+	if self.reviewed:
+	    self.active = False
+	super(Alert, self).save(*args, **kwargs)
 
     def setAlarm(self, start=None):
 	if not start:
@@ -410,6 +431,12 @@ def get_subclass(object):
     return object
 
 def get_subclasses(base):
+    global NEED_LOADING
+    if NEED_LOADING:
+	logger.info("forcing app loading")
+	for plugin in find_plugins():
+	    logger.debug("loaded %s" % models.loading.load_app(plugin.name))
+	NEED_LOADING=False
     for app in models.get_apps():
 	for model in models.get_models(app):
 	    if model != base and issubclass(model, base):
@@ -431,7 +458,7 @@ def post_init():
 	logger.exception(err)
 
 def post_plugins_load():
-    field = models.CharField( max_length=100, 
+    field = models.CharField( max_length=100,
         help_text=_("Field used for this alarm"),
         choices=list(SensorSDKRemoteDevice.getAllFields()),
         name='field',
