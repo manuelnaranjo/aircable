@@ -1,93 +1,32 @@
 {% extends "sensorsdk/base.html" %}
 {% load i18n %}
-{% load sensorsdk %}
 
 {% block title %}SensorSDK{% endblock %}
 
 {% block extrahead %}
 <script type="text/javascript" src="/site_media/MochiKit.js"></script>
 
-<script type="text/javascript">
-    function record_as_li(record){
-	out = "<li>"
-	out+=record.friendly_name +" [" +record.address +"] at " + record.latest_served +": "
-	for (var f in record.last_record){
-	    out+=f+": "+record.last_record[f]+", "
-	}
-	out+="</li>"
-	return out
-    }
+{% include "sensorsdk/update_last_records.js" %}
+{% include "sensorsdk/update_last_alerts.js" %}
 
-    function update_last_records(){
-	var defer = loadJSONDoc('rpc/last_records/');
-	var field=$('sdk_last_records_holder');
-	field.innerHTML = "{% trans "Updating" %} ..."
-	
-	var gotStats = function(stats){
-	    var out = "";
-	    for (var rec in stats){
-		out +=record_as_li(stats[rec])
-	    }
-	    field.innerHTML = "<ul>"+out+"</ul>";
-	}
-	
-	var failedFetchStats = function(){
-	    field.innerHTML = "{% trans "No Data" %}"
-	}
-	
-	defer.addCallbacks(gotStats, failedFetchStats);
-    }
-
-    function update_last_alerts(){
-	var defer = loadJSONDoc('rpc/last_alerts/');
-	var field=$('pending_alarms_holder');
-	field.innerHTML = "{% trans "Updating" %} ..."
-	
-	var gotAlarms = function(Alarms){
-	    if (Alarms.length == 0){
-		field.innerHTML="{% trans "No Pending alarms" %}"
-		return
-	    }
-	}
-	
-	var failedFetchAlarms = function(){
-	    field.innerHTML = "{% trans "Couldn't fetch alarms" %}"
-	}
-	
-	defer.addCallbacks(gotAlarms, failedFetchAlarms);
-    }
-
-</script>
 {% endblock %}
 
 {% block content %}
 
-<div id="pending_alarms">
-    <h1>{% trans "Pending Alarms" %}</h1>
-    <div id="pending_alarms_holder"></div>
+<div id="pending_alarms" class="content-main">
+    <div class="inner">
+	<h1>{% trans "Pending Alarms" %}</h1>
+	<div id="pending_alarms_holder"></div>
+    </div>
 </div>
 
-<div id="sdk_latest_records">
-    <h1>{% trans "Latest Records" %}</h1>
-    <div id="sdk_last_records_holder"></div>
+<div id="sdk_latest_records" class="content-main">
+    <div class="inner">
+	<h1>{% trans "Latest Records" %}</h1>
+	<div id="sdk_last_records_holder"></div>
+    </div>
 </div>
 
-<div id="sdk_info">
-    <h1>{% trans "Version Information" %}</h1>
-    <ul>
-	<li>{% trans "SensorSDK Version" %}: {% sensorsdk_version %}</li>
-	<li>{% trans "SensorSDK Plugins" %}:
-	    <ul>
-		{% sensorsdk_plugins_as_li %}
-	    </ul>
-	</li>
-    </ul>
-</div>
+{% include "sensorsdk/sdk_info.html" %}
 
-<script type="text/javascript">
-    update_last_records();
-    update_last_alerts();
-    setInterval("update_last_records()", 60000) <!-- update each 60 seconds -->
-    setInterval("update_last_alerts()", 60000) <!-- update each 60 seconds -->
-</script>
 {% endblock %}

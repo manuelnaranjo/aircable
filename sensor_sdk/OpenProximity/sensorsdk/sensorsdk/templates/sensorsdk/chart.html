@@ -24,7 +24,7 @@
 	}
     }
 
-    function create_chart(name, target, fields){
+    function create_chart(name, target, fields, span, holder){
 	charts[name]=new Object;
 	charts[name]['target']=target;
 	charts[name]['fields']=fields;
@@ -42,6 +42,7 @@
 		}
 	    );
 	
+	roundElement(holder);
 	last_chart=name;
     }
 
@@ -160,9 +161,10 @@
 	    n++;
 	}
 	
-	holder=DIV({'id': 'chart_holder' + n});
+	holder=DIV({'id': 'chart_holder' + n, 'class': 'content-main'});
+	inner=DIV({'class': 'inner', 'style':'padding: 1em;'})
 	appendChildNodes($('charts_holder'), holder);
-	
+	appendChildNodes(holder, inner);
 	chart=DIV({'id': 'chart' + n});
 	
 	refresh=BUTTON({'id': 'refresh'+n, 'innerHTML': '{% trans "Refresh" %}', 'extra': chart.id});
@@ -171,11 +173,11 @@
 	connect(refresh, 'onclick', refresh_chart);
 	connect(del, 'onclick', delete_chart);
 
-	appendChildNodes(holder, chart);
-	appendChildNodes(holder, P());
-	appendChildNodes(holder, refresh);
-	appendChildNodes(holder, del)
-	create_chart(chart.id, address, fields, span);
+	appendChildNodes(inner, chart);
+	appendChildNodes(inner, P());
+	appendChildNodes(inner, refresh);
+	appendChildNodes(inner, del)
+	create_chart(chart.id, address, fields, span, holder);
 	last_chart=chart.id;
     }
     
@@ -185,7 +187,8 @@
 {% endblock %}
 
 {% block content %}
-
+<div class="content-main">
+<div class="inner">
 <table>
     <tr>
         <td>{% trans "Type" %}</td>
@@ -225,6 +228,8 @@
     <button type="button" name="refresh" id="refresh">{% trans "Refresh Fields" %}</button>
 </span>
 <p></p>
+</div>
+</div>
 <div id="charts_holder">
 </div>
 {% endblock %}

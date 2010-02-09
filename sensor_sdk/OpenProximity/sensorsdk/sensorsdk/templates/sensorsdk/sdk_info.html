@@ -1,0 +1,15 @@
+{% load i18n sensorsdk %}
+
+<div id="sdk_info" class="content-main">
+    <div class="inner">
+	<h1>{% trans "Version Information" %}</h1>
+	<ul>
+	    <li>{% trans "SensorSDK Version" %}: {% sensorsdk_version %}</li>
+	    <li>{% trans "SensorSDK Plugins" %}:
+		<ul>
+		    {% sensorsdk_plugins_as_li %}
+		</ul>
+	    </li>
+	</ul>
+    </div>
+</div>
