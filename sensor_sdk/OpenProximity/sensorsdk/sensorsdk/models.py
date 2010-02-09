@@ -340,7 +340,7 @@ class AlertDefinition(models.Model):
 		if timeout > last_record.time:
 		    logger.info("%s not sending for over %s seconds" % (remote.address, notif.set))
 		    # ok we reached the time trigger
-		    notif.sendNotification(target=remote, value=last_record.time)
+		    notif.sendNotification(target=remote, value=time.mktime(last_record.time.timetuple()))
 	    Alert.updateActive()
 
     def display_Mode(self):
