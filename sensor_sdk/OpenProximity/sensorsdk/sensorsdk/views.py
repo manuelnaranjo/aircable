@@ -20,6 +20,7 @@ from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.utils.translation import ugettext as _
 from django.utils import simplejson
+from django.template import RequestContext
 from django.shortcuts import render_to_response
 from wadofstuff.django.serializers.base import Serializer
 import models, inspect
@@ -72,6 +73,43 @@ def get_last_records(request):
 	simplejson.dumps(list(last_records())),
 	content_type='application/json')
 
+def last_alerts(user):
+    qs=models.Alert.objects.all()
+    
+    if not user.is_staff:
+	qs=qs.filter(alert__users__in=[user,], active=True)
+    
+    for alert in qs.all():
+	t = {
+	    'alert': {
+		'mode': {
+		    'id': alert.alert.mode,
+		    'text': models.ALERT_INFO[alert.alert.mode]['short'],
+		},
+		'set': alert.alert.set,
+		'clr': alert.alert.clr,
+		'timeout': alert.alert.timeout,
+		'enabled': alert.alert.enabled,
+	    },
+	    'settime': str(alert.settime),
+	    'clrtime': str(alert.clrtime),
+	    'target': {
+		'address': alert.target.address,
+		'name': alert.target.friendly_name,
+	    },
+	    'reviewed': not alert.active,
+	    'pk': alert.pk,
+	}
+	yield t
+    
+    
+def get_last_alerts(request):
+    if not request.user.is_authenticated:
+	return HttpResponse('{}', content_type='application/json')
+    return HttpResponse(
+	simplejson.dumps(list(last_alerts(request.user))),
+	content_type='application/json')
+
 def get_sensors(request, mode=None):
     if mode:
 	qs = models.SensorSDKRemoteDevice.getHandler(mode).objects.all()
@@ -101,8 +139,10 @@ def get_chart_fields_for_sensor(request, address):
 	content_type='application/json')
 
 def chart(request):
-    return render_to_response("sensorsdk/chart.html",)
+    return render_to_response("sensorsdk/chart.html", {}, 
+	context_instance=RequestContext(request))
 
 def index(request):
-    return render_to_response("sensorsdk/index.html")
+    return render_to_response("sensorsdk/index.html", {},
+	context_instance=RequestContext(request))
 
