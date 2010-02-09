@@ -29,6 +29,8 @@ urlpatterns = patterns( '',
 	(r'^API/get-chart-fields/(?P<address>.+)$', views.get_chart_fields_for_sensor),
 	(r'^API/get-sensors/(?P<mode>.*)$', views.get_sensors),
 	(r'^API/get-modes/$', views.get_modes),
+	url(r'^rpc/last_records/', views.get_last_records, name="sensorsdk-last_records"),
+	url(r'^rpc/last_alerts/', views.get_last_alerts, name="sensorsdk-last_records"),
 	url(r'^chart/$', views.chart, name="sensorsdk-chart"),
 	url(r'^$', views.index, name="sensorsdk-index"),
     )
