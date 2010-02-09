@@ -212,6 +212,8 @@ class SensorDongleAdmin(MyModelAdmin):
 	out=_('''
 On this page you can setup the dongles you will with SensorSDK.<br>
 Don\'t forget to mark your dongles as enabled.<br>
+
+<strong>Note: Right now there\'s no javascript to automatically fill in the address field, you will have to cut and paste the address below</strong>
 ''')
 	try:
 	    from rpyc import connect
@@ -229,26 +231,44 @@ Don\'t forget to mark your dongles as enabled.<br>
 
 class AlertAdmin(admin.ModelAdmin):
     fieldsets = (
-        ('Alert configuration',{
-            'fields': ('alert', 'target', 'active',),
+        (_('Alert configuration'),{
+            'fields': ('alert', 'target',),
         }),
-        ('Time', {
+        (_('Alert state'),{
+	    'fields': ('active', 'reviewed', 'auto_cleared', 'auto_timeout', 'value'),
+	}),
+        (_('Time'), {
             'fields': ('settime','clrtime',)
         }),
     )
 
     list_display = ( 'target',
+			'alert',
+			'value',
                         'active',
-                        'alert',
+                        'reviewed',
+                        'auto_cleared',
+                        'auto_timeout',
                         'settime',
                         'clrtime',
                 )
     list_filter = ( 'target',
 		    'active',
                     'alert',
+                    'reviewed',
+                    'auto_cleared',
+                    'auto_timeout',
+
                 )
 
-    ordering = [ 'target', 'active', 'alert', 'settime', 'clrtime']
+    ordering = [ 'target', 
+	'active', 
+	'alert', 
+	'settime', 
+	'clrtime',
+	'auto_cleared',
+	'auto_timeout',
+	'value']
 
 def get_redirect(tag, klass):
     return HttpResponseRedirect('%s%s/%s/add/' % (
@@ -320,7 +340,8 @@ class MyAdminSite(admin.AdminSite):
 	    {
 		'url': None, 
 		'state': get_icon(SensorSDKRemoteDevice.objects.count()>0), 
-		'text': _('Wait until your SenorSDK devices are discovered')
+		'text': mark_safe(
+		    _('Wait until your SenorSDK devices are discovered, <a href=".">Refresh</a>'))
 	    },
 	    self.generateSetupStepContentForModel(
 		AlertDefinition, _('Create Alert Definitions')),
