@@ -28,12 +28,12 @@ class EmailForm(forms.Form):
     )
     EMAIL_HOST = ServerField(
 	label=_("Email server"),
-	help_text=_("Your SMTP email server address. <b>Example</b>: smtp.google.com")
+	help_text=_("Your SMTP email server address. <b>Example</b>: smtp.gmail.com")
     )
     EMAIL_HOST_USER = forms.CharField(
 	label=_("Email server user"), 
 	required=False,
-	help_text=_("User name you use to connect to this server")
+	help_text=_("User name you use to connect to this server. <b>Example</b>: youruser@gmail.com")
     )
     EMAIL_HOST_PASSWORD = forms.CharField(
 	label=_("Email server password"), 
@@ -58,6 +58,7 @@ class EmailForm(forms.Form):
 	value=self.cleaned_data['EMAIL_PORT']
 	if int(value) <= 0:
 	    raise ValidationException(_("Port number invalid"))
+	return value
     
     def clean(self):
 	if 'EMAIL_HOST_USER' in self.cleaned_data and \
