@@ -4,17 +4,17 @@ register=template.Library()
 
 def getSensorSDK():
     try:
-        return __import__('sensorsdk')
+        return __import__('sensorsdk', level=0)
     except:	
-        return __import__('plugins.sensorsdk')
+        return __import__('plugins.sensorsdk', fromlist=['__version__', 'find_plugins'], level=0)
+sensorsdk=getSensorSDK()
 
 def sensorsdk_version():
-    return getattr(getSensorSDK(),'__version__', None)
+    return sensorsdk.__version__
 
 def sensorsdk_plugins_as_li():
-    print "sensorsdk_plugins_as_li"
     out = ""
-    for plugin in getattr(getSensorSDK(),'find_plugins', lambda: [])():
+    for plugin in getattr(sensorsdk,'find_plugins', lambda: [])():
 	out+="<li>%s: %s</li>" % (plugin.module_name, getattr(plugin, '__version__', 'ND'))
     return out
 
