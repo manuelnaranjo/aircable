@@ -341,6 +341,11 @@ class AlertDefinition(models.Model):
 		    logger.info("%s not sending for over %s seconds" % (remote.address, notif.set))
 		    # ok we reached the time trigger
 		    notif.sendNotification(target=remote, value=time.mktime(last_record.time.timetuple()))
+		else:
+		    qs=Alert.objects.filter(alert=notif, active=True, target=remote)
+		    if qs.count() > 0:
+			logger.info("%s is sending again clearing alarm" % remote)
+			qs.update(active=False, auto_cleared=True)
 	    Alert.updateActive()
 
     def display_Mode(self):
@@ -421,6 +426,17 @@ class Alert(models.Model):
 	    self.display_Active(),
 	    unicode(self.alert), 
 	    self.target.address)
+	    
+    def display_State(self):
+	if self.active:
+	    return _("Needs Action")
+	if self.auto_cleared:
+	    return _("Values back to normal")
+	if self.auto_timeout:
+	    return _("Alarm did a timeout")
+	if self.reviewed:
+	    return _("Action taken")
+	return _("Not Valid State")
 
 def get_subclass(object):
     '''get subclass from object'''
