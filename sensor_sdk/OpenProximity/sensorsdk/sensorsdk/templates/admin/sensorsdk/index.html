@@ -15,6 +15,10 @@
 
 {% block breadcrumbs %}{% endblock %}
 
+{% block nav-global %}
+<a href="/sensorsdk/" style="margin: 0 12px">{% trans 'SensorSDK Home' %}</a>
+{% endblock %}
+
 {% block content %}
 <div id="content-main">
 
@@ -49,7 +53,7 @@
     {% endfor %}
 
     {% if extra_list %}
-        <div class="module">
+        <div class="module" >
 	<table summary="{% trans "Available Extra settings" %}">
         <caption>{% trans "Extra Settings" %}</caption>
 	{% for extra in extra_list %}
@@ -73,7 +77,7 @@
 {% block sidebar %}
 <div id="content-related">
     {% if setup_steps %}
-        <div class="module" id="help">
+        <div class="module" id="help" style="width: 500px;">
 	    <h2>{% trans "Quick Setup" %}</h2>
 	    <h3>{% trans "Needed Steps" %}</h3>
 	    <ul class="actionlist">
