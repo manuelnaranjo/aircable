@@ -1,0 +1,3 @@
+* * * * * (cd /opt/openproximity2; bash manager.sh send_mail >> /var/log/aircable/cron_mail.log 2>&1 )
+0,20,40 * * * * (cd /opt/openproximity2; bash manager.sh retry_deferred >> /var/log/aircable/cron_mail.log 2>&1 )
+*/5 * * * * (cd /opt/openproximity2; bash manager.sh sdk_check_no_data >> /var/log/aircable/sdk_no_data.log 2>&1 )
