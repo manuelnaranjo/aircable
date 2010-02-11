@@ -97,7 +97,8 @@ def last_alerts(user):
 		'address': alert.target.address,
 		'name': alert.target.friendly_name,
 	    },
-	    'reviewed': not alert.active,
+	    'state': alert.display_State(),
+	    'active': alert.active,
 	    'pk': alert.pk,
 	}
 	yield t
