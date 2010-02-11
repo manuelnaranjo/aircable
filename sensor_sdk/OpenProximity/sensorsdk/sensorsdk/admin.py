@@ -3,7 +3,7 @@
 from django.contrib import admin
 from django.shortcuts import render_to_response
 from django.db import models
-from django import forms
+from django import forms, template
 from models import *
 from django.http import HttpResponseRedirect
 from forms import EmailForm, AlertTemplateForm
@@ -14,8 +14,15 @@ from django.utils.safestring import mark_safe
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.conf import settings
+from django.views.decorators.cache import never_cache
 from utils import save_email_settings, isAIRcable
 import rpyc
+import help_text
+
+#auth needed pieces
+from django.contrib.auth.models import User
+from django.contrib.auth.admin import UserAdmin
+
 
 class MyModelAdmin(admin.ModelAdmin):
     change_form_template = 'admin/sensorsdk/change_form.html'
@@ -76,16 +83,8 @@ class SensorCampaignAdmin(MyModelAdmin):
     ordering = [ 'name', 'start', 'end' , 'addr_filter', 'name_filter']
     
     help_text_title=_("SensorSDK Campaign")
-    help_text=_('''A <b>SensorSDK campaign</b> is used to tell to which devices we try to <b>connect</b>.<br>
-<br>
-You can\'t use <b>SensorSDK</b> without having an <b>enabled</b> campaign first.<br>
-Important fields are:<ul>
-<li>Enabled.
-<li>Address Filter.
-<li>Name Filter.</ul>
-<br>
-<br>Plugin handling per device is handled by each plugin, <b>you don\'t have to worry about it</b>.''')
-
+    help_text=help_text.SensorCampaignAdmin
+    
 class AlertDefinitionTemplateAdmin(MyModelAdmin):
     fieldsets = (
 	(None, { 'fields': ('mode', )}),
@@ -107,48 +106,7 @@ class AlertDefinitionTemplateAdmin(MyModelAdmin):
 	return super(AlertDefinitionTemplateAdmin, self).formfield_for_dbfield(db_field, **kwargs)
 	
     help_text_title=_("Alert Definition Template")
-    help_text=_('''An <b>Alert Definition Template</b> is used to generate email content when an alert is triggered.<br>
-<br>
-You can only define one template per kind of alert available.<br>
-<br>
-The Syntaxis is the same used on Django templates, remember to add double brackets to each variable {{ variable }}.<br>
-<br>
-<h3>Available variables from SensorSDK</h3>
-<ul>
-    <li><b>value</b>: Value from the reading that triggered the alarm</li>
-    <li><b>time</b>: Time when the alarm was triggered</li>
-    <li><b>user</b>: User whose getting this email</li>
-    <li><b>target</b>: Reference to the device that triggered the alarm. Available subset:
-	<ul>
-	    <li><b>target.address</b></li>
-	    <li><b>target.name</b></li>
-	    <li><b>target.mode</b></li>
-	    <li><b>target.friendly_name</b></li>
-	</ul>
-    </li>
-    <li><b>definition</b>:  Information related to the alarm definition
-	<ul>
-	    <li><b>definition.mode</b></li>
-	    <li><b>definition.field</b></li>
-	    <li><b>definition.set</b></li>
-	    <li><b>definition.clr</b></li>
-	    <li><b>definition.targets</b></li>
-	    <li><b>definition.timeout</b></li>
-	    <li><b>definition.users</b></li>
-	</ul>
-    </li>
-</ul>
-<br>
-<br>
-You can get more information on:
-<ul>
-<li><a href="http://www.opensensors.wikidot.com">OpenSensors Website</a></li>
-<li><a href="http://www.openproximity.org">OpenProximity Website</a></li>
-<li><a href="http://www.djangoproject.com/">Django Website</a></li>
-</ul>
-<br><br>
-''')
-
+    help_text=help_text.AlertDefinitionTemplateAdmin
 
 class AlertDefinitionAdmin(MyModelAdmin):
     fieldsets = (
@@ -181,27 +139,7 @@ class AlertDefinitionAdmin(MyModelAdmin):
 
     ordering = [ 'mode', 'field', 'enabled']
     help_text_title=_("Alert Definition")
-    help_text=_('''An <b>Alert Definition</b> defines the conditions for alarms to be triggered.<br>
-<br>
-There are four types of alarms:<ul>
-<li><b>Under Range</b></li>
-<li><b>Over Range</b></li>
-<li><b>In Range</b></li>
-<li><b>No data</b></li>
-</ul>
-<br>
-<br>
-All this types of alarms except for <b>No data</b> need a <b>set</b> and a <b>clear</b> value. 
-This values will define when an alarm condition is met.
-<br>
-<br>
-<b>No Data</b> is an special kind of alarm which is sent when more than <b>set</b> seconds are elapsed
-without any data from the monitored devices.
-<br>
-<br>
-For more information check <a href="http://opensensors.wikidot.com">OpenSensors Website</a>
-<br><br>
-''')
+    help_text=help_text.AlertDefinitionAdmin
 
 class SensorDongleAdmin(MyModelAdmin):
     help_text_title=_("SensorsDK Dongle Configuration")
@@ -296,6 +234,21 @@ def get_icon(state, alternate_text=None):
 class MyAdminSite(admin.AdminSite):
     shown_index = False
     index_template = "admin/sensorsdk/index.html"
+    model_order=dict()
+    app_order=list()
+    
+    def register(self, model, *args, **kwargs):
+	# order is important for us.
+	app_label = model._meta.app_label
+	module_name = model._meta.module_name
+	if app_label not in self.app_order:
+	    self.app_order.append(app_label)
+	if app_label not in self.model_order:
+	    self.model_order[app_label]=list()
+	if module_name not in self.model_order[app_label]:
+	    self.model_order[app_label].append(module_name)
+
+	super(MyAdminSite,self).register(model, *args, **kwargs)
     
     def generateSetupStepContentForModel(self, klass, text, extra=None):
 	created = klass.objects.count() > 0
@@ -318,11 +271,34 @@ class MyAdminSite(admin.AdminSite):
 	    'extra': mark_safe("<a href='setup_email/test' class='myviewsitelink'>%s</a>" % _('Check Email Configuration')),
 	}
 
+    def sort_app_list(self, app_list):
+	out = list()
+	for app in self.app_order:
+	    for random in app_list:
+		if random['app_label'] == app:
+		    out.append(random)
+		    app_list.remove(random)
+		    break
+	out.extend(app_list)
+	return out
+
+    def sort_app_dict(self, model_list, order):
+	out = list()
+	for ordered in order:
+	    for random in list(model_list):
+		if str(random['module_name']) == ordered:
+		    out.append(random)
+		    model_list.remove(random)
+		    break
+	out.extend(model_list)
+	return out
+
     def index(self, request, extra_context=None):
         """
-    	SensorSDK customization
+    	SensorSDK index page
         """
         
+        # contect customization
         # first add SensorSDK quick setup steps
 	if extra_context is None:
 	    extra_context = {}
@@ -343,6 +319,12 @@ class MyAdminSite(admin.AdminSite):
 		'text': mark_safe(
 		    _('Wait until your SenorSDK devices are discovered, <a href=".">Refresh</a>'))
 	    },
+	    {
+		'url': 'auth/user/add/', 
+		'state': get_icon(User.objects.filter(is_staff=False).count()>0), 
+		'text': mark_safe(
+		    _('Create a few <b>non staff</b> users, so they can receive emails from Alarms'))
+	    },
 	    self.generateSetupStepContentForModel(
 		AlertDefinition, _('Create Alert Definitions')),
 	]
@@ -351,7 +333,57 @@ class MyAdminSite(admin.AdminSite):
 	    {'url': mark_safe('setup_email/'), 'name': _("Setup Email Server")},
 	    {'url': mark_safe('alert_template_fill/'), 'name': _("Automatically Fill Alert Templates")},
 	]
-        return super(MyAdminSite, self).index(request, extra_context)
+        
+        app_dict = {}
+        user = request.user
+        for model, model_admin in self._registry.items():
+            app_label = model._meta.app_label
+            has_module_perms = user.has_module_perms(app_label)
+
+            if has_module_perms:
+                perms = model_admin.get_model_perms(request)
+
+                # Check whether user has any perm for this module.
+                # If so, add the module to the model_list.
+                if True in perms.values():
+                    model_dict = {
+                        'name': capfirst(model._meta.verbose_name_plural),
+                        'module_name': model._meta.module_name,
+                        'admin_url': mark_safe('%s/%s/' % (app_label, model.__name__.lower())),
+                        'perms': perms,
+                    }
+                    if app_label in app_dict:
+                        app_dict[app_label]['models'].append(model_dict)
+                    else:
+                        app_dict[app_label] = {
+                            'name': app_label.title(),
+                            'app_label': app_label,
+                            'app_url': app_label + '/',
+                            'has_module_perms': has_module_perms,
+                            'models': [model_dict],
+                        }
+
+	# first check if we have our own order
+        # Sort the apps alphabetically.
+        app_list = app_dict.values()
+        app_list=self.sort_app_list(app_list)
+
+        # Sort the models alphabetically within each app.
+        for app in app_list:
+            app['models']=self.sort_app_dict(app['models'], self.model_order[app['app_label']])
+
+        context = {
+            'title': _('Site administration'),
+            'app_list': app_list,
+            'root_path': self.root_path,
+        }
+        context.update(extra_context or {})
+        context_instance = template.RequestContext(request, current_app=self.name)
+        return render_to_response(self.index_template or 'admin/index.html', context,
+            context_instance=context_instance
+        )
+    index = never_cache(index)
+
 
     def get_urls(self):
 	from django.conf.urls.defaults import patterns, url
@@ -479,11 +511,15 @@ Don\'t forget to mark the <b>Save Settings</b> field if you want changes to be p
 	)
 
 myadmin = MyAdminSite()
-myadmin.register(SensorSDKBluetoothDongle, SensorDongleAdmin)
 myadmin.register(SensorCampaign, SensorCampaignAdmin)
+myadmin.register(SensorSDKBluetoothDongle, SensorDongleAdmin)
 myadmin.register(AlertDefinitionTemplate, AlertDefinitionTemplateAdmin)
 myadmin.register(AlertDefinition, AlertDefinitionAdmin)
 myadmin.register(Alert, AlertAdmin)
+
+
+# add user creation forms
+myadmin.register(User, UserAdmin)
 
 
 # now it's time to get the rest of the admins
