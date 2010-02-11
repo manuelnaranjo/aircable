@@ -115,6 +115,7 @@
 	function(){
 	    connect($('node_type'), "onchange", update_sensors_list);
 	    connect($('node_address'), "onchange", update_fields_list);
+	    roundClass(null, "chart_button", {bgColor: "#e4e4e4"});
 	    update_type_sensors_list();
 	}
     );
@@ -138,14 +139,27 @@
 	return null
     }
     
+    function create_chart_button(id, text, extra, onclick){
+	var inner;
+	var out;
+	var a;
+	out=DIV({'id': id, 'class':'chart_button', 'style':'width:10em; margin-right: 1em'})
+	inner=DIV({'class': 'inner', 'style': 'height: 1.5em'})
+	out.appendChild(inner)
+	a=A({'innerHTML': text, 'extra': extra})
+	connect(a, 'onclick', onclick)
+	inner.appendChild(a)
+	return out
+    }
+    
     function add_chart(){
-	address=$('node_address').value;
-	span=get_time_span()
+	var address=$('node_address').value;
+	var span=get_time_span()
 	
-	control=$('node_fields');
+	var control=$('node_fields');
 	fields=Array();
 	var count=0;
-	for ( i=0; i <  control.options.length; i++ ){
+	for ( i in control.options ){
 	    if (control.options[i].selected){
 		fields[count]=control.options[i].value;
 		count++;
@@ -156,78 +170,102 @@
 	    return;
 	}
 	
-	n=0
+	var n=0;
 	for ( v in charts) {
 	    n++;
 	}
 	
-	holder=DIV({'id': 'chart_holder' + n, 'class': 'content-main'});
-	inner=DIV({'class': 'inner', 'style':'padding: 1em;'})
+	var inner=DIV({'class': 'inner', 'style':'padding: 1em; height: 440px'});
+	var holder=DIV({'id': 'chart_holder' + n, 'class': 'content-main', 'style': 'float:bottom'});
+	
 	appendChildNodes($('charts_holder'), holder);
 	appendChildNodes(holder, inner);
-	chart=DIV({'id': 'chart' + n});
+	appendChildNodes(inner, DIV({'id': 'chart' + n, 'style': 'float:bottom'}));
 	
-	refresh=BUTTON({'id': 'refresh'+n, 'innerHTML': '{% trans "Refresh" %}', 'extra': chart.id});
-	del =BUTTON({'id': 'delete'+n,  'innerHTML': '{% trans "Delete" %}',  'extra': holder.id});
-	
-	connect(refresh, 'onclick', refresh_chart);
-	connect(del, 'onclick', delete_chart);
 
-	appendChildNodes(inner, chart);
-	appendChildNodes(inner, P());
+	var refresh=create_chart_button	('refresh'+n, '{% trans "Refresh" %}', 'chart'+n, refresh_chart);
+	var del =create_chart_button	('delete'+n,  '{% trans "Delete" %}',  holder.id, delete_chart);
+	
 	appendChildNodes(inner, refresh);
-	appendChildNodes(inner, del)
-	create_chart(chart.id, address, fields, span, holder);
-	last_chart=chart.id;
+	appendChildNodes(inner, del);
+	roundElement(refresh, {bgColor: "#e4e4e4"});
+	roundElement(del, {bgColor: "#e4e4e4"});
+	create_chart('chart'+n, address, fields, span, holder);
+	last_chart='chart'+n;
     }
     
     
     
     </script>
+    <style type="text/css">
+	.label { width: 10em }
+	.btn { 
+	    position: static ;
+	    float: left;
+	    right: none;
+	    bottom: none;
+	}
+    .chart_button { 
+        overflow: hidden;
+	padding-bottom: 1 em;
+	margin-left: 0.5em;
+        float: left;
+        width: 110px;
+        text-align: center;
+        text-decoration: none;
+        background-color: #a6d5e9;
+        color: #555;
+    }
+    </style>
 {% endblock %}
 
 {% block content %}
 <div class="content-main">
-<div class="inner">
-<table>
-    <tr>
-        <td>{% trans "Type" %}</td>
-        <td><select size="1" id="node_type"></select></td>
-    </tr>
-    <tr>
-        <td>{% trans "Node" %}</td>
-        <td><select size="1" id="node_address"></select></td>
-    </tr>
-    <tr>
-        <td>{% trans "Fields" %}</td>
-        <td><select size="4" id="node_fields" multiple="multiple"></select></td>
-    </tr>
-    <tr>
-	<td>{% trans "Time Span" %}</td>
-	<td>
-	    <form id="time_span">
-	    <input type="radio" name="time_span" value="hour" checked>{% trans "Last Hour" %}</input>
-	    <input type="radio" name="time_span" value="day">{% trans "Last Day" %}</input>
-	    <input type="radio" name="time_span" value="week">{% trans "Last Week" %}</input>
-	    <input type="radio" name="time_span" value="month">{% trans "Last Month" %}</input>
-	    </form>
-	</td>
-    </tr>
-    <tr>
-	<td>{% trans "Options" %}</td>
-	<td>
-	    <input type="checkbox" id="chart_raw" checked>{% trans "Raw Data" %}</input>
-	    <input type="checkbox" id="chart_smooth">{% trans "Smooth Data" %}</input>
-	    {% trans "Smooth Factor" %}:<input type="text" id="chart_smooth_factor" value="0.2" />
-	</td>
-    </tr>
-</table>
-<p></p>
-<span>
-    <button type="button" name="create_chart" id="create_chart" onclick="add_chart();">{% trans "Add Chart" %}</button>
-    <button type="button" name="refresh" id="refresh">{% trans "Refresh Fields" %}</button>
-</span>
-<p></p>
+<div class="inner" style="height: 240px">
+    <fieldset class="configuration" style="width: 50%; float: left;" >
+    <legend><strong>{% trans "Chart Configuration" %}</strong></legend>
+    <div class="setting">
+	<div class="label">{% trans "Type" %}</div>
+        <span class="value"><select size="1" id="node_type" style="width: 60%"><option>{% trans "Loading"%}...</option></select></span>
+    </div>
+    <div class="setting">
+        <div class="label">{% trans "Node" %}</div>
+        <span class="value"><select size="1" id="node_address" style="width: 60%"><option>{% trans "Loading"%}...</option></select></span>
+    </div>
+    <div class="setting">
+        <div class="label">{% trans "Fields" %}</div>
+        <span class="value"><select size="4" id="node_fields" multiple="multiple" style="width: 60%"><option>{% trans "Loading"%}...</option></select></span>
+    </div>
+    <div class="setting">
+	<div class="label">{% trans "Time Span" %}</div>
+	<span class="value">
+	    <input type="radio" name="time_span" value="hour" checked="checked" />{% trans "Last Hour" %}
+	    <input type="radio" name="time_span" value="day" />{% trans "Last Day" %}
+	    <input type="radio" name="time_span" value="week" />{% trans "Last Week" %}
+	    <input type="radio" name="time_span" value="month" />{% trans "Last Month" %}
+	</span>
+    </div>
+    <div class="setting">
+	<div class="label">{% trans "Options" %}</div>
+	<span class="value">
+	    <input type="checkbox" id="chart_raw" checked="checked" />{% trans "Raw Data" %}
+	    <input type="checkbox" id="chart_smooth"/>{% trans "Smooth Data" %}
+	    {% trans "Smooth Factor" %}: <input type="text" id="chart_smooth_factor" value="0.2" style="width:3em" />
+	</span>
+    </div>
+    <div class="setting" style="margin-top: 0.5em; margin-left: 8em;">
+	<div id="create_chart" class="chart_button" style="width: 10em; margin-right: 1em;">
+	    <div class="inner" style="height: 1.5em">
+		<a onclick="add_chart();">{% trans "Add Chart" %}</a>
+	    </div>
+	</div>
+	<div id="refresh" class="chart_button" style="width: 10em; margin-right: 1em;">
+	    <div class="inner" style="height: 1.5em">
+		<a onclick="update_type_sensors_list();">{% trans "Refresh Fields" %}</a>
+	    </div>
+	</div>
+    </div>
+    </fieldset>
 </div>
 </div>
 <div id="charts_holder">
