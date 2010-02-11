@@ -3,7 +3,6 @@
     function update_last_alerts(){
 	var defer = loadJSONDoc('rpc/last_alerts/');
 	var field=$('pending_alarms_holder');
-	field.innerHTML = "{% trans "Updating" %} ..."
 	
 	var gotAlarms = function(Alarms){
 	    if (Alarms.length == 0){
@@ -11,21 +10,29 @@
 		return
 	    }
 	    
-	    holder = UL()
+	    new_holder = DIV({'id': 'pending_alarms_holder'})
 	    
 	    for (al in Alarms){
-		line = LI()
-		alarm=Alarms[al]
-		line.innerHTML=
-		    "<a href='admin/sensorsdk/alert/" + alarm.pk +"/'>"+
-		    alarm.target.name+
-		    ' ['+alarm.target.address+']: '+
-		    alarm.alert.mode.text + ' {% trans "at" %} ' + alarm.settime +
-		    "</a>"
-		holder.appendChild(line)
+		var line = DIV({"class":"setting"})
+		var alarm=Alarms[al];
+
+		var k = "label"
+		if (alarm.active) {
+		    k+=" active";
+		}
+		line.appendChild(STRONG({'class': k, 'innerHTML': alarm.state}))
+		
+		v=DIV({"class": "value"})
+		
+		v.appendChild(A({
+		    'href': 'admin/sensorsdk/alert/' + alarm.pk +'/',
+		    'innerHTML': alarm.target.name+ ' ['+alarm.target.address+']: '+ alarm.alert.mode.text + ' {% trans "at" %} ' + alarm.settime
+		}))
+		line.appendChild(v)
+		new_holder.appendChild(line)
 	    }
-	    field.innerHTML=""
-	    field.appendChild(holder)
+	    
+	    swapDOM(field, new_holder)
 	}
 	
 	var failedFetchAlarms = function(){
