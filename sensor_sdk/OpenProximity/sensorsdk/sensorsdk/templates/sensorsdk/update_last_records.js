@@ -23,6 +23,9 @@
 	for (var f in record.last_record){
 	    text+=f+": "+record.last_record[f]+", "
 	}
+	if (text.length==0){
+	    text="{% trans 'No Data'%}" 
+	}
 	hold.appendChild(SPAN({ 
 	    'class': 'value', 
 	    'innerHTML': text 
