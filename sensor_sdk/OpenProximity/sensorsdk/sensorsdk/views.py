@@ -74,10 +74,10 @@ def get_last_records(request):
 	content_type='application/json')
 
 def last_alerts(user):
-    qs=models.Alert.objects.all()
+    qs=models.Alert.objects.all().filter(active=True)
     
     if not user.is_staff:
-	qs=qs.filter(alert__users__in=[user,], active=True)
+	qs=qs.filter(alert__users__in=[user,])
     
     for alert in qs.all():
 	t = {
