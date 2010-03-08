@@ -80,7 +80,7 @@
 212 IF $0[0] = 114 THEN 280;
 0 REM close connection
 213 IF $0[0] = 99 THEN 260;
-214 PRINTS"Invalid Command\n\r
+214 PRINTS"Invalid Command\r\n
 215 GOTO 200
 
 0 REM This is the help command
@@ -88,26 +88,26 @@
 0 REM i scan
 0 REM r rssi scan
 0 REM c close connection
-250 PRINTS"h help\n\r"
-251 PRINTS"i scan\n\r"
-252 PRINTS"r rssi scan\n\r"
-253 PRINTS"c exit\n\r"
+250 PRINTS"h help\r\n"
+251 PRINTS"i scan\r\n"
+252 PRINTS"r rssi scan\r\n"
+253 PRINTS"c exit\r\n"
 254 GOTO 200
 
-260 PRINTS"Bye Bye\n\r"
+260 PRINTS"Bye Bye\r\n"
 261 A = disconnect 0
 262 A = slave 1
 264 A = pioclr J
 264 RETURN
 
-270 PRINTS"Name Scan\n\r
+270 PRINTS"Name Scan\r\n
 271 K = 2;
 272 X = 1;
 273 ALARM 15
 274 A = inquiry 9;
 275 RETURN
 
-280 PRINTS"RSSI scan\n\r
+280 PRINTS"RSSI scan\r\n
 281 T = atoi $0[1];
 282 R = 0;
 283 K = 1;
