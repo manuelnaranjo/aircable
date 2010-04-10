@@ -1,0 +1,12 @@
+#*
+    Example usage, this will generate monitor generic
+    code included on each of the bought sensorsdk
+*#
+#set global $stream="slave"
+#include "base/AIRcable.bas"
+#include "demo/menu.bas"
+#include "base/functions.bas"
+#include "shell/AIRcable.bas"
+#include "monitor/AIRcable.bas"
+#include "demo/sensor.bas"
+
