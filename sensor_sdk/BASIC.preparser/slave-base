@@ -1,0 +1,10 @@
+#*
+    Example usage, this will generate monitor generic
+    you need to add your sensor for this to be useful
+*#
+#set global $stream="slave"
+#include "base/AIRcable.bas"
+#include "base/basic_menu.bas"
+#include "base/functions.bas"
+#include "shell/AIRcable.bas"
+#include "monitor/AIRcable.bas"

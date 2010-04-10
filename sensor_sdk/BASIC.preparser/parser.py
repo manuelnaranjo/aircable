@@ -69,4 +69,6 @@ if __name__ == '__main__':
     t.CAPTURE=CAPTURE
     t.DISCONNECT=DISCONNECT
     t.DEF=DEF
+#    print t.generatedClassCode()
     print str(t)
+
