@@ -1,7 +1,8 @@
 from setuptools import setup
+from monitorlinkth import __version__
 
 setup(name="SensorSDK Linkth Sensor",
-    version="0.2",
+    version=__version__,
     packages=['monitorlinkth',],
     summary="SensorSDK Linth Sensor",
     description="""SensorSDK plugin""",
