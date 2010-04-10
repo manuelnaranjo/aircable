@@ -1,7 +1,8 @@
 from setuptools import setup
+from monitorambient import __version__
 
 setup(name="SensorSDK Ambient Sensor",
-    version="0.1a",
+    version=__version__,
     packages=['monitorambient',],
     summary="SensorSDK Ambient Sensor",
     description="""SensorSDK plugin""",
