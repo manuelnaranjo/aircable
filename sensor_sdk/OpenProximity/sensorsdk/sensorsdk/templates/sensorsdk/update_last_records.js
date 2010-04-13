@@ -1,23 +1,23 @@
 {% load i18n %}
 <script type="text/javascript">
     function record_as_li(record){
-	hold = DIV({'class': 'setting'})
+	hold = DIV({'class': 'setting', 'display': 'table-row'})
 	
 	hold.appendChild(DIV({ 
 	    'class': 'label',
 	    'innerHTML': "["+record.address+"]",
-	    'style': 'width: 11.5em;'
+	    'style': 'display: table-cell; width: 11.5em;'
 	}))
 	hold.appendChild(DIV({ 
 	    'class': 'label',
 	    'innerHTML': record.friendly_name,
-	    'style': 'width: 15em; height: 1em;'
+	    'style': 'display: table-cell; width: 15em;'
 	}))
 	
 	hold.appendChild(DIV({ 
 	    'class': 'label', 
 	    'innerHTML': record.latest_served,
-	    'style': 'width: 20em;'
+	    'style': 'width: 20em; display: table-cell'
 	}))
 	var text=""
 	for (var f in record.last_record){
@@ -28,7 +28,8 @@
 	}
 	hold.appendChild(SPAN({ 
 	    'class': 'value', 
-	    'innerHTML': text 
+	    'innerHTML': text ,
+	    'style': 'display: table-cell;'
 	}))
 	return hold
     }
@@ -38,7 +39,7 @@
 	var field=$('sdk_last_records_holder');
 	
 	var gotStats = function(stats){
-	    var out = DIV({'id': 'sdk_last_records_holder'});
+	    var out = DIV({'id': 'sdk_last_records_holder', 'display': 'table'});
 	    
 	    for (var rec in stats){
 		out.appendChild(record_as_li(stats[rec]))

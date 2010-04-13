@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   id="svg2"
+   sodipodi:version="0.32"
+   inkscape:version="0.47 r22583"
+   width="463.0386"
+   height="460.72083"
+   sodipodi:docname="in_range.svg"
+   version="1.0">
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs5">
+    <inkscape:perspective
+       sodipodi:type="inkscape:persp3d"
+       inkscape:vp_x="0 : 230.31496 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_z="460.62991 : 230.31496 : 1"
+       inkscape:persp3d-origin="230.31496 : 153.5433 : 1"
+       id="perspective7648" />
+    <inkscape:perspective
+       id="perspective8204"
+       inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
+       inkscape:vp_z="1 : 0.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 0.5 : 1"
+       sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective
+       id="perspective8318"
+       inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
+       inkscape:vp_z="1 : 0.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 0.5 : 1"
+       sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective
+       id="perspective8347"
+       inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
+       inkscape:vp_z="1 : 0.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 0.5 : 1"
+       sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective
+       id="perspective8381"
+       inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
+       inkscape:vp_z="1 : 0.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 0.5 : 1"
+       sodipodi:type="inkscape:persp3d" />
+  </defs>
+  <sodipodi:namedview
+     inkscape:window-height="841"
+     inkscape:window-width="1436"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     borderopacity="1.0"
+     bordercolor="#666666"
+     pagecolor="#ffffff"
+     id="base"
+     showgrid="true"
+     showguides="false"
+     inkscape:zoom="1.0025097"
+     inkscape:cx="483.44077"
+     inkscape:cy="191.23968"
+     inkscape:window-x="-1"
+     inkscape:window-y="0"
+     inkscape:current-layer="svg2"
+     inkscape:window-maximized="1" />
+  <rect
+     style="fill:#00ff00;stroke:none"
+     id="rect8369-7"
+     width="149.43391"
+     height="460.72083"
+     x="313.60468"
+     y="0"
+     ry="0" />
+  <rect
+     style="fill:#00ff00;stroke:none"
+     id="rect8369"
+     width="149.43391"
+     height="459.72333"
+     x="0"
+     y="0.46997637"
+     ry="0" />
+  <rect
+     style="fill:#00ff00;stroke:#f74d00;stroke-width:119.91989899;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:13.80000019;stroke-opacity:1;stroke-dasharray:none"
+     id="rect8367"
+     width="73.916"
+     height="340.3143"
+     x="194.46817"
+     y="60.182674" />
+  <text
+     xml:space="preserve"
+     style="font-size:59.41528702px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"
+     x="-344.95834"
+     y="454.62701"
+     id="text8180"
+     transform="matrix(0,-1.3342534,0.74948282,0,0,0)"><tspan
+       sodipodi:role="line"
+       id="tspan8182"
+       x="-344.95834"
+       y="454.62701">Set</tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-size:59.41528702px;font-style:normal;font-weight:normal;text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"
+     x="-124.01404"
+     y="292.12378"
+     id="text8188"
+     transform="matrix(0,-1.3342534,0.74948282,0,0,0)"><tspan
+       sodipodi:role="line"
+       x="-114.55633"
+       y="292.12378"
+       id="tspan8192">Alarm is </tspan><tspan
+       sodipodi:role="line"
+       x="-124.01404"
+       y="366.39288"
+       id="tspan8335">SET</tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-size:59.41528702px;font-style:normal;font-weight:normal;text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"
+     x="-125.01427"
+     y="532.47467"
+     id="text8188-3"
+     transform="matrix(0,-1.3342534,0.74948282,0,0,0)"><tspan
+       sodipodi:role="line"
+       x="-125.01427"
+       y="532.47467"
+       id="tspan8192-7">Alarm is</tspan><tspan
+       sodipodi:role="line"
+       x="-125.01427"
+       y="606.74377"
+       id="tspan8337">Clear</tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-size:59.41528702px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"
+     x="-345.66287"
+     y="200.83305"
+     id="text8184-4"
+     transform="matrix(0,-1.3342534,0.74948282,0,0,0)"><tspan
+       sodipodi:role="line"
+       id="tspan8186-5"
+       x="-345.66287"
+       y="200.83305">Clear</tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-size:59.41528702px;font-style:normal;font-weight:normal;text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"
+     x="-122.94794"
+     y="65.017174"
+     id="text8188-3-2"
+     transform="matrix(0,-1.3342534,0.74948282,0,0,0)"><tspan
+       sodipodi:role="line"
+       x="-122.94794"
+       y="65.017174"
+       id="tspan8192-7-5">Alarm is</tspan><tspan
+       sodipodi:role="line"
+       x="-122.94794"
+       y="139.28629"
+       id="tspan8337-4">Clear</tspan></text>
+</svg>

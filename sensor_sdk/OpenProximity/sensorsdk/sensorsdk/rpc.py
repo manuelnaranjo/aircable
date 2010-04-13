@@ -146,7 +146,7 @@ def device_found(record, services):
     if isAIRcable(address):
 	channel=1
     client.connect(record.remote.address, channel=channel)
-    return True
+    return client
 
 CLOCK=compile(r'^CLOCK\|(?P<clock>(\d+)*.?(\d+)*)$')
 READING=compile(r'^BATT\|(?P<batt>(\d+))\s*\|SECS\|(?P<secs>(\d+))\s*\|(?P<reading>.*)$')
