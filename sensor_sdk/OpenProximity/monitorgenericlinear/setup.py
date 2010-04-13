@@ -1,7 +1,8 @@
 from setuptools import setup
+from monitorgenericlinear import __version__
 
 setup(name="SensorSDK Generic Linear Sensor",
-    version="0.1",
+    version=__version__,
     packages=['monitorgenericlinear',],
     summary="SensorSDK Generic Linear Sensor",
     description="""SensorSDK plugin""",
