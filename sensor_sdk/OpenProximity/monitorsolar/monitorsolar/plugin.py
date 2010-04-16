@@ -13,6 +13,10 @@
 #    You should have received a copy of the GNU General Public License along
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+# SensorSDK plugin
+name='SensorSDK plugin - Solar Monitor'	# friendly name
+enabled=True
+sensorsdk=True				# expose me as a sensorsdk
+django_app=True 			# we provide an application so we can
+					# define models
 
-__version_info__=('0','2','1')
-__version__ = '.'.join(__version_info__)
