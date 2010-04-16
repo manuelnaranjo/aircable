@@ -14,5 +14,10 @@
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-__version_info__=('0','2','2')
-__version__ = '.'.join(__version_info__)
+name='SensorSDK plugin - Ambient LinkTH'	# friendly name
+enabled=True
+sensorsdk=True					# expose me as a sensorsdk
+
+django_app=True					# we provide an application so we can
+						# define models
+
