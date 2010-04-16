@@ -156,7 +156,7 @@ Don\'t forget to mark your dongles as enabled.<br>
 	try:
 	    from rpyc import connect
 	    server=connect('localhost', 8010)
-	    dongles=server.root.getAllDongles()
+	    dongles=server.root.getDongles()
 	    if len(dongles) == 0:
 		out+=_("<b>No dongles available</b>")
 	    else:
@@ -526,13 +526,13 @@ myadmin.register(User, UserAdmin)
 from net.aircable.openproximity.pluginsystem import pluginsystem
 for plugin in pluginsystem.get_plugins('sensorsdk'):
     try:
-       logger.debug("import admin for plugin %s" % plugin.module_name)
-       mod = __import__("%s.sdkadmin" % plugin.module_name, fromlist=['register'])
+       logger.debug("import admin for plugin %s" % plugin.name)
+       mod = __import__("%s.sdkadmin" % plugin.name, fromlist=['register'])
        if not getattr(mod, 'register', None):
-           logger.debug("no admin provided by %s" % plugin.module_name)
+           logger.debug("no admin provided by %s" % plugin.name)
            continue
        for k, a in getattr(mod, 'register')():
            myadmin.register(k, a)
-       logger.debug("admin loaded for %s" % plugin.module_name)
+       logger.debug("admin loaded for %s" % plugin.name)
     except Exception, err:
-       logger.error("couldn't load admin for %s" % plugin.module_name)
+       logger.error("couldn't load admin for %s" % plugin.name)

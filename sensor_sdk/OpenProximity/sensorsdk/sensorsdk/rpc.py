@@ -69,8 +69,9 @@ class Client:
 	self.connect=async(client.connect)
 
 def register(client=None, dongles=None):
-    logger.info("register  %s %s" % (client.__class__, dongles))
-    if client.__class__ != SensorManager:
+    logger.info("register  %s %s" % (client, dongles))
+    if not isinstance(client, SensorManager):
+	logger.debug("no match")
 	return False
 
     client=Client(client)
@@ -109,7 +110,7 @@ def clean_service():
 	    service.pop(addr)
 
 
-def device_found(record, services):
+def found_action(record, services):
     dongle = record.dongle.address
     logger.info("sensorsdk device_found %s: %s[%s]" % (dongle , record.remote.address, record.remote.name))
     camps = getMatchingCampaigns(record.remote, enabled=True, classes=[SensorCampaign,])
@@ -125,10 +126,14 @@ def device_found(record, services):
     
     global clients
     if clients.get(dongle, None) is None:
+	logger.debug("dongle not registered as client")
+	logger.debug(clients)
+	logger.debug(dongle)
 	return False # there's no registered service I can't do a thing
 
     address = record.remote.address
     if not check_if_service(address):
+	logger.debug("check_if_service failed")
 	return False
 
     latest = SensorSDKRemoteDevice.objects.filter(
@@ -146,6 +151,7 @@ def device_found(record, services):
     if isAIRcable(address):
 	channel=1
     client.connect(record.remote.address, channel=channel)
+    logger.debug("connecting")
     return client
 
 CLOCK=compile(r'^CLOCK\|(?P<clock>(\d+)*.?(\d+)*)$')
@@ -237,13 +243,13 @@ def parse_history(model=None, history=None, target=None, success=False,
     except Exception, err:
 	logger.exception(err)
 
-    pending.remove(target)
+    pending.pop(target)
 
 handlers[signals.HANDLED_HISTORY]=parse_history
 
 def handle_failed(pending, target, *args, **kwargs):
     logger.error("handle failed %s" % target)
-    pending.remove(target)
+    pending.pop(target)
 
 handlers[signals.TOO_BUSY]=handle_failed
 handlers[signals.CONNECTION_FAILED]=handle_failed

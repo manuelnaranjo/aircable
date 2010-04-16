@@ -27,10 +27,6 @@ from datetime import datetime
 from django.forms import widgets
 from net.aircable.utils import logger
 import time
-from __init__ import find_plugins
-
-global NEED_LOADING
-NEED_LOADING=True
 
 # we depend on django-notification
 from notification import models as notification
@@ -447,12 +443,6 @@ def get_subclass(object):
     return object
 
 def get_subclasses(base):
-    global NEED_LOADING
-    if NEED_LOADING:
-	logger.info("forcing app loading")
-	for plugin in find_plugins():
-	    logger.debug("loaded %s" % models.loading.load_app(plugin.name))
-	NEED_LOADING=False
     for app in models.get_apps():
 	for model in models.get_models(app):
 	    if model != base and issubclass(model, base):

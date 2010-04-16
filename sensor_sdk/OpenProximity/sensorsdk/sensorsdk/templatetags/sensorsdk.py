@@ -1,4 +1,5 @@
 from django import template
+from net.aircable.openproximity.pluginsystem import pluginsystem
 
 register=template.Library()
 
@@ -14,8 +15,8 @@ def sensorsdk_version():
 
 def sensorsdk_plugins_as_li():
     out = ""
-    for plugin in getattr(sensorsdk,'find_plugins', lambda: [])():
-	out+="<li>%s: %s</li>" % (plugin.module_name, getattr(plugin, '__version__', 'ND'))
+    for plugin in pluginsystem.get_plugins('sensorsdk'):
+	out+="<li>%s: %s</li>" % (plugin.name, plugin.__version__)
     return out
 
 register.simple_tag(sensorsdk_version)
