@@ -24,7 +24,7 @@ from net.aircable.utils import *
 from net.aircable.wrappers import Adapter
 from threading import Thread, activeCount
 from rpyc.utils.lib import ByValWrapper
-from net.aircable.spp.sppClient import sppClient
+
 
 def handle_device(adapter, target):
     logger.info("handle_device")
@@ -62,6 +62,7 @@ class SensorAdapter(Adapter):
 	    self.manager.tellListener(signals.TOO_BUSY, dongle=self.bt_address, target=target)
 	    return
 
+	from net.aircable.spp.sppClient import sppClient
 	client = sppClient(
 	    target,
 	    service=service,

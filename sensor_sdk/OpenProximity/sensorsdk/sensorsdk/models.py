@@ -474,6 +474,13 @@ def post_init():
 	logger.exception(err)
 
 def post_plugins_load():
+    try:
+	AlertDefinition._meta.get_field_by_name('field')
+	return
+    except:
+	pass
+	
+    logger.info("Registering AlertDefinition.field")
     field = models.CharField( max_length=100,
         help_text=_("Field used for this alarm"),
         choices=list(SensorSDKRemoteDevice.getAllFields()),
