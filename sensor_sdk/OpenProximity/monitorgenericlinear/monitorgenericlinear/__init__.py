@@ -14,5 +14,5 @@
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-__version_info__=('0','1','1')
+__version_info__=('0','1','2')
 __version__ = '.'.join(__version_info__)
