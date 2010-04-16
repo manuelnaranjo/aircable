@@ -16,26 +16,20 @@
 
 # SensorSDK handler
 
+from net.aircable.utils import logger
+from net.aircable.openproximity.pluginsystem import pluginsystem
+
 __version_info__=('0','3','3')
 __version__ = '.'.join(__version_info__)
 
-#from rpc import handle
-try:
-    from serverxr import SensorManager
-except:
-    SensorManager=None
-    
+
 def post_environ():
-    from rpc import handle, register, device_found
-    provides['rpc'] = handle            # provide rpc handle
-    provides['rpc_register'] = register # sensorsdk generic client will register with us                                                                                    
-    provides['found_action'] = device_found 
+    logger.debug("senorsdk post environ")
     from models import post_init, post_plugins_load
     post_init()
     post_plugins_load()
 
-
-def reset_stats(connection):
+def statistics_reset(connection):
     from django.db import models
     from django.core.management.color import no_style
     from django.core.management import sql
@@ -60,35 +54,6 @@ def reset_stats(connection):
 
 def find_plugins():
     #look for all the sensorsdk plugins
-    from net.aircable.utils import logger
-    from net.aircable.openproximity.pluginsystem import pluginsystem
     for plugin in pluginsystem.get_plugins('sensorsdk'):
-	logger.info("Plugin %s" % plugin.module_name)
+	logger.info("Plugin %s" % plugin.name)
 	yield plugin
-
-
-provides = { 
-    'name': 'SensorSDK plugin', 	# friendly name
-    
-    'enabled': True,			# disable me please
-    
-    'django': True,			# expose me as a django enabled plugin
-    
-    'post_environ': True,		# provide rpc handle
-
-    'TEMPLATE_DIRS': 'templates',	# static media I give to django
-    'LOCALE_PATHS': 'locale',
-    'django_app': True,			# we provide an application so we can
-					# define models
-   
-    'statistics_reset':	reset_stats, 
-    'urls': ( 'sensorsdk', 'urls' ),	# urls I give to django
-    
-    'serverxr':	True,			# we have our own rpc client
-    'serverxr_type': 'sensorsdk',
-    'serverxr_manager':	SensorManager,
-    
-    'plugin_provider': True,
-    'find_plugins': find_plugins,
-}
-
