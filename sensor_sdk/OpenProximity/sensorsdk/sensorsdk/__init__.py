@@ -19,7 +19,7 @@
 from net.aircable.utils import logger
 from net.aircable.openproximity.pluginsystem import pluginsystem
 
-__version_info__=('0','3','3')
+__version_info__=('0','3','4')
 __version__ = '.'.join(__version_info__)
 
 
