@@ -16,12 +16,17 @@
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.            
 
 # defines new clases for db integration
+from net.aircable.utils import logger
+import sys
+models = None
+
 try:
     from sensorsdk import models
-except:
+except Exception, err:
     from plugins.sensorsdk import models
 
-from net.aircable.utils import logger
+logger.debug('found sensorsdk.models')
+
 from django.utils.translation import ugettext as _
 from django.db import models as mod
 from re import compile
@@ -77,8 +82,6 @@ class GenericLinearDevice(models.SensorSDKRemoteDevice):
     @staticmethod
     def getRecordClass():
         return GenericLinearRecord
-        
-
 
 lin=compile(r'LIN\|(?P<value>\d+).*\|(?P<mode>[AB])\|(?P<slope>[+-]?.*)\|(?P<offset>[+-]?.*)$')
 class GenericLinearRecord(models.SensorSDKRecord):
