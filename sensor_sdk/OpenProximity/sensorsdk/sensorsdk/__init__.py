@@ -16,14 +16,14 @@
 
 # SensorSDK handler
 
-from net.aircable.utils import logger
-from net.aircable.openproximity.pluginsystem import pluginsystem
-
 __version_info__=('0','3','4')
 __version__ = '.'.join(__version_info__)
 
 
 def post_environ():
+    from net.aircable.utils import logger
+    
+
     logger.debug("senorsdk post environ")
     from models import post_init, post_plugins_load
     post_init()
@@ -53,6 +53,8 @@ def statistics_reset(connection):
 	connection.cursor().execute("drop table %s" % table)
 
 def find_plugins():
+    from net.aircable.utils import logger
+    from net.aircable.openproximity.pluginsystem import pluginsystem
     #look for all the sensorsdk plugins
     for plugin in pluginsystem.get_plugins('sensorsdk'):
 	logger.info("Plugin %s" % plugin.name)

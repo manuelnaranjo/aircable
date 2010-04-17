@@ -67,7 +67,7 @@
 ## make visible
 282 IF Q = 242 THEN 320;
 ## test lcd
-283 IF Q = 243 THEN 333;
+283 IF Q = 243 THEN 332;
 ## test pio
 284 IF Q = 244 THEN 340;
 ## show address
@@ -108,7 +108,7 @@
 311 $8[4]=0
 
 312 Q = 240
-313 GOTO 253;
+313 GOTO 42;
 
 ## show battery
 314 $8=$7
@@ -121,12 +121,11 @@
 
 ## test lcd
 330 ABCDEFGHIJKLMNOPQRSTUVWXYZ
-331 abcdefghijklmnopqrstuvwxyz
-332 0123456789 %C+-*!#$&/()=?.
-
-333 A=pioirq"P000000000000";
-334 FOR D=330 TO 332;
-335 FOR B=0 TO 19;
+331 01234567899876543210%CABCD
+332 A=pioirq"P000000000000";
+333 WAIT 1
+334 FOR D=330 TO 331
+335 FOR B=0 TO 18
 336 A=lcd\$D[B]
 337 NEXT B 
 338 NEXT D
@@ -190,4 +189,3 @@
  
 385 Q = 700
 386 GOTO 341;
-
