@@ -70,18 +70,17 @@ class Client:
 
 def register(client=None, dongles=None):
     logger.info("register  %s %s" % (client, dongles))
-    if not isinstance(client, SensorManager):
-	logger.debug("no match")
-	return False
+    if repr(client).find('sensorsdk.serverxr.SensorManager') == -1:
+        logger.debug("no match")
+        return False
 
     client=Client(client)
-    
     dongles = get_dongles(list(dongles))
-    
+
     for dongle, max_conn in dongles:
-	clients[dongle]=client
-	client.add_dongle(dongle, max_conn)
-    
+        clients[dongle]=client
+        client.add_dongle(dongle, max_conn)
+
     client.refreshDongles()
     return True
 
