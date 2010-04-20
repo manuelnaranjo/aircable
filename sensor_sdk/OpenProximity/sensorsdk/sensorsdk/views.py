@@ -147,3 +147,12 @@ def index(request):
     return render_to_response("sensorsdk/index.html", {},
 	context_instance=RequestContext(request))
 
+def get_help(request, mode):
+    def internal_get_help(mode):
+	out = {'pk': mode}
+	out.update(models.ALERT_INFO[mode].get('help', {}))
+	return out
+	
+    return HttpResponse(
+	simplejson.dumps(internal_get_help(int(mode))),
+	content_type='application/json')
