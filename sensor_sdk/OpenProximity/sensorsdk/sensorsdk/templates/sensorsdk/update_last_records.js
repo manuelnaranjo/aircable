@@ -6,7 +6,7 @@
 	hold.appendChild(DIV({ 
 	    'class': 'label',
 	    'innerHTML': "["+record.address+"]",
-	    'style': 'display: table-cell; width: 11.5em;'
+	    'style': 'display: table-cell; width: 13em;'
 	}))
 	hold.appendChild(DIV({ 
 	    'class': 'label',

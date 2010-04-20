@@ -34,11 +34,6 @@ class SensorAdapter(Adapter):
     def __init__(self, manager, max_conn = 7, *args, **kwargs):
         Adapter.__init__(self, *args, **kwargs)
 
-        if not self.is_aircable:
-    	    # Ok you got me, this is the second piece you need to remove
-	    # MN but don't tell anyone.
-	    raise Exception("Can't use non AIRcable dongle as SensorAdapter")
-
 	self.max_conn = max_conn
 	self.current_connections = 0
 
