@@ -1,1 +1,2 @@
 recursive-include sensorsdk/templates *
+recursive-include sensorsdk/media *
