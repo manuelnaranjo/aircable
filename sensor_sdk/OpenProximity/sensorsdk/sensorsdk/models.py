@@ -144,24 +144,75 @@ ALERT_INFO= {
 	'long': _('A sensor hasn\'t reported data for a long time'),
 	'set': lambda x: False,
 	'clear': lambda x: False,
+	'help': {
+	    'set': _(
+		'When device hasn\'t reported data for more than this amount'
+		    ' of seconds then trigger alarm'),
+	    'clr': _('ignored'),
+	    'field': _('ignored'),
+	    'mode': _('This alarm will allow you to monitor'
+		' if your devices are reporting back to the server')
+	}
     },
     0: {'name': 'alert_over',
 	'short': _('Over Range'),
 	'long': _('A sensor reading has gone over range'),
 	'set': lambda val, set, extra: val > set,
 	'clear': lambda val, clear, extra: val < clear,
+	'help': {
+	    'set': _(
+		'set alarm if monitored signal goes over this value.'
+	    ),
+	    'clr': _(
+		'clear alarm if monitored signal goes under this value.'
+	    ),
+	    'field': _('this is the signal this alarm is going to watch'),
+	    'mode': _(
+		'This alarm will allow to monitor over range sensitive processes.<br>'
+		'For example avoid boiling temperature in a water pipe.'
+	    )
+	}
+
     },
     1: {'name': 'alert_under',
 	'short': _('Under Range'),
 	'long': _('A sensor reading has gone under range'),
 	'set': lambda val,set,extra: val < set,
 	'clear': lambda val,clear,extra: val > set,
+	'help': {
+	    'set': _(
+		'set alarm if monitored signal goes under this value.'
+	    ),
+	    'clr': _(
+		'clear alarm if monitored signal goes over this value.'
+	    ),
+	    'field': _('this is the signal this alarm is going to watch'),
+	    'mode': _(
+		'This alarm will allow to monitor under range sensitive processes.<br>'
+		'For example to avoid freezing point in a water pipe.'
+	    )
+	}
+
+
     },
     2: {'name': 'alert_in', 
 	'short': _('In Range'), 
 	'long': _('A sensor reading has gone into range'),
 	'set': lambda val,lim_m,lim_M: lim_m < val and val < lim_M,
 	'clear': lambda val,lim_M,lim_m: val < lim_m and lim_M > val,
+	'help': {
+	    'set': _(
+		'set alarm if monitored signal goes over this value.'
+	    ),
+	    'clr': _(
+		'set alarm if monitored signal goes under this value.'
+	    ),
+	    'field': _('this is the signal this alarm is going to watch'),
+	    'mode': _(
+		'This alarm will allow to monitor when a signal goes inside a range.<br>'
+		'For example some chemical processes need values to not get inside a window.'
+	    )
+	}
     },
 
 }
@@ -447,6 +498,8 @@ def get_subclasses(base):
 	for model in models.get_models(app):
 	    if model != base and issubclass(model, base):
 		yield model
+    for model in base.__subclasses__():
+	yield model
 
 def handle_SensorSDKRecord_post_save(sender, instance, created, **kwargs):
     if isinstance(instance, SensorSDKRecord):
@@ -459,9 +512,9 @@ def post_init():
 	for i in ALERT_INFO:
 	    info=ALERT_INFO[i]
 	    notification.create_notice_type(info['name'], info['short'], info['long'])
-	post_plugins_load()
     except Exception, err:
 	logger.exception(err)
+    post_plugins_load()
 
 def post_plugins_load():
     try:
@@ -473,7 +526,7 @@ def post_plugins_load():
     logger.info("Registering AlertDefinition.field")
     field = models.CharField( max_length=100,
         help_text=_("Field used for this alarm"),
-        choices=list(SensorSDKRemoteDevice.getAllFields()),
+        choices=set(SensorSDKRemoteDevice.getAllFields()),
         name='field',
         blank=True, null=True
     )
