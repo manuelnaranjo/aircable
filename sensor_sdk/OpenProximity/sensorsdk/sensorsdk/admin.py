@@ -109,6 +109,12 @@ class AlertDefinitionTemplateAdmin(MyModelAdmin):
     help_text=help_text.AlertDefinitionTemplateAdmin
 
 class AlertDefinitionAdmin(MyModelAdmin):
+    class Media:
+        js = ( 
+	    '/site_media/MochiKit.js',
+	    '/site_media/alert_definition.js'
+        )
+
     fieldsets = (
         ('Alert configuration',{
             'fields': ('mode', 'field', 'set', 'clr',),
