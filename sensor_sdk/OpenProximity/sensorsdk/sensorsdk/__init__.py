@@ -16,16 +16,23 @@
 
 # SensorSDK handler
 
-__version_info__=('0','3','4')
+__version_info__=('0','3','5')
 __version__ = '.'.join(__version_info__)
 
 
 def post_environ():
     from net.aircable.utils import logger
-    
-
     logger.debug("senorsdk post environ")
     from models import post_init, post_plugins_load
+    
+    for p in find_plugins():
+	try:
+	    logger.debug("forcing model loading for %s" % p.name)
+	    __import__('%s.models' % p.name)
+	except Exception, err:
+	    logger.error(err)
+	    logger.exception(err)
+    
     post_init()
     post_plugins_load()
 
