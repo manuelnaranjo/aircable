@@ -1,4 +1,4 @@
-import time, re
+import time, re, e32
 try:
     import select
 except:
@@ -89,7 +89,7 @@ def btrecv(socket, bufsize):
 #    return
 
 def do_sendall(sock, data):
-    print "do_sendall", data
+#    print "do_sendall", data
     if isPyS60(sock):
 	return btsendall(sock, data)
     return sock.sendall(data, socket.MSG_WAITALL)
@@ -107,7 +107,7 @@ def do_select(sock, timeout=1):
     return rl
 
 def send_command(socket, command):
-    print 'send_command', command.strip()
+#    print 'send_command', command.strip()
     if type(command) == str:
         command = COMMANDS.index(command)
     command = COMMAND_LINE % command
@@ -129,80 +129,83 @@ def readbuffer(socket, timeout=0.2, ending=None, bufsize=0xffff, sleep=0.1):
 	if len(o) > 0:
 	    if ending:
 	        if o.find(ending)>0:
-	    	    print "found ending"
+	    #    print "found ending"
 		    break
 	    elif a==0:
-		print "no more data"
+		#print "no more data"
     		break
 	if time.time()-last > timeout:
-	    print "timeout"
+	    #print "timeout"
 	    break
 	a = 0
 #    socket.setblocking(True)
-    print "buffer length", len(o)
+    #print "buffer length", len(o)
     return o
 
 def clearbuffer(socket, timeout=1, sleep=0.2):
-    readbuffer(socket, timeout, sleep=sleep)
-    print "dropped"
+    readbuffer(socket, timeout=timeout, sleep=sleep)
+    #print "dropped"
 
-def readline(socket, timeout=1, sleep=0.2):
+def readline(socket, timeout=0.5, sleep=0.2):
     out = readbuffer(socket, timeout, '\r\n', bufsize=1, sleep=sleep)
-    print "readline:", out
+    #print "readline:", out
     return out
 
-def command_echo(socket):
+def command_echo(socket, timeout):
     while [ 1 ]:
 	send_command(socket, 'COMMAND_ECHO')
-        l = readline(socket, 10, sleep=2)
+        l = readline(socket, timeout=timeout)
         if l.find('ACK') > 0:
             return
 
-def set_command_mode(socket):
+def set_command_mode(socket, timeout=1.5):
     send_command(socket, 'SET_COMMAND_MODE')
-    clearbuffer(socket, timeout=1.5)
+    clearbuffer(socket, timeout=timeout)
 
-def set_capture_mode(socket, size='VGA'):
+def set_capture_mode(socket, size='VGA', timeout=0.5):
     send_command(socket, SIZES[size])
-    clearbuffer(socket, timeout=0.5)
+    clearbuffer(socket, timeout=timeout)
 
-def capture_command(socket):
+def capture_command(socket, timeout=0.5):
     send_command(socket, 'CAPTURE_COMMAND')
-    clearbuffer(socket, timeout=0.5)
+    #clearbuffer(socket, timeout=timeout)
 
-def get_capture_size(socket):
-    send_command(socket, 'GET_CAPTURE_SIZE')
+def get_capture_size(socket, timeout=1):
     while [ 1 ]:
-        res = CAPTURE_SIZE.match(readline(socket, timeout=1))
-        if res:
-            return int(res.groupdict()['size'])
+	send_command(socket, 'GET_CAPTURE_SIZE')
+	for line in readbuffer(socket, timeout).splitlines():
+	    res = CAPTURE_SIZE.match(line.strip())
+	    if res:
+		return int(res.groupdict()['size'])
 
 def start_capture_send(socket, size, timeout=0.2):
     send_command(socket, 'START_CAPTURE_SEND')
     ini = time.time()
-    print "waiting to read %s bytes" % size
+    #print "waiting to read %s bytes" % size
     out = ""
     prev = len(out)
     while [ 1 ]:
 	out += readbuffer(socket, timeout, sleep=0.2, bufsize=200)
 	if prev == len(out): # got nothing for 2 cycles
-	    print "elapsed", time.time()-ini
+	    #print "elapsed", time.time()-ini
 	    return out
-	print "elapsed", time.time()-ini, len(out)
+	#print "elapsed", time.time()-ini, len(out)
 	prev += len(out)
 
-def grab_picture(socket, size='VGA', timeout=0.2):
-    command_echo(socket)
-    clearbuffer(socket, timeout=0.5)
-    set_command_mode(socket)
-    set_capture_mode(socket, size)
-    capture_command(socket)
-    while [ 1 ]:
-        size = get_capture_size(socket)
-        if size == 0xFFFFFFFF:
-            raise Exception("function not supported")
-        if size > 0:
-            return start_capture_send(socket, size, timeout)
+def setup(socket, timeout=0.2, size='VGA'):
+    command_echo(socket, timeout=timeout)
+    set_command_mode(socket) # default timeout
+    e32.ao_sleep(2)
+    set_capture_mode(socket, size=size, timeout=timeout)
+    clearbuffer(socket, timeout=timeout)
+
+def grab_picture(socket, timeout=0.2):
+    capture_command(socket, timeout=timeout)
+    clearbuffer(socket, timeout=timeout)
+    size = get_capture_size(socket, timeout=timeout)
+    if size == 0xFFFFFFFF:
+        raise Exception("function not supported")
+    return start_capture_send(socket, size, timeout)
 
 if __name__=='__main__':
     import sys
@@ -214,7 +217,7 @@ if __name__=='__main__':
 	import bluetooth as socket
 	socket.MSG_WAITALL = MSG_WAITALL
 	pybluez = True
-	print "pybluez available"
+	#print "pybluez available"
     except:
 	import socket
     
@@ -257,3 +260,4 @@ if __name__=='__main__':
         clearbuffer(sock)
         out.close()
         print "took %s out of %s" % (i+1, c)    
+
