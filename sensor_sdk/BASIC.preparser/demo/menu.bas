@@ -1,6 +1,6 @@
 #*
     state machine:
-        240 <= Q <= 246 displaying menu
+        240 <= Q <= 247 displaying menu
         500 waiting for analog to read
         501 waiting for battery to read
         600 <= Q <= 699 running LCD test
@@ -19,7 +19,8 @@
 243 TEST_LCD
 244 TEST_PIO
 245 ADDRESS
-246 EXIT
+246 DATE
+247 EXIT
 
 250 ALARM 0 
 251 A = pioirq $6;
@@ -47,12 +48,12 @@
 
 ## you should modify this line to add more
 ## entries
-272 Q = 246;
+272 Q = 247;
 273 GOTO 250;
 
 ## increase
 ## modify this line if you add more entries
-274 IF Q > 244 THEN 277;
+274 IF Q > 246 THEN 277;
 275 Q = Q + 1;
 276 GOTO 250;
 
@@ -72,11 +73,13 @@
 284 IF Q = 244 THEN 340;
 ## show address
 285 IF Q = 245 THEN 290;
+## show date
+286 IF Q = 246 THEN 325;
 ## exit
-286 IF Q = 246 THEN 295;
+287 IF Q = 247 THEN 295;
 ## you can add more options here.
-287 A = lcd"MENU ERROR"
-288 RETURN
+288 A = lcd"MENU ERROR"
+289 RETURN
 
 ## show own address
 290 A = getaddr $8;
@@ -118,6 +121,13 @@
 320 A = slave 20
 321 A = lcd "VISIB 20"
 322 RETURN
+
+## show date
+325 A = date $8
+326 GOSUB 40
+327 Q = 240
+328 ALARM 1
+329 RETURN
 
 ## test lcd
 330 ABCDEFGHIJKLMNOPQRSTUVWXYZ

@@ -172,7 +172,13 @@ O to N reserved for 'user' sensor code
 
 
 ## initializate the device
-@INIT 60
+@INIT 57
+## enable uart disable SMD CTS
+57 A = pioout 5
+58 A = pioclr 5
+59 A = uarton
+
+## do init sequence
 60 A = baud 1152
 61 Z = $17[0]-48
 ## enable lcd
