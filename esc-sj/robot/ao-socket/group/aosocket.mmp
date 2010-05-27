@@ -1,0 +1,64 @@
+targettype      dll
+target          kf_aosocketnativenew.pyd
+targetpath		\sys\bin
+
+userinclude		..\src
+EPOCALLOWDLLDATA
+
+UID 0x1000008d 0xE9D8D152
+
+systeminclude	\epoc32\include\python25
+systeminclude	\epoc32\include\stdapis
+systeminclude	\epoc32\include
+
+sourcepath		..\src
+
+//#if defined (WINS)
+//  DEFFILE ..\bwins\airbotdll.def
+//#elif defined (GCC32)
+//  DEFFILE ..\bmarm\airbotdll.def
+//#else 
+//  DEFFILE ..\eabi\airbotdll.def
+//#endif
+
+nostrictdef
+
+library bluetooth.lib
+library btmanclient.lib
+library efsrv.lib
+library esock.lib
+library euser.lib
+library flogger.lib
+library insock.lib
+library sdpagent.lib
+library sdpdatabase.lib 
+library python25.lib
+library bafl.lib
+
+
+source apnflogger.cpp
+source apnimmediate.cpp
+source apnitc.cpp
+source apnloop.cpp
+source apnportdiscoverer.cpp
+source apnresolver.cpp
+source apnsocket.cpp
+source apnsocketserv.cpp
+source btengine.cpp
+source localepocpyutils.cpp
+source moduleinit.cpp
+source panic.cpp
+source resolution.cpp
+source socketaos.cpp logging.cpp
+
+#ifdef ENABLE_ABIV2_MODE
+DEBUGGABLE_UDEBONLY
+#endif
+
+EXPORTUNFROZEN
+
+macro __HAS_BT_SET_SECURITY__
+macro __HAS_FLOGGER__
+
+CAPABILITY LocalServices Location NetworkServices ReadUserData UserEnvironment WriteUserData
+

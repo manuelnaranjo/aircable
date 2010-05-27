@@ -1,0 +1,4 @@
+[Q] Is it possible to run ao-socket on old Series 60 phones like the Nokia 3650?
+
+[A] It's not possible without some modifications, as the library presently uses some APIs only available in S60 2nd Ed and up. These include CActiveSchedulerWait and RFileLogger at least, I think. It ought to be quite possible to remove these dependencies, and to resolve any other possible incompatibilities, but we didn't bother since we don't have any 1st Ed phones. You're welcome to send us a patch, though.
+

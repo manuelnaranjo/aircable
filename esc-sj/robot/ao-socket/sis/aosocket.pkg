@@ -1,0 +1,41 @@
+; generated -- do not edit
+
+#{"aosocket"}, (0xE9D8D152), 0, 12, 0
+
+;; Platform dependency. Supports s60_3rd & 5th edition.
+[0x1028315F], 0, 0, 0, {"S60 5th Edition devices"}
+[0x101F7961], 0, 0, 0, {"S60 3rd Edition devices"}
+
+;Localised Vendor name
+%{"AIRcable-EN"}
+
+;Unique Vendor name
+:"AIRcable"
+
+
+"$(EPOCROOT)Epoc32\release\$(PLATFORM)\$(TARGET)\kf_aosocketnativenew.pyd"		  -"!:\sys\bin\kf_aosocketnativenew.pyd"
+"..\python-lib\aosocket\CondVar.py" 				- "c:\resource\python25\aosocket\CondVar.py"
+"..\python-lib\aosocket\MtFileLogger.py" 			- "c:\resource\python25\aosocket\MtFileLogger.py"
+"..\python-lib\aosocket\__init__.py" 				- "c:\resource\python25\aosocket\__init__.py"
+"..\python-lib\aosocket\abst_async_mgr.py" 			- "c:\resource\python25\aosocket\abst_async_mgr.py"
+"..\python-lib\aosocket\async_mgr_base.py" 			- "c:\resource\python25\aosocket\async_mgr_base.py"
+"..\python-lib\aosocket\async_socket.py" 			- "c:\resource\python25\aosocket\async_socket.py"
+"..\python-lib\aosocket\async_socket_exceptions.py" - "c:\resource\python25\aosocket\async_socket_exceptions.py"
+"..\python-lib\aosocket\settings.py" 				- "c:\resource\python25\aosocket\settings.py"
+"..\python-lib\aosocket\symbian\Flogger.py" 		- "c:\resource\python25\aosocket\symbian\Flogger.py"
+"..\python-lib\aosocket\symbian\__init__.py" 		- "c:\resource\python25\aosocket\symbian\__init__.py"
+"..\python-lib\aosocket\symbian\bt.py" 				- "c:\resource\python25\aosocket\symbian\bt.py"
+"..\python-lib\aosocket\symbian\bt_device_discoverer.py" - "c:\resource\python25\aosocket\symbian\bt_device_discoverer.py"
+"..\python-lib\aosocket\symbian\bt_utils.py" 		- "c:\resource\python25\aosocket\symbian\bt_utils.py"
+"..\python-lib\aosocket\symbian\symbian_async_mgr.py" - "c:\resource\python25\aosocket\symbian\symbian_async_mgr.py"
+"..\python-lib\aosocket\symbian\symbian_async_socket.py" - "c:\resource\python25\aosocket\symbian\symbian_async_socket.py"
+"..\python-lib\aosocket\symbian\symbian_itc.py" 	- "c:\resource\python25\aosocket\symbian\symbian_itc.py"
+"..\python-lib\aosocket\symbian\symbian_socket.py" 	- "c:\resource\python25\aosocket\symbian\symbian_socket.py"
+"..\python-lib\aosocket\symbian\tcp.py"				- "c:\resource\python25\aosocket\symbian\tcp.py"
+"..\python-lib\pdis\__init__.py" 					- "c:\resource\python25\pdis\__init__.py"
+"..\python-lib\pdis\lib\__init__.py" 				- "c:\resource\python25\pdis\lib\__init__.py"
+"..\python-lib\pdis\lib\best_threading.py" 			- "c:\resource\python25\pdis\lib\best_threading.py"
+"..\python-lib\pdis\lib\logging.py" 				- "c:\resource\python25\pdis\lib\logging.py"
+"..\python-lib\pdis\lib\priority.py" 				- "c:\resource\python25\pdis\lib\priority.py"
+"..\python-lib\pdis\socket\__init__.py" 			- "c:\resource\python25\pdis\socket\__init__.py"
+"..\python-lib\pdis\socket\socket_exceptions.py" 	- "c:\resource\python25\pdis\socket\socket_exceptions.py"

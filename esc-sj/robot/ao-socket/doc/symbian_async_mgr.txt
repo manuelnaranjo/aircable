@@ -1,0 +1,67 @@
+This is perhaps the trickiest component to implement in this socket
+library, as we have to mediate between MT and AO worlds, being both
+sufficiently thread safe, and sufficiently conformant to the Symbian
+AO conventions. By "sufficiently" we mean whatever is required to
+avoid state inconsistencies, stray signals, threads blocking forever,
+and so forth.
+
+The internal thread of the socket manager shall be fully AO event
+based, and must never block for long, although we shall be doing some
+minor blocking to implement critical sections. All the other threads
+come to us from the outside, and we do not care about whether they are
+running within a ``RunL`` or not -- but they really shouldn't, as we
+may keep them waiting in a blocking manner for long periods of time.
+We also do not care about whether the external threads have an active
+scheduler, although they typically would.
+
+The challenge here is in arranging the communication between the
+threads, while also accounting for the fact that ``close`` may be
+called at any time by any external thread. It is never called by the
+internal thread.
+
+To pass a request from an external thread to the internal one
+
+* we acquire a mutex which controls access to selected property (and
+  also keeps anyone from closing the manager)
+
+* we check if the manager if closed, and if so, raise an exception
+
+* we create an Event-like object, which we add to the request
+
+* we create a container for the result, which we add to the request
+
+* we enqueue the request (once done, someone calling ``close`` will no
+  longer be dangerous, as ``close`` will call ``set`` on all
+  Event-like objects in the request queue)
+
+* using the mutex (and releasing it when doing any waits) we wait on a
+  condition variable until such time that either the manager is
+  closed, or is prepared to accept an ``AoItc`` signal; if closed, we
+  do nothing, but otherwise we produce the signal to indicate that an
+  item has been added into the request queue (this will eventually
+  wake up the internal thread, if it is sleeping within the active
+  scheduler code)
+
+* we release the mutex
+
+* we ``wait`` on the Event-like object until our request completes (it
+  might have completed already before this step as we already released
+  the mutex, and in such a case the ``wait`` would complete
+  immediately)
+
+* we grab the result and return it to the caller, either using a
+  ``return`` or ``raise`` statement
+
+To pass a result from the internal thread to an external one
+
+* we set the result into a result object passed by the external thread
+
+* we release the external thread from its blocking wait by calling the
+  Event-like object it has supplied to us
+
+When ``close`` gets called, the situation is no different; we merely
+pass some result that indicates that the manager was closed, and we
+make sure to do this for each and every waiter. We do not allow anyone
+to enter a blocking wait during or after this operation, as there no
+longer is any internal thread left to release any waiters afterwards;
+the mutex we are using should ensure that this does not happen.

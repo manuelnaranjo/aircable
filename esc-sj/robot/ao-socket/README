@@ -1,0 +1,21 @@
+I took PDIS AO-SOCKET from http://pdis.hiit.fi/pdis/download/ and rebuilt
+for PyS60 v2.0 (based on python 2.5), all the credit goes to them.
+
+http://pdis.hiit.fi/pdis/download/
+
+
+A blocking, thread-safe socket library for Python on Series 60.
+See ../../pdis/pipe/blocking_socket.py for the main external interface.
+Contains both native code and Python code. Probably the most important
+bits to be found here are:
+
+  * test-programs/ -- some test code that also, at least in some
+    cases, provide decent examples on how to use the library
+
+  * python-lib/ -- the "pure" Python code of the library
+
+  * src/ -- C++ source for the native library code
+
+  * binaries/ -- standard Symbian build files for building a SIS file
+    from source, i.e. bld.inf, .mmp, and .pkg files; when building,
+    choose the variants most appropriate for your SDK

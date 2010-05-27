@@ -1,0 +1,9 @@
+PRJ_PLATFORMS
+DEFAULT
+
+PRJ_EXPORTS
+..\src\localepocpyutils.h
+
+PRJ_MMPFILES
+aosocket.mmp
+

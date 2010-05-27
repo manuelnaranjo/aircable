@@ -1,0 +1,69 @@
+With this code
+
+from socket import *
+
+s = socket(AF_BT, SOCK_STREAM, BTPROTO_RFCOMM)
+port = bt_rfcomm_get_available_server_channel(s._sock)
+s.bind(("", port))
+bt_advertise_service(u"My Service", s._sock, True, RFCOMM)
+s.listen(1)
+
+
+we get an advertisement such that the command
+
+sdptool search --bdaddr 00:11:9F:6E:9A:51  --tree SP
+
+
+yields something like
+
+Searching for SP on 00:11:9F:6E:9A:51 ...
+Attribute Identifier : 0x0 - ServiceRecordHandle
+  Integer : 0x10015
+Attribute Identifier : 0x1 - ServiceClassIDList
+  Data Sequence
+    UUID16 : 0x1101 - SerialPort
+Attribute Identifier : 0x2 - ServiceRecordState
+  Integer : 0x2
+Attribute Identifier : 0x4 - ProtocolDescriptorList
+  Data Sequence
+    Data Sequence
+      UUID16 : 0x0100 - L2CAP
+    Data Sequence
+      UUID16 : 0x0003 - RFCOMM
+      Channel/Port (Integer) : 0x5
+Attribute Identifier : 0x8 - ServiceAvailability
+  Integer : 0xff
+Attribute Identifier : 0x100
+  Text : "My Service"
+Attribute Identifier : 0x101
+  Text : "Rfcomm Transfer"
+
+Attribute Identifier : 0x0 - ServiceRecordHandle
+  Integer : 0x10016
+Attribute Identifier : 0x1 - ServiceClassIDList
+  Data Sequence
+    UUID16 : 0x1101 - SerialPort
+Attribute Identifier : 0x2 - ServiceRecordState
+  Integer : 0x2
+Attribute Identifier : 0x4 - ProtocolDescriptorList
+  Data Sequence
+    Data Sequence
+      UUID16 : 0x0100 - L2CAP
+    Data Sequence
+      UUID16 : 0x0003 - RFCOMM
+      Channel/Port (Integer) : 0x5
+Attribute Identifier : 0x8 - ServiceAvailability
+  Integer : 0xff
+Attribute Identifier : 0x100
+  Text : "My Service"
+Attribute Identifier : 0x101
+  Text : "Rfcomm Transfer"
+
+
+And yes, the advertisements get left behind if we do not explicitly
+remove them, which explains the multiple records advertising the same
+service above.
+
+To be in line with the above, it looks like we need do nothing but
+give the "PDIS" service the service class ID 0x1101; this should
+hopefully ensure that bt_discover() finds the service.
