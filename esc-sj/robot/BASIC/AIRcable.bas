@@ -106,28 +106,35 @@
 245 RETURN
 
 @ALARM 250
-250 IF W = 1 THEN 255
-251 RETURN
+250 IF W = 1 THEN 255;
+251 IF W = 2 THEN 260;
+252 RETURN
 
 255 W = 0
-256 IF $199[12]=49 THEN 260;
+256 IF $199[12]=49 THEN 270;
 257 RETURN
 
+0 REM blink blue just for fun
+260 A = pioset 20;
+261 A = pioclr 20
+262 ALARM 10
+263 RETURN
 
 0 REM long middle turn off
-261 A = lcd "GOOD BYE";
-262 ALARM 0;
-263 A = pioirq"P000000000000"
-264 A = pioclr 1;
-265 A = pioset20
-266 A = pioclr20;
-267 A = pioget12;
-268 IF A = 1 THEN 263;
-269 A = pioclr20;
+270 A = lcd "GOOD BYE";
+271 ALARM 0;
+272 A = pioirq"P000000000000"
+273 A = pioclr 1;
+274 A = pioset20
+275 A = pioclr20;
+276 A = pioget12;
+277 IF A = 1 THEN 274;
+278 A = pioclr20;
 0 REM 268 A = lcd;
-270 A = pioset 5;
-271 A = pioirq"P000000000001"
+279 A = pioset 5;
+280 A = pioirq"P000000000001"
 0 REM deep sleep mode
-272 W = 2
-273 A = disable 3
-274 RETURN
+281 W = 2
+282 A = disable 3
+283 ALARM 10
+284 RETURN
