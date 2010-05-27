@@ -1,0 +1,15 @@
+This example will show you how to read the date and time from a realtime counter
+like DS1371 (included in the S.D.K. playground board) or others like the DS1372
+compatible with DS1371, the AIRcable OS will read this IC over I2C and format the
+seconds since 1/1/1970 as:YYYYMMDDTHHmmsst like 20060123T085854Z
+where:
+    YYYY is year in 4 digits form
+    MM is month
+    DD is day
+    HH is hour
+    mm is minute
+    ss is seconds
+    t is timezone (in this case Zulu which is GMT)
+
+This example will cycle throug YY/MM/DD and HH/mm/ss t each 5 seconds.
+
