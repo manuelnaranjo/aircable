@@ -2,20 +2,21 @@
 # nokia camera viewer
 
 import btsocket as socket
-import appuifw, graphics, key_codes
-import e32
+import appuifw, key_codes
+import airbotgraphics as graphics
+import e32, e32dbm
 from os import path
 import struct
 import os, sys
 import sysinfo
+import time
 
 from protocol import *
 import protocol
 from motor import Robot
 
-#CONFIG_DIR='E://camera_temp.jpg'
-#TEMP_FILE=path.join(CONFIG_DIR, 'camera_temp.jpg')
-TEMP_FILE='E:\\camera_temp.jpg'
+TEMP_FILE='E:\\airbot_temp.jpg'
+DATABASE='E:\\airbot.db'
 
 def connect(address=None):
     """Form an RFCOMM socket connection to the given address. If
@@ -58,10 +59,41 @@ def connect(address=None):
     print "OK."
     return sock
 
+db=e32dbm.open(DATABASE,"c")
+
+def get_camera_address():
+    if 'CAMERA' in db:
+	if appuifw.query(u'Use %s as Camera?' % db['CAMERA'], u'query'):
+	    return db['CAMERA']
+    appuifw.note(u'Scanning for Camera', u'info')
+    sock=socket.socket(socket.AF_BT,socket.SOCK_STREAM)
+    addr,services=socket.bt_discover()
+    db['CAMERA'] = addr
+    db.sync()
+    return addr
+
+def get_robot_address():
+    if 'ROBOT' in db:
+	if appuifw.query(u'Use %s as Robot Controller?' % db['ROBOT'], u'query'):
+	    return db['ROBOT']
+    
+    appuifw.note(u'Scanning for Robot Controller', u'info')
+    sock=socket.socket(socket.AF_BT,socket.SOCK_STREAM)
+    addr,services=socket.bt_discover()
+    db['ROBOT'] = addr
+    db.sync()
+    return addr
+
 camera = None
 robot = None
 
-def Connect(camera, robot, camera_address='00:22:BF:00:02:17', robot_address='00:50:C2:7F:42:A2'):
+def Connect(camera, robot, camera_address=None, robot_address=None):
+    if not camera_address: 
+	    camera_address=get_camera_address()
+    if not robot_address:	
+	    robot_address=get_robot_address()
+    db.sync()
+
     try:
 	if not camera:
 	    camera = connect( (camera_address, 1)  )
@@ -75,91 +107,80 @@ def Connect(camera, robot, camera_address='00:22:BF:00:02:17', robot_address='00
 
 camera, robot = Connect(camera, robot)
 
-KEYS={
-    key_codes.EStdKeyLeftArrow: robot.left,
-    key_codes.EStdKeyRightArrow:robot.right,
-    key_codes.EStdKeyUpArrow:   robot.forward,
-    key_codes.EStdKeyDownArrow: robot.backward,
-    'stop':                     robot.stop
-}
-
 def key_pressed(event):
     if event['type'] == appuifw.EEventKeyUp:
-         robot.stop()
+	if robot:
+	  robot.stop()
 
 # img buffer
-img = graphics.Image.new(sysinfo.display_pixels())
-def vf(im):
-    global img
-    img.blit(im)
-    handle_redraw(())
+img = graphics.Image.new((480, 360))
 
 def handle_redraw(rect):
-    global canvas, img
+    #global canvas, img
     canvas.blit(img)
 
 appuifw.app.screen = 'full'
 appuifw.app.orientation = 'landscape'
-canvas = appuifw.Canvas(event_callback=key_pressed, redraw_callback=handle_redraw)
+canvas = appuifw.Canvas(redraw_callback=handle_redraw, event_callback=key_pressed)
 
-canvas.bind(key_codes.EKeyUpArrow, robot.forward)
-canvas.bind(key_codes.EKeyDownArrow, robot.backward)
-canvas.bind(key_codes.EKeyLeftArrow, robot.left)
-canvas.bind(key_codes.EKeyRightArrow, robot.right)
+# make sure we keep the backlight on
+t = e32.Ao_timer()
+def light_on():
+    #Reset the user inactivity time, turning the backlight on, do periodic
+    e32.reset_inactivity()
+    t.after(30, light_on)
+light_on()
+
+# key handlers
+def forward():
+    if robot: 
+      robot.forward()
+
+def backward():
+    if robot:
+      robot.backward()
+
+def left():
+    if robot:
+      robot.left()
+
+def right():
+    if robot:
+      robot.right()
+
+# bind keys
+canvas.bind(key_codes.EKeyUpArrow, forward)
+canvas.bind(key_codes.EKeyDownArrow, backward)
+canvas.bind(key_codes.EKeyLeftArrow, left)
+canvas.bind(key_codes.EKeyRightArrow, right)
 appuifw.app.body=canvas
-
-camera.setblocking(False)
-clearbuffer(camera, None, sleep=1)  # wait a second to get something
 
 running = True
 
 def quit():
+    global running
     running = False
-    #os.remove(TEMP_FILE)
+    db.close()
+    os.remove(TEMP_FILE)
+    send_command(camera, 'COMMAND_ECHO')
     camera.close()
     robot.sock.close()
+    os.remove(TEMP_MOVIE)
     appuifw.app.set_exit()
-
 
 appuifw.app.exit_key_handler=quit
 
-canvas.text((0,20), u'clear buffer')
-clearbuffer(camera, timeout=2)
+setup(camera, size="QQVGA")
 
-command_echo(camera, timeout=1)
-canvas.text((0,20), u'command _mode')
-set_command_mode(camera) # default timeout
-canvas.text((0,20), u'sleeping')
-e32.ao_sleep(2)
-canvas.text((0,20), u'capture mode')
-set_capture_mode(camera, size='QVGA', timeout=1)
-canvas.text((0,20), u'clear buffer')
-clearbuffer(camera, timeout=1)
-
+camera_stream=stream_mode(camera)
 while running:
-    canvas.text((0,20), u'taking picture')
+    p=None
+    p=camera_stream.next()
+    
     try:
-	p=grab_picture(camera, timeout=0.5)
+	img=graphics.Image.from_buffer(p)
+	e32.ao_yield()
+    	canvas.blit(img)
     except Exception, err:
-	appuifw.note(u'Lost Camera Connection: %s' % str(err), 'error')
-	camera.close()
-	camera=None
-	camera, robot = Connect(camera, robot)
-
-    canvas.text((0,20), u'saving')
-    temp = file(TEMP_FILE, 'wb')
-    temp.write(p)
-    temp.flush()
-    temp.close()
-
-    canvas.text((0,20), u'display')
-    try:
-	vf(graphics.Image.open(TEMP_FILE)\
-	    .transpose(graphics.FLIP_LEFT_RIGHT)\
-	    .transpose(graphics.FLIP_TOP_BOTTOM)\
-	    .resize((640, 480), keepaspect=1)
-	)
-    except Exception, err:
-	canvas.text((0,20), u'error: %s' % str(err))
-
+	canvas.text((0,100), u'error: %s %s' % (str(err), time.time()))
     e32.ao_yield()
