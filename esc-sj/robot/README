@@ -2,13 +2,14 @@ In order to build the cellphone app you need to run
 
 ensymble.py py2sis \
     --appname=AIRbot \
-    --version=0.4 \
+    --version=<VERSION> \
     --lang=EN \
     --shortcaption=AIRbot \
     --caption=AIRbot \
     --drive=E  \
     --vendor=AIRcable \
     --verbose \
+    --ignore-missing-deps \
     <PATH to cellphone dir without /> \
     <output sis file>
 
