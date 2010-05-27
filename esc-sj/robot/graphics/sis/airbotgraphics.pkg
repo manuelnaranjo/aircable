@@ -1,0 +1,17 @@
+; generated -- do not edit
+
+#{"airbotgraphics"}, (0xE9D8D811),1,0,0
+
+;; Platform dependency. Supports s60_3rd & 5th edition.
+[0x1028315F], 0, 0, 0, {"S60 5th Edition devices"}
+[0x101F7961], 0, 0, 0, {"S60 3rd Edition devices"}
+
+;Localised Vendor name
+%{"AIRcable-EN"}
+
+;Unique Vendor name
+:"AIRcable"
+
+
+"$(EPOCROOT)Epoc32\release\$(PLATFORM)\$(TARGET)\kf_airbotgraphics.pyd"		  -"!:\sys\bin\kf_airbotgraphics.pyd"
+"..\src\airbotgraphics.py"									 				- "!:\resource\python25\airbotgraphics.py"
