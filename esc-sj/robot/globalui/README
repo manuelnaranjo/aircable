@@ -1,0 +1,5 @@
+In this folder you will find my modified version of globalui from Nokia
+I added a function that allows to close all ready opened global_note,
+global_note now returns the ID so you can later close it.
+
+2010 - Manuel Naranjo <manuel@aircable.net>

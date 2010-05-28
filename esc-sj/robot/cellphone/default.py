@@ -10,6 +10,7 @@ import struct
 import os, sys
 import sysinfo
 import time
+import myglobalui as globalui
 
 from protocol import *
 import protocol
@@ -17,6 +18,67 @@ from motor import Robot
 
 TEMP_FILE='E:\\airbot_temp.jpg'
 DATABASE='E:\\airbot.db'
+
+TITLE=u"AIRbot"
+
+def inquiry(title=None):
+    from aosocketnativenew import AoResolver
+    items = list()
+    lock = e32.Ao_lock()
+    old_title = appuifw.app.title
+    noteId=globalui.global_note(u"Scanning...", u"wait")
+    print "noteId", noteId
+    #appuifw.app.title = u"Scanning Please Wait..."
+  
+    def discovered(error, address, name, *args, **kwargs):
+	try:
+	    if not error:
+		address = ':'.join([ address[i*2:(i*2)+2] for i in range(6)]).upper()
+		print "found", address, name
+		items.append(("%s [%s]" %(name, address), address))
+		resolver.next()
+	    else:
+		print "Scan completed", error
+		lock.signal()
+	except Exception, err:
+	    appuifw.note(u'Failed to discover: %s' % err,'error')
+	    lock.signal()
+    
+    try:
+	resolver=AoResolver()
+	resolver.open()
+	resolver.discover(discovered, None)
+  
+	# start inquiry
+	lock.wait()
+
+	# if we get here then the inquiry ended
+	resolver.close()
+    except Exception, err:
+	appuifw.note(u'Failed to discover: %s' % err,'error')
+	lock.signal()
+
+    globalui.global_notehide(noteId)
+
+    if len(items) == 0:
+	appuifw.app.title = old_title
+	raise Exception("None device found")
+
+    lock = e32.Ao_lock()
+    #Define a function that is called when an item is selected
+    def handle_selection():
+	lock.signal()
+ 
+    #Create an instance of Listbox and set it as the application's body
+    lb = appuifw.Listbox(items, handle_selection)
+    old_body=appuifw.app.body
+    appuifw.app.body = lb
+    appuifw.app.title = title
+    lock.wait()
+    appuifw.app.title = old_title
+    appuifw.app.body=old_body
+
+    return items[lb.current()][1]
 
 def connect(address=None):
     """Form an RFCOMM socket connection to the given address. If
@@ -34,19 +96,8 @@ def connect(address=None):
 
     if not address:
             print "Discovering..."
-            try:
-                addr,services=socket.bt_discover()
-            except socket.error, err:
-                if err[0]==2: # "no such file or directory"
-                    appuifw.note(u'No serial ports found.','error')
-                elif err[0]==4: # "interrupted system call"
-                    print "Cancelled by user."
-                elif err[0]==13: # "permission denied"
-                    print "Discovery failed: permission denied."
-                else:
-                    raise
-                return None
-            print "Discovered: %s, %s"%(addr,services)
+	    addr = inquiry()
+            print "selected", addr
             address=(addr,1)
 
     print "Connecting to "+str(address)+"...",
@@ -65,9 +116,11 @@ def get_camera_address():
     if 'CAMERA' in db:
 	if appuifw.query(u'Use %s as Camera?' % db['CAMERA'], u'query'):
 	    return db['CAMERA']
-    appuifw.note(u'Scanning for Camera', u'info')
-    sock=socket.socket(socket.AF_BT,socket.SOCK_STREAM)
-    addr,services=socket.bt_discover()
+
+    print "Discovering..."
+    addr = inquiry(u"Choose Camera Device")
+    print "selected", addr
+
     db['CAMERA'] = addr
     db.sync()
     return addr
@@ -76,10 +129,11 @@ def get_robot_address():
     if 'ROBOT' in db:
 	if appuifw.query(u'Use %s as Robot Controller?' % db['ROBOT'], u'query'):
 	    return db['ROBOT']
+
+    print "Discovering..."
+    addr = inquiry(u"Choose Robot Controller")
+    print "selected", addr
     
-    appuifw.note(u'Scanning for Robot Controller', u'info')
-    sock=socket.socket(socket.AF_BT,socket.SOCK_STREAM)
-    addr,services=socket.bt_discover()
     db['ROBOT'] = addr
     db.sync()
     return addr
@@ -88,9 +142,9 @@ camera = None
 robot = None
 
 def Connect(camera, robot, camera_address=None, robot_address=None):
-    if not camera_address: 
+    if not camera_address:
 	    camera_address=get_camera_address()
-    if not robot_address:	
+    if not robot_address:
 	    robot_address=get_robot_address()
     db.sync()
 
@@ -105,23 +159,15 @@ def Connect(camera, robot, camera_address=None, robot_address=None):
 	sys.exit(0)
     return camera, robot
 
-camera, robot = Connect(camera, robot)
-
 def key_pressed(event):
     if event['type'] == appuifw.EEventKeyUp:
 	if robot:
 	  robot.stop()
 
-# img buffer
-img = graphics.Image.new((480, 360))
 
 def handle_redraw(rect):
     #global canvas, img
     canvas.blit(img)
-
-appuifw.app.screen = 'full'
-appuifw.app.orientation = 'landscape'
-canvas = appuifw.Canvas(redraw_callback=handle_redraw, event_callback=key_pressed)
 
 # make sure we keep the backlight on
 t = e32.Ao_timer()
@@ -130,6 +176,12 @@ def light_on():
     e32.reset_inactivity()
     t.after(30, light_on)
 light_on()
+
+#appuifw.app.orientation = 'landscape'
+appuifw.app.screen = 'normal'
+appuifw.app.title=TITLE
+
+camera, robot = Connect(camera, robot)
 
 # key handlers
 def forward():
@@ -148,11 +200,19 @@ def right():
     if robot:
       robot.right()
 
+# img buffer
+img = graphics.Image.new((480, 360))
+
+# create canvas
+canvas = appuifw.Canvas(redraw_callback=handle_redraw, event_callback=key_pressed)
+
 # bind keys
 canvas.bind(key_codes.EKeyUpArrow, forward)
 canvas.bind(key_codes.EKeyDownArrow, backward)
 canvas.bind(key_codes.EKeyLeftArrow, left)
 canvas.bind(key_codes.EKeyRightArrow, right)
+
+appuifw.app.screen = 'full'
 appuifw.app.body=canvas
 
 running = True
@@ -160,12 +220,10 @@ running = True
 def quit():
     global running
     running = False
-    db.close()
     os.remove(TEMP_FILE)
     send_command(camera, 'COMMAND_ECHO')
     camera.close()
     robot.sock.close()
-    os.remove(TEMP_MOVIE)
     appuifw.app.set_exit()
 
 appuifw.app.exit_key_handler=quit

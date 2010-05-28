@@ -1,0 +1,16 @@
+; generated -- do not edit
+
+#{"myglobalui"}, (0xE9D8D125), 0, 12, 0
+
+;; Platform dependency. Supports s60_3rd & 5th edition.
+[0x1028315F], 0, 0, 0, {"S60 5th Edition devices"}
+[0x101F7961], 0, 0, 0, {"S60 3rd Edition devices"}
+
+;Localised Vendor name
+%{"AIRcable-EN"}
+
+;Unique Vendor name
+:"AIRcable"
+
+
+"$(EPOCROOT)Epoc32\release\$(PLATFORM)\$(TARGET)\kf_myglobalui.pyd"		  -"!:\sys\bin\kf_myglobalui.pyd"
