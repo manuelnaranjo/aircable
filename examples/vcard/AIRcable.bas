@@ -87,7 +87,7 @@
 145 PRINTV N
 146 $(A+E) = $0
 
-148 A = bizcard $(L+D)
+148 A = ftp "AIRcable.vnt"
 149 D = D +1                             
 150 IF D = M THEN 165
 151 ALARM 2
