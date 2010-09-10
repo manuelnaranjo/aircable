@@ -8,7 +8,7 @@ All this examples are released under the [http://aircable.googlecode.com/svn/tru
 == Slave Related Code ==
   # *[http://code.google.com/p/aircable/wiki/Micro_Slave Micro Slave]*: A simple code that opens the slave port on discoverable mode and accepts all the incoming connections. It will teach you how to open the slave channel, how to make slave connections, and how to use debugging.
   # *[http://code.google.com/p/aircable/wiki/Little_Slave Little Slave]*: Like the micro slave, but now it will open the shell if the user press "+" when the connection is firstly started. It will teach you how to handle input characters, how to open shell connections and finally will introduce Leds handling.
-  # *[http://code.google.com/p/aircable/source/browse/examples/small_slave_XR5/AIRcable.bas Industrial XR3 and XR5 ready slave code]*
+  # *[http://code.google.com/p/aircable/source/browse/examples/small_slave_XR5/AIRcable.bas?r=672 Industrial XR3 and XR5 ready slave code]*
   # *[http://code.google.com/p/aircable/wiki/Filtered_Salve Filtered Service Slave]*: A more complex mode, it will open the port in discoverable mode, but will check that those who want to connect to this peer complies with an address pattern. It will teach you how to compare string, and reject incoming connections.
   # *[http://code.google.com/p/aircable/wiki/Restrictive_Slave Restrictive Slave]*: This is a piece of code taken from our command line, that will pair to a device, and then will apair invisible to all the other devices. It will teach you how to make an slave device discover and undiscoverable.
   # *[http://code.google.com/p/aircable/wiki/ImprovedSlave Improved Slave]*: This is another slave example, it ensures slave profile availability almost 100% of the time.
