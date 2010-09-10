@@ -36,7 +36,7 @@ All this examples are released under the [http://aircable.googlecode.com/svn/tru
 == Miscellaneous == 
   # *[http://code.google.com/p/aircable/wiki/BitwiseOperations Bitwise Operations]*: There are times when you need to do some bitwise operations, for example when you need to calculate a checksum, here we will show some bitwise operations implementations.
   # *[http://www.aircable.net-a.googlepages.com/proximitymarketingstandalonesolution Publisher]*: Proximity Marketing with the AIRcable OS
-  # *[http://code.google.com/p/aircable/source/browse/examples/automatic_rssi_scan/AIRcable.bas Rssi Scanner]*: A piece of code that will start RSSI inquiry when it gets an SPP connection, printing results in the slave channel.
+  # *[http://code.google.com/p/aircable/source/browse/examples/automatic_rssi_scan/AIRcable.bas?spec=svn673&r=671#1 Rssi Scanner]*: A piece of code that will start RSSI inquiry when it gets an SPP connection, printing results in the slave channel.
 
 == Future Examples ==
   # Advanced Uart: This example read from Uart and writte to SPP, via BASIC program
