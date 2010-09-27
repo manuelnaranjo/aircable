@@ -1,24 +1,21 @@
-# -*- coding: utf-8 -*-
-# nokia camera viewer
+'''
+Created on 27/09/2010
 
-import btsocket as socket
+@author: manuel
+'''
+import sys
+sys.path.append("e:\data\python")
+
 import appuifw, key_codes
 import airbotgraphics as graphics
-import e32, e32dbm
-from os import path
-import struct
-import os, sys
-import sysinfo
-import time
+import e32, e32dbm, time
+import asyncore60 as asyncore
+from protocol2 import Camera, Socket
+import btsocket as socket
 import myglobalui as globalui
-
-from protocol import *
-import protocol
 from motor import Robot
 
-TEMP_FILE='E:\\airbot_temp.jpg'
 DATABASE='E:\\airbot.db'
-
 TITLE=u"AIRbot"
 
 def inquiry(title=None):
@@ -31,52 +28,48 @@ def inquiry(title=None):
     #appuifw.app.title = u"Scanning Please Wait..."
   
     def discovered(error, address, name, *args, **kwargs):
-	try:
-	    if not error:
-		address = ':'.join([ address[i*2:(i*2)+2] for i in range(6)]).upper()
-		print "found", address, name
-		items.append(("%s [%s]" %(name, address), address))
-		resolver.next()
-	    else:
-		print "Scan completed", error
-		lock.signal()
-	except Exception, err:
-	    appuifw.note(u'Failed to discover: %s' % err,'error')
-	    lock.signal()
+        try:
+            if not error:
+                address = ':'.join([ address[i*2:(i*2)+2] for i in range(6)]).upper()
+                print "found", address, name
+                items.append(("%s [%s]" %(name, address), address))
+                resolver.next()
+            else:
+                print "Scan completed", error
+                lock.signal()
+        except Exception, err:
+            appuifw.note(u'Failed to discover: %s' % err,'error')
+            lock.signal()
     
     try:
-	resolver=AoResolver()
-	resolver.open()
-	resolver.discover(discovered, None)
+        resolver=AoResolver()
+        resolver.open()
+        resolver.discover(discovered, None)
   
-	# start inquiry
-	lock.wait()
+        # start inquiry
+        lock.wait()
 
-	# if we get here then the inquiry ended
-	resolver.close()
+        # if we get here then the inquiry ended
+        resolver.close()
     except Exception, err:
-	appuifw.note(u'Failed to discover: %s' % err,'error')
-	lock.signal()
+        appuifw.note(u'Failed to discover: %s' % err,'error')
+        lock.signal()
 
     globalui.global_notehide(noteId)
 
     if len(items) == 0:
-	appuifw.app.title = old_title
-	raise Exception("None device found")
+        appuifw.app.title = old_title
+        raise Exception("None device found")
 
     lock = e32.Ao_lock()
-    #Define a function that is called when an item is selected
-    def handle_selection():
-	lock.signal()
- 
-    #Create an instance of Listbox and set it as the application's body
-    lb = appuifw.Listbox(items, handle_selection)
+    lb = appuifw.Listbox(items, lock.signal)
     old_body=appuifw.app.body
-    appuifw.app.body = lb
+    
     appuifw.app.title = title
+    appuifw.app.body = lb
     lock.wait()
-    appuifw.app.title = old_title
     appuifw.app.body=old_body
+    appuifw.app.title = old_title
 
     return items[lb.current()][1]
 
@@ -95,18 +88,18 @@ def connect(address=None):
     sock=socket.socket(socket.AF_BT,socket.SOCK_STREAM)
 
     if not address:
-            print "Discovering..."
-	    addr = inquiry()
-            print "selected", addr
-            address=(addr,1)
+        print "Discovering..."
+        addr = inquiry()
+        print "selected", addr
+        address=(addr,1)
 
     print "Connecting to "+str(address)+"...",
     try:
         sock.connect(address)
     except socket.error, err:
         if err[0]==54: # "connection refused"
-	    appuifw.note(u'Connection refused.','error')
-        raise
+            appuifw.note(u'Connection refused.','error')
+            raise
     print "OK."
     return sock
 
@@ -114,8 +107,8 @@ db=e32dbm.open(DATABASE,"c")
 
 def get_camera_address():
     if 'CAMERA' in db:
-	if appuifw.query(u'Use %s as Camera?' % db['CAMERA'], u'query'):
-	    return db['CAMERA']
+        if appuifw.query(u'Use %s as Camera?' % db['CAMERA'], u'query'):
+            return db['CAMERA']
 
     print "Discovering..."
     addr = inquiry(u"Choose Camera Device")
@@ -127,8 +120,8 @@ def get_camera_address():
 
 def get_robot_address():
     if 'ROBOT' in db:
-	if appuifw.query(u'Use %s as Robot Controller?' % db['ROBOT'], u'query'):
-	    return db['ROBOT']
+        if appuifw.query(u'Use %s as Robot Controller?' % db['ROBOT'], u'query'):
+            return db['ROBOT']
 
     print "Discovering..."
     addr = inquiry(u"Choose Robot Controller")
@@ -138,36 +131,28 @@ def get_robot_address():
     db.sync()
     return addr
 
-camera = None
-robot = None
+def callback(frame):
+    global img, fps, canvas
+    fps+=1
+    img=graphics.Image.from_buffer(frame)
+    canvas.blit(img)
 
-def Connect(camera, robot, camera_address=None, robot_address=None):
-    if not camera_address:
-	    camera_address=get_camera_address()
-    if not robot_address:
-	    robot_address=get_robot_address()
-    db.sync()
-
-    try:
-	if not camera:
-	    camera = connect( (camera_address, 1)  )
-	if not robot:
-	    a = connect( (robot_address, 1)  )
-	    robot = Robot( a )
-    except Exception, err:
-	appuifw.note(u'Failed to connect: %s' % str(err), 'error')
-	sys.exit(0)
-    return camera, robot
-
-def key_pressed(event):
-    if event['type'] == appuifw.EEventKeyUp:
-	if robot:
-	  robot.stop()
-
+def err_callback(camera):
+    global running
+    print "got error", camera.state
+    running = False
+    appuifw.app.set_exit()
 
 def handle_redraw(rect):
-    #global canvas, img
+    global img, canvas
     canvas.blit(img)
+
+def key_pressed(event):
+    print "key_pressed", event
+    if event['type'] == appuifw.EEventKeyUp:
+        global robot
+        if robot:
+            robot.stop()
 
 # make sure we keep the backlight on
 t = e32.Ao_timer()
@@ -177,68 +162,79 @@ def light_on():
     t.after(30, light_on)
 light_on()
 
-#appuifw.app.orientation = 'landscape'
-appuifw.app.screen = 'normal'
-appuifw.app.title=TITLE
+def run():
+    global robot, camera, timer, canvas
+    robot = None
+    camera = None
 
-camera, robot = Connect(camera, robot)
+    camera_address=get_camera_address()
+    robot_address=get_robot_address()
 
-# key handlers
-def forward():
-    if robot: 
-      robot.forward()
+    camera = Camera(Socket(), callback=callback, err_callback=err_callback)
+    camera.connect((camera_address, 1))
 
-def backward():
-    if robot:
-      robot.backward()
+    robot = Robot(connect((robot_address,1)))
+    robot.forward()
+    e32.ao_sleep(1)
+    robot.stop()
+    e32.ao_sleep(1)
+    robot.backward()
+    e32.ao_sleep(1)
+    robot.stop()
 
-def left():
-    if robot:
-      robot.left()
+    appuifw.app.orientation = 'landscape'
+    appuifw.app.screen = 'normal'
+    appuifw.app.title=TITLE
+    
+    # create canvas
+    canvas = appuifw.Canvas(redraw_callback=handle_redraw, event_callback=key_pressed)
 
-def right():
-    if robot:
-      robot.right()
+    # bind keys
+    canvas.bind(key_codes.EKeyUpArrow, robot.forward)
+    canvas.bind(key_codes.EKeyDownArrow, robot.backward)
+    canvas.bind(key_codes.EKeyLeftArrow, robot.left)
+    canvas.bind(key_codes.EKeyRightArrow, robot.right)
 
-# img buffer
+    appuifw.app.screen = 'full'
+    appuifw.app.body=canvas
+
+    global running
+    running = True
+
+    appuifw.app.exit_key_handler=quit
+
+    # fps timer
+    timer = e32.Ao_timer()
+    #timer.after(1.0, timer_callback)
+
+    asyncore.loop()
+    print "loop completed"
+    appuifw.app.set_exit()    
+    robot.sock.close()
+    camera.close()
+
+
+global img, fps, start
 img = graphics.Image.new((480, 360))
-
-# create canvas
-canvas = appuifw.Canvas(redraw_callback=handle_redraw, event_callback=key_pressed)
-
-# bind keys
-canvas.bind(key_codes.EKeyUpArrow, forward)
-canvas.bind(key_codes.EKeyDownArrow, backward)
-canvas.bind(key_codes.EKeyLeftArrow, left)
-canvas.bind(key_codes.EKeyRightArrow, right)
-
-appuifw.app.screen = 'full'
-appuifw.app.body=canvas
-
-running = True
+start = time.time()
+fps = 0
 
 def quit():
-    global running
+    global running, robot, camera
     running = False
-    os.remove(TEMP_FILE)
-    send_command(camera, 'COMMAND_ECHO')
-    camera.close()
-    robot.sock.close()
+    if camera:
+        camera.close()
+    if robot:
+        robot.sock.close()
     appuifw.app.set_exit()
 
-appuifw.app.exit_key_handler=quit
+def timer_callback(arg=None):
+    global fps, start, timer, canvas
+    timer.after(1.0, timer_callback)
+    canvas.text((0,100), u"%s fps" % (fps/(time.time()-start)))
+    start=time.time()
+    fps=0
 
-setup(camera, size="QQVGA")
-
-camera_stream=stream_mode(camera)
-while running:
-    p=None
-    p=camera_stream.next()
+if __name__=='__main__':
+    run()
     
-    try:
-	img=graphics.Image.from_buffer(p)
-	e32.ao_yield()
-    	canvas.blit(img)
-    except Exception, err:
-	canvas.text((0,100), u'error: %s %s' % (str(err), time.time()))
-    e32.ao_yield()

@@ -3,7 +3,6 @@ class Robot(object):
 
     def __init__(self, sock):
         self.sock = sock
-        self.sock.setblocking(False)
 
     def M0_stop(self):
         return '\x88\x00' # M0 stop
@@ -23,19 +22,41 @@ class Robot(object):
     def M1_backward(self):
         return '\x8F\x7f'
 
+    def __send_command(self, c1, c2):
+        self.sock.send('%s%s' % (c1, c2))
+
     def stop(self):
-        self.sock.send(self.M0_stop()+self.M1_stop())
+        self.__send_command(self.M0_stop(), self.M1_stop())
 
     def forward(self):
-        self.sock.send(self.M0_forward()+self.M1_forward())
+        self.__send_command(self.M0_forward(), self.M1_forward())
 
     def backward(self):
-        self.sock.send(self.M0_backward()+self.M1_backward())
+        self.__send_command(self.M0_backward(), self.M1_backward())
 
     def right(self):
-        self.sock.send(self.M1_forward()+self.M0_backward())
+        self.__send_command(self.M1_forward(), self.M0_backward())
 
     def left(self):
-        self.sock.send(self.M0_forward()+self.M1_backward())
+        self.__send_command(self.M0_forward(), self.M1_backward())
 
+def test(target):
+    import btsocket as socket
+    import e32
+    # Bluetooth connection
+    sock=socket.socket(socket.AF_BT,socket.SOCK_STREAM)
 
+    print "Connecting to "+str(target)+"...",
+    sock.connect((target, 1))
+    print "OK."
+    r = Robot(sock)
+    r.forward()
+    e32.ao_sleep(2)
+    r.backward()
+    e32.ao_sleep(2)
+    r.left()
+    e32.ao_sleep(2)
+    r.right()
+    e32.ao_sleep(2)
+    r.stop()
+    return r
